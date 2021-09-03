@@ -21,7 +21,7 @@ import java.util.List;
 public class ComprehensiveGenerator {
 
     private static String Delimiter = "|+|";
-    private static Long Number_Of_Generations=10L;
+    private static Long Number_Of_Generations=1000L;
     private static String File_Name= "a_pdata_t03_agmt_fea_rela_h_20210709_000_000.dat";
 
     public static void main(String[] args) throws IOException {
@@ -44,6 +44,7 @@ public class ComprehensiveGenerator {
         for (Object o : list) {
             stringBuilder.append(o.toString()).append(Delimiter);
         }
+
         return stringBuilder.append("\n").toString();
     }
 }
