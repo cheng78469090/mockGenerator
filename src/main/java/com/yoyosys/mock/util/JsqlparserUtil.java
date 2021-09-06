@@ -1,4 +1,4 @@
-package com.yoyosys.mock;
+package com.yoyosys.mock.util;
 
 /**
  * @Author: yjj
@@ -19,6 +19,7 @@ import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.util.TablesNamesFinder;
 import org.apache.commons.collections4.CollectionUtils;
 
+import javax.sound.sampled.Line;
 import java.io.StringReader;
 import java.util.HashSet;
 import java.util.List;
@@ -141,6 +142,7 @@ public class JsqlparserUtil {
     public void parserInExpression(Expression expression) {
         Expression leftExpression = ((InExpression) expression).getLeftExpression();
         if (leftExpression instanceof Column) {
+            System.out.println(leftExpression);
             columnName = ((Column) leftExpression).getColumnName();
             set.add(columnName);
         }
@@ -154,6 +156,7 @@ public class JsqlparserUtil {
     public void parserIsNullExpression(Expression expression) {
         Expression leftExpression = ((IsNullExpression) expression).getLeftExpression();
         if (leftExpression instanceof Column) {
+            System.out.println(leftExpression);
             columnName = ((Column) leftExpression).getColumnName();
             set.add(columnName);
         }
@@ -162,6 +165,7 @@ public class JsqlparserUtil {
     public void parserBinaryExpression(Expression expression) {
         Expression leftExpression = ((BinaryExpression) expression).getLeftExpression();
         if (leftExpression instanceof Column) {
+            System.out.println(leftExpression);
             columnName = ((Column) leftExpression).getColumnName();
             set.add(columnName);
         }
@@ -174,7 +178,7 @@ public class JsqlparserUtil {
      * @throws JSQLParserException
      */
     public static void main(String[] args) throws JSQLParserException {
-        String sql = "select * from tt where (name like '王%' or sex = 1) and (name like '*美' and age in (19,20,21)) or nation != '汉'";
+        String sql = "select * from tt where (name like '*美' and age in (19,20,21)) and  (name like '王%' or sex = 1) or nation != '汉'";
         String tableName = getTableName(sql);
         System.out.println("tableName:" + tableName);
         if (null != tableName) {
