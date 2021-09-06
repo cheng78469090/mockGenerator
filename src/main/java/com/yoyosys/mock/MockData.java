@@ -45,7 +45,7 @@ public class MockData {
                     break;
             }
             List<Column> columns = mockData.getColumn();
-            List<Map<String,String>> recordList = null;
+            List<List<String>> recordList = null;
             //是否上传数据文件：读取数据文件/mockdata/data/a_pdata_t03_agmt_fea_rela_h_20210709_000_000.dat
             if (getDataFile()){
                 //生成模拟数据集
