@@ -3,10 +3,16 @@ package com.yoyosys.mock;
 import com.yoyosys.mock.pojo.Column;
 import com.yoyosys.mock.pojo.DataSourceConfig;
 import com.yoyosys.mock.pojo.DsConfig;
-import com.yoyosys.mock.pojo.DsDlpMockdataConfig;
+import com.yoyosys.mock.pojo.DsDlpMockDataConfig;
+import org.apache.commons.lang3.StringUtils;
 
-import java.util.List;
-import java.util.Map;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.sql.*;
+import java.util.*;
+import java.util.Date;
 
 
 /**
@@ -21,11 +27,11 @@ public class MockData {
         //②　	读取模拟数据配置文件（dlp_yoyo_mockdata.config）：数据库连接信息
         DataSourceConfig dataSourceConfig = mockData.getDataSourceConfig();
         //读取配置表中的配置信息：查询配置表中与操作人匹配且状态为‘0’（未执行）的数据行存放到配置类中
-        List<DsDlpMockdataConfig> dsDlpMockDataConfigs = mockData.getDsDlpMockDataConfig(dataSourceConfig.getOperator());
+        List<DsDlpMockDataConfig> dsDlpMockDataConfigs = mockData.getDsDlpMockDataConfig(dataSourceConfig);
 
-        for (DsDlpMockdataConfig dsDlpMockDataConfig : dsDlpMockDataConfigs) {
+        for (DsDlpMockDataConfig dsDlpMockDataConfig : dsDlpMockDataConfigs) {
             //读取表结构：获取配置类中的表名，根据表名去DS_CONFIG中查找数据加载场景(LOAD_SCENE)
-            DsConfig dsConfig = mockData.getDsConfig(dsDlpMockDataConfig.getHive_name());
+            DsConfig dsConfig = mockData.getDsConfig(dataSourceConfig,dsDlpMockDataConfig.getHive_name());
 
             //todo: 王震宣  解析模板文件
             String modeFile = "";
@@ -93,12 +99,44 @@ public class MockData {
     }
 
     /*
+    读取配置文件
       *todo:宋金城
       *输入：
       *return: DataSourceConfig
      */
     public DataSourceConfig getDataSourceConfig() {
-         return null;
+        DataSourceConfig dataSourceConfig = null;
+        //1.获取当前jar包路径
+        File rootPath = new File(this.getClass().getResource("/").getPath());//此路径为当前项目路径
+        System.out.println("当前环境根节点目录"+rootPath);
+        //2.拼接路径
+        String path = rootPath+"\\conf\\dlp_yoyo_mockdata.config";
+        System.out.println(path);
+        String configPath="D:\\work_space\\mock_data\\conf\\dlp_yoyo_mockdata.config";
+        //3.获取配置文件信息
+        try {
+            InputStream in = new FileInputStream(path);
+            Properties p = new Properties();
+            p.load(in);
+            //4.获取配置文件信息
+            String oracle_driver=p.getProperty("Oracle_driver");
+            String oracle_url=p.getProperty("Oracle_url");
+            String oracle_user=p.getProperty("Oracle_user");
+            String oracle_pasd=p.getProperty("Oracle_password");
+            String Operator=p.getProperty("Operator");
+            String Timestamp=p.getProperty("Timestamp");
+            dataSourceConfig = new DataSourceConfig();
+            dataSourceConfig.setOracle_driver(oracle_driver);
+            dataSourceConfig.setOracle_url(oracle_url);
+            dataSourceConfig.setOracle_user(oracle_user);
+            dataSourceConfig.setOracle_password(oracle_pasd);
+            dataSourceConfig.setOperator(Operator);
+            dataSourceConfig.setTimestamp(Timestamp);
+            return dataSourceConfig;
+        }catch (IOException io){
+            System.out.println("读取配置文件异常"+io);
+            return null;
+        }
     }
 
     /**
@@ -106,16 +144,168 @@ public class MockData {
      * param: operator
      * return: DsDlpMockDataConfig
      */
-    public List<DsDlpMockdataConfig> getDsDlpMockDataConfig(String operator) {
-        return null;
-    }
+    public List<DsDlpMockDataConfig> getDsDlpMockDataConfig(DataSourceConfig dataSourceConfig) {
+        List<DsDlpMockDataConfig> dsDlpMockDataConfigList=new ArrayList<>();
+        if (dataSourceConfig != null) {
+            Connection connection = null;
+            PreparedStatement mockDataConfigPs = null;
+            ResultSet mockDataConfigResultSet = null;
+            try {
+                connection =  getConnection(dataSourceConfig);
+                String mockDataConfigSql="select * from DS_DLP_MOCKDATA_CONFIG where OPERATOR = ? and STATE = 0";
+                mockDataConfigPs=connection.prepareStatement(mockDataConfigSql);
+                mockDataConfigPs.setString(1,dataSourceConfig.getOperator());
+                mockDataConfigResultSet=mockDataConfigPs.executeQuery();
 
+                while(mockDataConfigResultSet.next()){
+                    DsDlpMockDataConfig dsDlpMockDataConfig = new DsDlpMockDataConfig();
+                    dsDlpMockDataConfig.setId(mockDataConfigResultSet.getInt("ID"));
+
+                    dsDlpMockDataConfig.setHive_name(mockDataConfigResultSet.getString("HIVE_NAME"));
+                    // String CONDITIONS = mockDataConfigResultSet.getString("CONDITIONS");
+                    dsDlpMockDataConfig.setConditions(mockDataConfigResultSet.getString("CONDITIONS"));
+                    // int  RECORDS = mockDataConfigResultSet.getInt("RECORDS");
+                    dsDlpMockDataConfig.setRecords(mockDataConfigResultSet.getInt("RECORDS"));
+                    // Date START_DATE = mockDataConfigResultSet.getDate("START_DATE");
+                    dsDlpMockDataConfig.setStart_date(mockDataConfigResultSet.getDate("START_DATE"));
+                    //Date END_DATE = mockDataConfigResultSet.getDate("END_DATE");
+                    dsDlpMockDataConfig.setEnd_date(mockDataConfigResultSet.getDate("END_DATE"));
+                    //String INPUT_DIR = mockDataConfigResultSet.getString("INPUT_DIR");
+                    dsDlpMockDataConfig.setInput_dir( mockDataConfigResultSet.getString("INPUT_DIR"));
+                    // Date ONLINE_DATE = mockDataConfigResultSet.getDate("ONLINE_DATE");
+                    dsDlpMockDataConfig.setOnline_date(mockDataConfigResultSet.getDate("ONLINE_DATE"));
+                    //String OPERATOR = mockDataConfigResultSet.getString("OPERATOR");
+                    dsDlpMockDataConfig.setOperator( mockDataConfigResultSet.getString("OPERATOR"));
+                    //int  STATE = mockDataConfigResultSet.getInt("STATE");
+                    dsDlpMockDataConfig.setState( mockDataConfigResultSet.getInt("STATE"));
+                    //Date CREATE_TIME = mockDataConfigResultSet.getDate("CREATE_TIME");
+                    dsDlpMockDataConfig.setCreate_time(mockDataConfigResultSet.getDate("CREATE_TIME"));
+                    //String  DS_NAME = mockDataConfigResultSet.getString("DS_NAME");
+                    dsDlpMockDataConfig.setDs_name(mockDataConfigResultSet.getString("DS_NAME"));
+                    //String  NAME_EN = mockDataConfigResultSet.getString("NAME_EN");
+                    dsDlpMockDataConfig.setName_en(mockDataConfigResultSet.getString("NAME_EN"));
+                    //放入到集合当中
+                    dsDlpMockDataConfigList.add(dsDlpMockDataConfig);
+
+                }
+            } catch (SQLException e4){
+                System.out.println("获取数据库连接失败"+e4);
+            }finally {
+                close(connection,mockDataConfigPs,mockDataConfigResultSet);
+                System.out.println("关闭资源成功");
+            }
+        }
+
+        return dsDlpMockDataConfigList;
+    }
     /**
      * todo: 宋金城
      * param:
      * return: DsConfig
      */
-    public DsConfig getDsConfig(String table_name) {
+    public DsConfig getDsConfig(DataSourceConfig dataSourceConfig , String table_name) {
+        if (table_name!=null && table_name!=""){
+            Connection connection = null;
+            PreparedStatement mockDataConfigPs = null;
+            ResultSet mockDataConfigResultSet = null;
+            DsConfig dsConfig=null;
+            try {
+                connection = getConnection(dataSourceConfig);
+                String dsCOnfigSql = "select LOAD_SCENE from DS_CONFIG  where DS_IDENTIFY = ?";
+                PreparedStatement dsConfigPs = connection.prepareStatement(dsCOnfigSql);
+                dsConfigPs.setString(1,table_name);
+                //todo:获取数据加载场景
+                ResultSet dsConfigResultSet = dsConfigPs.executeQuery();
+                dsConfig =new DsConfig();
+                while (dsConfigResultSet.next()){
+                    dsConfig.setLoadScene(dsConfigResultSet.getString("LOAD_SCENE"));
+                }
+                return dsConfig;
+            }catch (SQLException e4){
+                System.out.println(e4);
+                return dsConfig;
+            }finally {
+                close(connection,mockDataConfigPs,mockDataConfigResultSet);
+                System.out.println("关闭资源成功");
+            }
+        }
         return null;
     }
+
+    /**
+     * todo: 宋金城 获取数据库连接
+     * @param dataSourceConfig
+     * @return
+     */
+    public static Connection getConnection(DataSourceConfig dataSourceConfig) {
+        Connection connection = null;
+
+        if (dataSourceConfig != null) {
+            try {
+                ////
+                //1.加载驱动
+
+                System.out.println("加载驱动");
+                Class.forName("oracle.jdbc.driver.OracleDriver").newInstance();
+                //2.获取连接
+                System.out.println("获取连接");
+                connection = DriverManager.getConnection(dataSourceConfig.getOracle_url(),dataSourceConfig.getOracle_user(), dataSourceConfig.getOracle_password());
+                System.out.println("获取连接成功");
+            }catch(InstantiationException e1)
+            {
+                e1.printStackTrace();
+                System.out.println("实例异常"+e1);
+
+            } catch(IllegalAccessException e2)
+            {
+                e2.printStackTrace();
+                System.out.println("访问异常"+e2);
+            } catch(ClassNotFoundException e3)
+            {
+                e3.printStackTrace();
+                System.out.println("驱动类找不到"+e3);
+            }catch (SQLException e4){
+                e4.printStackTrace();
+                System.out.println("获取数据库连接失败"+e4);
+            }
+        }
+
+        return connection;
+    }
+
+    /**
+     * todo:宋金城  数据库释放资源
+     * @param conn
+     * @param ps
+     * @param rs
+     */
+    public static void close(Connection conn, PreparedStatement ps, ResultSet rs){
+        try {
+            if(rs!=null){
+                rs.close();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            if(ps!=null){
+                ps.close();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            if(conn!=null){
+                conn.close();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+
+
 }
