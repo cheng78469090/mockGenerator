@@ -5,4 +5,5 @@ package com.yoyosys.mock;
  * Date: 2021/8/25
  */
 public enum RandomTypeEnum {
+
 }
