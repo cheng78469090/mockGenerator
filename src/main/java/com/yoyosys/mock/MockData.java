@@ -3,7 +3,8 @@ package com.yoyosys.mock;
 import com.yoyosys.mock.pojo.Column;
 import com.yoyosys.mock.pojo.DataSourceConfig;
 import com.yoyosys.mock.pojo.DsConfig;
-import com.yoyosys.mock.pojo.DsDlpMockdataConfig;
+import com.yoyosys.mock.pojo.DsDlpMockDataConfig;
+
 
 import java.io.*;
 import java.sql.*;
@@ -38,6 +39,7 @@ public class MockData {
             List<Column> columnList = mockData.getColumn();
             //模拟数据集
             Map<Column, List> resultMap = new LinkedHashMap<>();
+            String hiveName = dsDlpMockDataConfig.getHive_name();
 
             StringBuilder modeFile = new StringBuilder("/user/bdap/bdap-dataload/template");//增量文件，文件路径
             StringBuilder modeFile1 = new StringBuilder("/user/bdap/bdap-dataload/template");//存量文件，用来确定分区字段
@@ -95,7 +97,11 @@ public class MockData {
 
             } else {
                 //没有数据文件,获取表主键
-                List<String> primaryKeyList = mockData.getPrimayKey();
+                try {
+                    List<String> primaryKeyList = mockData.getPrimayKey();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
 
                 //生成模拟数据集
 
