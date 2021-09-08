@@ -5,7 +5,6 @@ import java.util.Date;
 
 public class DsDlpMockDataConfig implements Serializable {
 
-
     private static final long serialVersionUID = 4107959305620703728L;
 
     private int id;
