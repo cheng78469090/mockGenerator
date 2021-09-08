@@ -127,6 +127,23 @@ public class MockData {
             *
             * todo:王锦鹏
             * */
+            String filePath = new MockData().getClass().getResource("/").getPath()+"\\result";
+            Date start_date = new DsDlpMockDataConfig().getStart_date();
+            String hive_name = new DsDlpMockDataConfig().getHive_name();
+            String fileName=filePath+"/"+"i_pdata"+hive_name+"_"+start_date+"000_000.dat";
+            try {
+                OutPutFile.generateDatFile(fileName, recordList);
+                OutPutFile.compressFile(fileName, filePath);
+                OutPutFile.deleteFile(fileName);
+                OutPutFile.generateReadyFile(fileName, filePath);
+                OutPutFile.update();
+
+            } catch (IOException e) {
+                e.printStackTrace();
+
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
 
         }
 
