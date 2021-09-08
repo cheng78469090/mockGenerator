@@ -1,8 +1,9 @@
 package com.yoyosys.mock.pojo;
 
 import java.io.Serializable;
+import java.util.Date;
 
-public class DsDlpMockdataConfig implements Serializable {
+public class DsDlpMockDataConfig implements Serializable {
 
     private static final long serialVersionUID = 4107959305620703728L;
 
@@ -10,13 +11,13 @@ public class DsDlpMockdataConfig implements Serializable {
     private String hive_name;
     private String conditions;
     private int records;
-    private String start_date;
-    private String end_date;
+    private Date start_date;
+    private Date end_date;
     private String input_dir;
-    private String online_date;
+    private Date online_date;
     private String operator;
     private int state;
-    private String create_time;
+    private Date create_time;
     private String ds_name;
     private String name_en;
 
@@ -71,19 +72,19 @@ public class DsDlpMockdataConfig implements Serializable {
         this.records = records;
     }
 
-    public String getStart_date() {
+    public Date getStart_date() {
         return start_date;
     }
 
-    public void setStart_date(String start_date) {
+    public void setStart_date(Date start_date) {
         this.start_date = start_date;
     }
 
-    public String getEnd_date() {
+    public Date getEnd_date() {
         return end_date;
     }
 
-    public void setEnd_date(String end_date) {
+    public void setEnd_date(Date end_date) {
         this.end_date = end_date;
     }
 
@@ -95,11 +96,11 @@ public class DsDlpMockdataConfig implements Serializable {
         this.input_dir = input_dir;
     }
 
-    public String getOnline_date() {
+    public Date getOnline_date() {
         return online_date;
     }
 
-    public void setOnline_date(String online_date) {
+    public void setOnline_date(Date online_date) {
         this.online_date = online_date;
     }
 
@@ -119,11 +120,11 @@ public class DsDlpMockdataConfig implements Serializable {
         this.state = state;
     }
 
-    public String getCreate_time() {
+    public Date getCreate_time() {
         return create_time;
     }
 
-    public void setCreate_time(String create_time) {
+    public void setCreate_time(Date create_time) {
         this.create_time = create_time;
     }
 
