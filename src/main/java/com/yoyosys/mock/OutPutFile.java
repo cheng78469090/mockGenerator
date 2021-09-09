@@ -1,6 +1,7 @@
 package com.yoyosys.mock;
 
 import com.yoyosys.mock.pojo.Column;
+import com.yoyosys.mock.pojo.DsDlpMockDataConfig;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -12,6 +13,8 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.zip.ZipEntry;
@@ -186,24 +189,24 @@ public class OutPutFile {
      */
     public static void update() throws SQLException {
         //连接对象
-//        Connection conn = MockData.getConnection(new OutPutFile().getDataSourceConfig());
-//        PreparedStatement ps = null;
-//        String OPERATOR = new DsDlpMockDataConfig().getOperator();
-//        String HIVE_NAME = new DsDlpMockDataConfig().getHive_name();
-//        String sql = "update DS_DLP_MOCKDATA_CONFIG set STATE = 1 where STATE = 0 and OPERATOR= ? and HIVE_NAME=?";
-//        try {
-//            ps = conn.prepareStatement(sql);
-//            ps.executeUpdate();
-//            System.out.println("数据更新成功");
-//             ps.setString(1,OPERATOR);
-//             ps.setString(2,HIVE_NAME);
-//        } catch (SQLException e) {
-//            e.printStackTrace();
-//            System.out.println("更新失败");
-//        } finally {
-//            ps.close();
-//            conn.close();
-//        }
+       Connection conn = MockData.getConnection(new MockData().getDataSourceConfig());
+       PreparedStatement ps = null;
+       String OPERATOR = new DsDlpMockDataConfig().getOperator();
+       String HIVE_NAME = new DsDlpMockDataConfig().getHive_name();
+       String sql = "update DS_DLP_MOCKDATA_CONFIG set STATE = 1 where STATE = 0 and OPERATOR= ? and HIVE_NAME=?";
+       try {
+           ps = conn.prepareStatement(sql);
+           ps.executeUpdate();
+           System.out.println("数据更新成功");
+            ps.setString(1,OPERATOR);
+            ps.setString(2,HIVE_NAME);
+       } catch (SQLException e) {
+           e.printStackTrace();
+           System.out.println("更新失败");
+       } finally {
+           ps.close();
+           conn.close();
+       }
     }
 
 
