@@ -4,7 +4,12 @@ import com.yoyosys.mock.pojo.Column;
 import com.yoyosys.mock.pojo.DataSourceConfig;
 import com.yoyosys.mock.pojo.DsConfig;
 import com.yoyosys.mock.pojo.DsDlpMockdataConfig;
+import com.yoyosys.mock.util.JsqlparserUtil;
+import com.yoyosys.mock.util.ModifyDataUtil;
+import net.sf.jsqlparser.JSQLParserException;
+import net.sf.jsqlparser.expression.Expression;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -23,6 +28,7 @@ public class MockData {
         //读取配置表中的配置信息：查询配置表中与操作人匹配且状态为‘0’（未执行）的数据行存放到配置类中
         List<DsDlpMockdataConfig> dsDlpMockDataConfigs = mockData.getDsDlpMockDataConfig(dataSourceConfig.getOperator());
 
+        ModifyDataUtil modifyDataUtil = new ModifyDataUtil();
         for (DsDlpMockdataConfig dsDlpMockDataConfig : dsDlpMockDataConfigs) {
             //读取表结构：获取配置类中的表名，根据表名去DS_CONFIG中查找数据加载场景(LOAD_SCENE)
             DsConfig dsConfig = mockData.getDsConfig(dsDlpMockDataConfig.getHive_name());
@@ -45,7 +51,7 @@ public class MockData {
                     break;
             }
             List<Column> columns = mockData.getColumn();
-            List<List<String>> recordList = null;
+            LinkedHashMap<Column,List<String>> recordList = null;
             //是否上传数据文件：读取数据文件/mockdata/data/a_pdata_t03_agmt_fea_rela_h_20210709_000_000.dat
             if (getDataFile()){
                 //生成模拟数据集
@@ -67,6 +73,13 @@ public class MockData {
             * todo:易建军、王燚
             *  return : list<map>
             * */
+
+            try {
+                List<Expression> sqlParser = JsqlparserUtil.getSQLParser(dsDlpMockDataConfig.getConditions());
+                LinkedHashMap<Column, List<String>> columnListMap = modifyDataUtil.modifyData(recordList, columns, sqlParser);
+            } catch (JSQLParserException e) {
+                e.printStackTrace();
+            }
 
             /*
             * 输出
@@ -92,10 +105,31 @@ public class MockData {
         return null;
     }
 
-    /*
-      *todo:宋金城
-      *输入：
-      *return: DataSourceConfig
+    /**
+     *  获取where条件
+     * @param sql
+     * @return
+     * @throws JSQLParserException
+     */
+    public List<Expression> getSQLParser(String sql) throws JSQLParserException {
+        List<Expression> sqlParser = JsqlparserUtil.getSQLParser(sql);
+        return sqlParser;
+    }
+
+    /**
+     * 修改数据
+     * @param conditions
+     * @param data
+     * @return
+     */
+    public List<List<String>> modifyData(List<Expression> conditions,List<List<String>> data){
+        return null;
+    }
+
+    /**
+     *todo:宋金城
+     *输入：
+     *return: DataSourceConfig
      */
     public DataSourceConfig getDataSourceConfig() {
          return null;

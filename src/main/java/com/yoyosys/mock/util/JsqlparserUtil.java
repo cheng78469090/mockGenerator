@@ -9,6 +9,7 @@ import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.BinaryExpression;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.Parenthesis;
+import net.sf.jsqlparser.expression.operators.relational.Between;
 import net.sf.jsqlparser.expression.operators.relational.InExpression;
 import net.sf.jsqlparser.expression.operators.relational.IsNullExpression;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
@@ -21,9 +22,7 @@ import org.apache.commons.collections4.CollectionUtils;
 
 import javax.sound.sampled.Line;
 import java.io.StringReader;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * 基于Jsqlparser的sql解析功能，并获取表名和where后面的条件
@@ -31,7 +30,7 @@ import java.util.Set;
 public class JsqlparserUtil {
 
     //装载where后面的字段名称并去重
-    private Set<String> set = new HashSet<>();
+    private List<Expression> list = new ArrayList<>();
     //解析出来的单个条件名称
     private String columnName = null;
 
@@ -67,31 +66,29 @@ public class JsqlparserUtil {
      * @return
      * @throws JSQLParserException
      */
-    public String getCloumnNames(String sql) throws JSQLParserException {
-        String columnNames = null;
-        String allColumnNames = null;
+    public List<Expression> getCloumnNames(String sql) throws JSQLParserException {
         StringBuffer stringBuffer = new StringBuffer();
         stringBuffer.append(sql);
+        List<Expression> expressionList = new ArrayList<>();
         Statement statement = CCJSqlParserUtil.parse(new StringReader(stringBuffer.toString()));
         if (statement instanceof Select) {
             Select istatement = (Select) statement;
             Expression where = ((PlainSelect) istatement.getSelectBody()).getWhere();
             if (null != where) {
-                Set<String> sets = getParser(where);
-                StringBuffer st = new StringBuffer();
-                sets.stream().forEach(set -> {
-                    st.append(set + ",");
-                });
-                columnNames = st.toString();
+                try {
+                    List<Expression> list = getParser(where);
+                    expressionList.addAll(list);
+                }catch (Exception e){
+
+                }finally {
+                    list.clear();
+                }
             }
         }
-        if (null != columnNames && columnNames != "" && !columnNames.equals("")) {
-            allColumnNames = columnNames.substring(0, columnNames.length() - 1);
-        }
-        return allColumnNames;
+        return expressionList;
     }
 
-    private Set<String> getParser(Expression expression) {
+    private List<Expression> getParser(Expression expression) {
         //初始化接受获得的字段信息
         if (expression instanceof BinaryExpression) {
             //获得左边表达式
@@ -99,22 +96,24 @@ public class JsqlparserUtil {
             //获得左边表达式为Column对象，则直接获得列名
             if (leftExpression instanceof Column) {
                 columnName = ((Column) leftExpression).getColumnName();
-                set.add(columnName);
+                list.add(expression);
+            } else if (leftExpression instanceof Between) {
+                list.add(leftExpression);
             } else if (leftExpression instanceof InExpression) {
                 this.parserInExpression(leftExpression);
             } else if (leftExpression instanceof IsNullExpression) {
                 this.parserIsNullExpression(leftExpression);
             } else if (leftExpression instanceof BinaryExpression) {//递归调用
                 getParser(leftExpression);
-            } else if (expression instanceof Parenthesis) {//递归调用
-                Expression expression1 = ((Parenthesis) expression).getExpression();
+            } else if (leftExpression instanceof Parenthesis) {//递归调用
+                Expression expression1 = ((Parenthesis) leftExpression).getExpression();
                 getParser(expression1);
             }
 
             //获得右边表达式，并分解
             Expression rightExpression = ((BinaryExpression) expression).getRightExpression();
             if (rightExpression instanceof BinaryExpression) {
-                this.parserBinaryExpression(rightExpression);
+                getParser(rightExpression);
             } else if (rightExpression instanceof InExpression) {
                 this.parserInExpression(rightExpression);
             } else if (rightExpression instanceof IsNullExpression) {
@@ -123,6 +122,8 @@ public class JsqlparserUtil {
                 Expression expression1 = ((Parenthesis) rightExpression).getExpression();
                 getParser(expression1);
             }
+        } else if (expression instanceof Between) {
+            list.add(expression);
         } else if (expression instanceof InExpression) {
             this.parserInExpression(expression);
         } else if (expression instanceof IsNullExpression) {
@@ -131,7 +132,7 @@ public class JsqlparserUtil {
             Expression expression1 = ((Parenthesis) expression).getExpression();
             getParser(expression1);
         }
-        return set;
+        return list;
     }
 
     /**
@@ -142,9 +143,7 @@ public class JsqlparserUtil {
     public void parserInExpression(Expression expression) {
         Expression leftExpression = ((InExpression) expression).getLeftExpression();
         if (leftExpression instanceof Column) {
-            System.out.println(leftExpression);
-            columnName = ((Column) leftExpression).getColumnName();
-            set.add(columnName);
+            list.add(expression);
         }
     }
 
@@ -156,35 +155,39 @@ public class JsqlparserUtil {
     public void parserIsNullExpression(Expression expression) {
         Expression leftExpression = ((IsNullExpression) expression).getLeftExpression();
         if (leftExpression instanceof Column) {
-            System.out.println(leftExpression);
-            columnName = ((Column) leftExpression).getColumnName();
-            set.add(columnName);
+            list.add(expression);
         }
     }
 
     public void parserBinaryExpression(Expression expression) {
         Expression leftExpression = ((BinaryExpression) expression).getLeftExpression();
         if (leftExpression instanceof Column) {
-            System.out.println(leftExpression);
-            columnName = ((Column) leftExpression).getColumnName();
-            set.add(columnName);
+            list.add(expression);
         }
     }
 
     /**
      * 测试类
-     *
-     * @param args
      * @throws JSQLParserException
      */
     public static void main(String[] args) throws JSQLParserException {
-        String sql = "select * from tt where (name like '*美' and age in (19,20,21)) and  (name like '王%' or sex = 1) or nation != '汉'";
+        String sql = "select * from tt where ss between 1 and 2";
         String tableName = getTableName(sql);
         System.out.println("tableName:" + tableName);
         if (null != tableName) {
             JsqlparserUtil jsqlparserUtil = new JsqlparserUtil();
-            String cloumnNames = jsqlparserUtil.getCloumnNames(sql);
-            System.out.println("cloumnNames:" + cloumnNames);
+            List<Expression> cloumnNames = jsqlparserUtil.getCloumnNames(sql);
+            System.out.println(cloumnNames);
         }
+    }
+
+    /**
+     * @param sql
+     * @return
+     * @throws JSQLParserException
+     */
+    public static List<Expression> getSQLParser(String sql) throws JSQLParserException {
+        JsqlparserUtil jsqlparserUtil = new JsqlparserUtil();
+        return jsqlparserUtil.getCloumnNames(sql);
     }
 }
