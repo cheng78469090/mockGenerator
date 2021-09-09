@@ -4,21 +4,12 @@ package com.yoyosys.mock.pojo;
  * @Author: yjj
  * Date: 2021/9/3
  */
+
 public class Column {
     private String fieldName;
     private String cType;
     private String cLength;
     private boolean primaryKey;
-
-    public Column() {
-    }
-
-    public Column(String fieldName, String cType, String cLength, boolean primaryKey) {
-        this.fieldName = fieldName;
-        this.cType = cType;
-        this.cLength = cLength;
-        this.primaryKey = primaryKey;
-    }
 
     @Override
     public String toString() {
@@ -61,4 +52,15 @@ public class Column {
     public void setPrimaryKey(boolean primaryKey) {
         this.primaryKey = primaryKey;
     }
+
+    public Column() {
+    }
+
+    public Column(String fieldName, String cType, String cLength, boolean primaryKey) {
+        this.fieldName = fieldName;
+        this.cType = cType;
+        this.cLength = cLength;
+        this.primaryKey = primaryKey;
+    }
 }
+
