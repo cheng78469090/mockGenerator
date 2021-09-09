@@ -15,6 +15,21 @@
 
     <dependencies>
         <dependency>
+            <groupId>com.github.mifmif</groupId>
+            <artifactId>generex</artifactId>
+            <version>1.0.2</version>
+        </dependency>
+        <dependency>
+            <groupId>br.com.six2six</groupId>
+            <artifactId>bfgex</artifactId>
+            <version>1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.krraghavan</groupId>
+            <artifactId>xeger</artifactId>
+            <version>1.0.0-RELEASE</version>
+        </dependency>
+        <dependency>
             <groupId>com.apifan.common</groupId>
             <artifactId>common-random</artifactId>
             <version>1.0.7</version>

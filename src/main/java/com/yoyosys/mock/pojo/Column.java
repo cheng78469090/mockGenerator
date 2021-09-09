@@ -52,4 +52,15 @@ public class Column {
     public void setPrimaryKey(boolean primaryKey) {
         this.primaryKey = primaryKey;
     }
+
+    public Column() {
+    }
+
+    public Column(String fieldName, String cType, String cLength, boolean primaryKey) {
+        this.fieldName = fieldName;
+        this.cType = cType;
+        this.cLength = cLength;
+        this.primaryKey = primaryKey;
+    }
 }
+
