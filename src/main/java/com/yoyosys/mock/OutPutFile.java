@@ -1,9 +1,6 @@
 package com.yoyosys.mock;
 
 import com.yoyosys.mock.pojo.Column;
-import com.yoyosys.mock.pojo.DataSourceConfig;
-import com.yoyosys.mock.pojo.DsDlpMockDataConfig;
-import org.apache.commons.collections4.map.LinkedMap;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -15,9 +12,6 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.*;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.zip.ZipEntry;
@@ -41,11 +35,9 @@ public class OutPutFile {
 
     /**
      * 生成dat数据文件
-     *
-     * @param fileName
-     * @param recordList
-     */
-    public static void generateDatFile(String fileName, LinkedMap<Column, List<String>> recordList) {
+     *  @param fileName
+     * @param recordList*/
+    public static void generateDatFile(String fileName, Map<Column, List> recordList) {
         //创建输出文件：i_pdata_t03_agmt_fea_rela_h_20210709_000_000.dat
        /* String filePath = PathHelper.getRootPath()+"\\result";
         String start_date = new DsDlpMockDataConfig().getStart_date();
@@ -60,21 +52,26 @@ public class OutPutFile {
             }
             FileWriter fw = new FileWriter(file);
             BufferedWriter bw = new BufferedWriter(fw);
-            String[] arr = new String[recordList.getValue(1).size()];
 
+            Collection<List> value = recordList.values();
+            ArrayList<List> values = new ArrayList<>();
 
-            for (int j = 0; j < recordList.size(); j++) {
-                for (int i = 0; i < recordList.getValue(j).size(); i++) {
-                    if (arr[i] == null) {
-                        arr[i] = "";
+            for (List s : value) {
+                values.add(s);
+            }
+            String[] arr = new String[values.get(1).size()];
+            System.out.println(arr.length);
+            for (int j = 0; j < values.get(1).size(); j++) {
+                for (int i = 0; i < values.size(); i++) {
+                    if (arr[j] == null) {
+                        arr[j] = "";
                     }
-                    arr[i] += recordList.getValue(j).get(i) + "|+|";
+                    arr[j] += values.get(i).get(j) + "|+|";
                 }
             }
-
-            for (int i = 0; i < arr.length; i++) {
-                bw.write(arr[i] + "\n");
-                bw.flush();
+            for (Object a :arr
+            ) {
+               bw.write((String) a+"\n");
             }
             bw.close();
 
@@ -208,6 +205,7 @@ public class OutPutFile {
 //            conn.close();
 //        }
     }
+
 
 }
 

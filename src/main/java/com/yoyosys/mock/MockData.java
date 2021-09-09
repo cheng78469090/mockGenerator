@@ -10,10 +10,11 @@ import java.io.*;
 import java.sql.*;
 import java.util.*;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Date;
+
 
 
 /**
@@ -32,7 +33,7 @@ public class MockData {
 
         for (DsDlpMockDataConfig dsDlpMockDataConfig : dsDlpMockDataConfigs) {
             //读取表结构：获取配置类中的表名，根据表名去DS_CONFIG中查找数据加载场景(LOAD_SCENE)
-            DsConfig dsConfig = mockData.getDsConfig(dataSourceConfig,dsDlpMockDataConfig.getHive_name());
+            DsConfig dsConfig = mockData.getDsConfig(dataSourceConfig, dsDlpMockDataConfig.getHive_name());
 
             //todo: 王震宣  解析模板文件
             //表结构
@@ -44,7 +45,7 @@ public class MockData {
             StringBuilder modeFile = new StringBuilder("/user/bdap/bdap-dataload/template");//增量文件，文件路径
             StringBuilder modeFile1 = new StringBuilder("/user/bdap/bdap-dataload/template");//存量文件，用来确定分区字段
             //根据数据加载场景去对应的目录下查找该表对应的以ext开头的模板文件
-            switch (dsConfig.getLoadScene().substring(0,1)) {//数据加载场景
+            switch (dsConfig.getLoadScene().substring(0, 1)) {//数据加载场景
                 case "B1":
                     modeFile.append("/B 1/" + hiveName + "/" + "ext_" + hiveName + ".tpl");
                     modeFile1.append("/B1_C/" + hiveName + "/" + "load_" + hiveName + ".tpl");
@@ -63,14 +64,14 @@ public class MockData {
 
 
             //是否上传数据文件：读取数据文件/mockdata/data/a_pdata_t03_agmt_fea_rela_h_20210709_000_000.dat
-            if (getDataFile()){
+            if (getDataFile()) {
                 //生成模拟数据集
                 StringBuilder result1 = new StringBuilder();
                 try {
 //          BufferedReader bfr = new BufferedReader(new FileReader(new File(filePath)));
                     BufferedReader bfr1 = new BufferedReader(
-                        new InputStreamReader(new FileInputStream(new File(
-                        "C:\\Users\\xiaoyaoxiaodi\\Desktop\\work\\lq\\data\\a_pdata_t03_agmt_fea_rela_h_20210721_000_000.dat")), "UTF-8"));
+                            new InputStreamReader(new FileInputStream(new File(
+                                    "C:\\Users\\xiaoyaoxiaodi\\Desktop\\work\\lq\\data\\a_pdata_t03_agmt_fea_rela_h_20210721_000_000.dat")), "UTF-8"));
                     String lineTxt1 = null;
                     while ((lineTxt1 = bfr1.readLine()) != null) {
                         result1.append(lineTxt1).append("\n");
@@ -82,17 +83,17 @@ public class MockData {
 
                 String[] createSql1 = result1.toString().split("\n");
                 List<String[]> listb = new ArrayList<>();
-                for (String a: createSql1) {
+                for (String a : createSql1) {
                     String[] b = a.split("\\|\\+\\|");
                     listb.add(b);
                 }
 
                 for (int j = 0; j < columnList.size(); j++) {
                     List list = new ArrayList();
-                    for (String[] arr: listb) {
+                    for (String[] arr : listb) {
                         list.add(arr[j]);
                     }
-                    resultMap.put(columnList.get(j),list);
+                    resultMap.put(columnList.get(j), list);
                 }
 
             } else {
@@ -109,12 +110,12 @@ public class MockData {
             }
 
             /*
-            * 根据条件修改数据
-            * 1.解析where条件
-            * 2.修改数据
-            * todo:易建军、王燚
-            *  return : list<map>
-            * */
+             * 根据条件修改数据
+             * 1.解析where条件
+             * 2.修改数据
+             * todo:易建军、王燚
+             *  return : list<map>
+             * */
 
             /*
             * 输出
@@ -132,7 +133,7 @@ public class MockData {
             String hive_name = new DsDlpMockDataConfig().getHive_name();
             String fileName=filePath+"/"+"i_pdata"+hive_name+"_"+start_date+"000_000.dat";
             try {
-                OutPutFile.generateDatFile(fileName, recordList);
+                OutPutFile.generateDatFile(fileName, resultMap);
                 OutPutFile.compressFile(fileName, filePath);
                 OutPutFile.deleteFile(fileName);
                 OutPutFile.generateReadyFile(fileName, filePath);
@@ -153,8 +154,7 @@ public class MockData {
     //判断是否上传数据文件
     private static boolean getDataFile() {
         File file = new File("D:\\新建文件夹\\YoudaoNote\\cef.pak");
-        if(!file.exists())
-        {
+        if (!file.exists()) {
             return false;
         }
         return true;
@@ -185,14 +185,14 @@ public class MockData {
         int startAndEnd[] = new int[2];
         int index = 0;
         for (int i = 0; i < createSql.length; i++) {
-            if (createSql[i].substring(0,1).equals("(") || createSql[i].substring(1,2).equals(")")){
+            if (createSql[i].substring(0, 1).equals("(") || createSql[i].substring(1, 2).equals(")")) {
                 startAndEnd[index] = i;
                 index++;
                 System.out.println(createSql[i]);
             }
         }
 
-        for(int i = startAndEnd[0]+1; i < startAndEnd[1]; i++){
+        for (int i = startAndEnd[0] + 1; i < startAndEnd[1]; i++) {
             Column column = new Column();
             String[] sqlStructure = createSql[i].split(" ");
             column.setFieldName(sqlStructure[0]);  //获取字段名
@@ -200,11 +200,11 @@ public class MockData {
             int m = sqlStructure[1].indexOf(")");
             String cType = "";   //字段类型
             String cLength = ""; //字段长度
-            if (n == -1){
+            if (n == -1) {
                 cType = sqlStructure[1];
-            }else{
-                cType = sqlStructure[1].substring(0,n);
-                cLength = sqlStructure[1].substring(n+1,m);
+            } else {
+                cType = sqlStructure[1].substring(0, n);
+                cLength = sqlStructure[1].substring(n + 1, m);
             }
             column.setcType(cType);
             column.setcLength(cLength);
@@ -214,44 +214,47 @@ public class MockData {
         return columnList;
     }
 
-    /**
-     * 将文件中获取到的主键放入list
-     * @return
-     * @throws Exception
-     */
-    private  List<String> getPrimayKey() throws Exception {
-        String path = this.getClass().getClassLoader().getResource("loadone_pdata_t03_agmt_fea_rela_h.tpl").getFile();
-        FileReader fileReader = new FileReader(path);
-        BufferedReader bfReader = new BufferedReader(fileReader);
-        String temp = null;
-        StringBuffer sb = new StringBuffer();
-        int startWtih = 0;
-        int endWith = 0;
-        int line = 1;
-        while ((temp = bfReader.readLine()) != null) {
-            if (temp != null && temp.length() > 0) {
-                sb.append(temp);
+
+        /**
+         * 将文件中获取到的主键放入list
+         * @return
+         * @throws Exception
+         */
+        private List<String> getPrimayKey() throws IOException {
+            String path = this.getClass().getClassLoader().getResource("loadone_pdata_t03_agmt_fea_rela_h.tpl").getFile();
+            FileReader fileReader = new FileReader(path);
+            BufferedReader bfReader = new BufferedReader(fileReader);
+            String temp = null;
+            StringBuffer sb = new StringBuffer();
+            int startWtih = 0;
+            int endWith = 0;
+            int line = 1;
+            while ((temp = bfReader.readLine()) != null) {
+                if (temp != null && temp.length() > 0) {
+                    sb.append(temp);
+                }
+                if (sb.toString().contains("on")) {
+                    startWtih = sb.indexOf("on");
+                }
+                if (sb.toString().contains("where")) {
+                    endWith = sb.indexOf("where", startWtih);
+                }
             }
-            if (sb.toString().contains("on")) {
-                startWtih = sb.indexOf("on");
+            String subStr = sb.toString().substring(startWtih, endWith);
+            List<String> listStr = new ArrayList<String>();
+            String[] arrStr = subStr.split(" ");
+            for (int i = 0; i < arrStr.length; i++) {
+                if (arrStr[i].contains("<=>")) {
+                    String str = arrStr[i].substring(arrStr[i].indexOf(".") + 1, arrStr[i].indexOf("<"));
+                    listStr.add(str);
+                }
             }
-            if(sb.toString().contains("where")){
-                endWith = sb.indexOf("where", startWtih);
-            }
+            bfReader.close();
+            fileReader.close();
+            return listStr;
         }
-        String subStr = sb.toString().substring(startWtih, endWith);
-        List<String> listStr = new ArrayList<String>();
-        String[] arrStr = subStr.split(" ");
-        for (int i = 0; i < arrStr.length; i++) {
-            if (arrStr[i].contains("<=>")) {
-                String str = arrStr[i].substring(arrStr[i].indexOf(".") + 1, arrStr[i].indexOf("<"));
-                listStr.add(str);
-            }
-        }
-        bfReader.close();
-        fileReader.close();
-        return listStr;
-    }
+
+
 
     /*
     读取配置文件
@@ -259,7 +262,7 @@ public class MockData {
       *输入：
       *return: DataSourceConfig
      */
-    public DataSourceConfig getDataSourceConfig() {
+    public DataSourceConfig getDataSourceConfig(){
         DataSourceConfig dataSourceConfig = null;
         //1.获取当前jar包路径
         File rootPath = new File(this.getClass().getResource("/").getPath());//此路径为当前项目路径
