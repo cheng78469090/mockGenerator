@@ -3,7 +3,6 @@ package com.yoyosys.mock;
 import com.yoyosys.mock.pojo.Column;
 import com.yoyosys.mock.pojo.DataSourceConfig;
 import com.yoyosys.mock.pojo.DsConfig;
-import com.yoyosys.mock.pojo.DsDlpMockdataConfig;
 import com.yoyosys.mock.util.JsqlparserUtil;
 import com.yoyosys.mock.util.ModifyDataUtil;
 import net.sf.jsqlparser.JSQLParserException;
@@ -37,7 +36,7 @@ public class MockData {
         List<DsDlpMockDataConfig> dsDlpMockDataConfigs = mockData.getDsDlpMockDataConfig(dataSourceConfig);
 
         ModifyDataUtil modifyDataUtil = new ModifyDataUtil();
-        for (DsDlpMockdataConfig dsDlpMockDataConfig : dsDlpMockDataConfigs) {
+        for (DsDlpMockDataConfig dsDlpMockDataConfig : dsDlpMockDataConfigs) {
             //读取表结构：获取配置类中的表名，根据表名去DS_CONFIG中查找数据加载场景(LOAD_SCENE)
             DsConfig dsConfig = mockData.getDsConfig(dataSourceConfig, dsDlpMockDataConfig.getHive_name());
 
@@ -45,7 +44,7 @@ public class MockData {
             //表结构
             List<Column> columnList = mockData.getColumn();
             //模拟数据集
-            Map<Column, List> resultMap = new LinkedHashMap<>();
+            LinkedHashMap<Column, List> resultMap = new LinkedHashMap<>();
             String hiveName = dsDlpMockDataConfig.getHive_name();
 
             StringBuilder modeFile = new StringBuilder("/user/bdap/bdap-dataload/template");//增量文件，文件路径
@@ -125,7 +124,7 @@ public class MockData {
 
             try {
                 List<Expression> sqlParser = JsqlparserUtil.getSQLParser(dsDlpMockDataConfig.getConditions());
-                LinkedHashMap<Column, List<String>> columnListMap = modifyDataUtil.modifyData(recordList, columns, sqlParser);
+                LinkedHashMap<Column, List> columnListMap = modifyDataUtil.modifyData(resultMap, columnList, sqlParser);
             } catch (JSQLParserException e) {
                 e.printStackTrace();
             }

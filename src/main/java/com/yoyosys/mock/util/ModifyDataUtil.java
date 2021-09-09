@@ -26,7 +26,7 @@ import static com.yoyosys.mock.util.IsDateFormat.isRqFormat;
  */
 public class ModifyDataUtil {
 
-    private LinkedHashMap<Column,List<String>> data = null;
+    private LinkedHashMap<Column,List> data = null;
 
     private List<Column> columns = null;
 
@@ -40,7 +40,7 @@ public class ModifyDataUtil {
      * @param expressions
      * @return
      */
-    public LinkedHashMap<Column,List<String>> modifyData(LinkedHashMap<Column,List<String>> data, List<Column> columns,List<Expression> expressions){
+    public LinkedHashMap<Column,List> modifyData(LinkedHashMap<Column,List> data, List<Column> columns,List<Expression> expressions){
         this.data = data;
         this.columns = columns;
         this.expressions = expressions;
