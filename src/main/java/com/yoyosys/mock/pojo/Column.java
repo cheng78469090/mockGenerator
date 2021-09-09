@@ -6,10 +6,16 @@ package com.yoyosys.mock.pojo;
  */
 
 public class Column {
+    //字段名
     private String fieldName;
+    //字段类型
     private String cType;
+    //字段长度
     private String cLength;
+    //主键标识
     private boolean primaryKey;
+    //是否分区字段
+    private boolean isPartition;
 
     @Override
     public String toString() {
@@ -18,7 +24,16 @@ public class Column {
                 ", cType='" + cType + '\'' +
                 ", cLength='" + cLength + '\'' +
                 ", primaryKey=" + primaryKey +
+                ", isPartition=" + isPartition +
                 '}';
+    }
+
+    public boolean getIsPartition() {
+        return isPartition;
+    }
+
+    public void setPartition(boolean partition) {
+        isPartition = partition;
     }
 
     public String getFieldName() {
