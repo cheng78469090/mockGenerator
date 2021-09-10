@@ -1,8 +1,10 @@
+import com.yoyosys.mock.OutPutFile;
 import com.yoyosys.mock.pojo.Column;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.statement.select.*;
+import org.apache.commons.collections4.map.LinkedMap;
 import org.jetbrains.annotations.NotNull;
 import org.testng.annotations.Test;
 
@@ -178,16 +180,74 @@ public class test {
 
 
     @Test
-    public void createData(){
+    public void createData() {
         // B1、B2通过模板可以知道分区字段是那个，
         // B3没有分区字段，
         // B4 start_dt、end_dt是日期，这些不管之前是什么类型，都定义日期类型，其他的不用管
-
-
-
-
     }
-}
+
+     @Test
+          public void test10(){
+         Map<Integer, List<Object>> recordList=new LinkedHashMap<Integer, List<Object>>();
+         List<Object> list = new ArrayList<>();
+         List<Object> list1 = new ArrayList<>();
+         List<Object> list2 = new ArrayList<>();
+         list.add("a");
+         list.add("b");
+         list.add("c");
+         list.add("d");
+         list1.add("e");
+         list1.add("f");
+         list1.add("g");
+         list1.add("h");
+         list2.add("i");
+         list2.add("g");
+         list2.add(null);
+         list2.add("");
+         recordList.put(1,list);
+         recordList.put(2,list1);
+         recordList.put(3,list2);
+         System.out.println(recordList);
+         String file="C:\\Users\\wjp50\\Desktop\\新建文件夹\\abc.dat";
+         //OutPutFile.generateDatFile(file,recordList);
+
+        }
+        @Test
+    public void pinjie(){
+
+            LinkedHashMap<String, List<String>> lhp = new LinkedHashMap<>();
+            List<String> list_a  = Arrays.asList("1", "2", "3","4");
+            List<String> list_b  = Arrays.asList("a", "b", "c","d");
+            List<String> list_c  = Arrays.asList("q", "w", "e","r");
+            lhp.put("columns_a",list_a);
+            lhp.put("columns_b",list_b);
+            lhp.put("columns_c",list_c);
+
+            Collection<List<String>> values1 = lhp.values();
+            ArrayList<List<String>> values = new ArrayList<>();
+            for (List<String> strings : values1) {
+                values.add(strings);
+            }
+            ArrayList<List<String >> raws = new ArrayList<>();
+
+            for (int i = 0; i < values.get(1).size(); i++) {
+                ArrayList<String> raw = new ArrayList<>();
+                for (int j = 0; j < values.size() ; j++) {
+                    raw.add(values.get(j).get(i));
+                }
+                raws.add(raw);
+            }
+            raws.forEach(a-> System.out.println(a));
+
+
+        }
+        }
+
+
+
+
+
+
 
 
 
