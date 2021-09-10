@@ -117,6 +117,7 @@ public class MockData {
              *  return : list<map>
              * */
 
+
             /*
             * 输出
               创建输出路径：/result
@@ -129,7 +130,7 @@ public class MockData {
             * todo:王锦鹏
             * */
             String filePath = new MockData().getClass().getResource("/").getPath()+"\\result";
-            Date start_date = new DsDlpMockDataConfig().getStart_date();
+            String start_date = new DsDlpMockDataConfig().getStart_date().toString();
             String hive_name = new DsDlpMockDataConfig().getHive_name();
             String fileName=filePath+"/"+"i_pdata"+hive_name+"_"+start_date+"000_000.dat";
             try {
