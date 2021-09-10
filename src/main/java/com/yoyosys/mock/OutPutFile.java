@@ -40,7 +40,7 @@ public class OutPutFile {
      * 生成dat数据文件
      *  @param fileName
      * @param recordList*/
-    public static void generateDatFile(String fileName, Map<Column, List> recordList) {
+    public static void generateDatFile(String fileName,String charsetName, Map<Column, List> recordList) {
         //创建输出文件：i_pdata_t03_agmt_fea_rela_h_20210709_000_000.dat
        /* String filePath = PathHelper.getRootPath()+"\\result";
         String start_date = new DsDlpMockDataConfig().getStart_date();
@@ -49,12 +49,13 @@ public class OutPutFile {
 
         File file = new File(fileName);
 
+
         try {
             if (!file.exists()) {
                 file.createNewFile();
             }
-            FileWriter fw = new FileWriter(file);
-            BufferedWriter bw = new BufferedWriter(fw);
+
+            BufferedWriter bw = new BufferedWriter(new OutputStreamWriter (new FileOutputStream (file),charsetName));
 
             Collection<List> value = recordList.values();
             ArrayList<List> values = new ArrayList<>();
@@ -142,10 +143,13 @@ public class OutPutFile {
             // 向transmit-content根节点中添加子节点file
             Element file = document.createElement("file");
             Element filename = document.createElement("filename");
+            Element size = document.createElement("size");
             //设置filename的内容
             filename.setTextContent(file1.getName());
+            size.setTextContent("1000kb");
             //将filenanme加入到file的子节点中
             file.appendChild(filename);
+            file.appendChild(size);
             // 将file节点添加到transmit-content根节点中
             transmit.appendChild(file);
             // 将transmit-content节点（已包含file）添加到dom树中
@@ -156,6 +160,7 @@ public class OutPutFile {
             Transformer tf = tff.newTransformer();
             // 输出内容是否使用换行
             tf.setOutputProperty(OutputKeys.INDENT, "yes");
+            tf.setOutputProperty(OutputKeys.DOCTYPE_PUBLIC,"yes");
             // 创建xml文件并写入内容
             tf.transform(new DOMSource(document), new StreamResult(new File(readyFileName)));
             System.out.println("就绪文件生成成功");
@@ -187,19 +192,19 @@ public class OutPutFile {
      *
      * @throws SQLException
      */
-    public static void update() throws SQLException {
+    public static void update(String OPERATOR,String HIVE_NAME) throws SQLException {
         //连接对象
        Connection conn = MockData.getConnection(new MockData().getDataSourceConfig());
        PreparedStatement ps = null;
-       String OPERATOR = new DsDlpMockDataConfig().getOperator();
-       String HIVE_NAME = new DsDlpMockDataConfig().getHive_name();
+//       String OPERATOR = new DsDlpMockDataConfig().getOperator();
+//       String HIVE_NAME = new DsDlpMockDataConfig().getHive_name();
        String sql = "update DS_DLP_MOCKDATA_CONFIG set STATE = 1 where STATE = 0 and OPERATOR= ? and HIVE_NAME=?";
        try {
            ps = conn.prepareStatement(sql);
-           ps.executeUpdate();
-           System.out.println("数据更新成功");
             ps.setString(1,OPERATOR);
             ps.setString(2,HIVE_NAME);
+            ps.executeUpdate();
+           System.out.println("数据更新成功");
        } catch (SQLException e) {
            e.printStackTrace();
            System.out.println("更新失败");
