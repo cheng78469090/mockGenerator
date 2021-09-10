@@ -48,9 +48,9 @@ public class MockData {
             LinkedHashMap<Column, List> resultMap = new LinkedHashMap<>();
             String hiveName = dsDlpMockDataConfig.getHive_name();
             //数据加载场景
-            String loadScene = dsConfig.getLoadScene().substring(0, 1);
-            StringBuilder modeFile = new StringBuilder("/user/bdap/bdap-dataload/template");//表结构存储文件路径
-            StringBuilder modeFile1 = new StringBuilder("/user/bdap/bdap-dataload/template");//存量文件，用来确定分区字段
+            String loadScene = dsConfig.getLoadScene().substring(0, 2);
+            StringBuilder modeFile = new StringBuilder("D:\\work_space\\mock_data\\data");//表结构存储文件路径
+            StringBuilder modeFile1 = new StringBuilder("D:\\work_space\\mock_data\\data");//存量文件，用来确定分区字段
             //根据数据加载场景去对应的目录下查找该表对应的以ext开头的模板文件
                 switch (loadScene) {//数据加载场景
                     case "B1":
@@ -73,14 +73,14 @@ public class MockData {
                 //表结构
                 List<Column> columnList = mockData.getColumn(modeFile, modeFile1, loadScene);
 
-                //是否上传数据文件：读取数据文件/mockdata/data/a_pdata_t03_agmt_fea_rela_h_20210709_000_000.dat
+                //是否上传数据文件：读取数据文件/mockdata/data/a_pdata_t03_agmt_fea_rela_h_2021070 9_000_000.dat
                 if (getDataFile()) {
                     //生成模拟数据集
                     StringBuilder result1 = new StringBuilder();
                     try {
                         BufferedReader bfr1 = new BufferedReader(
                                 new InputStreamReader(new FileInputStream(new File(
-                                        "C:\\Users\\xiaoyaoxiaodi\\Desktop\\work\\lq\\data\\a_pdata_t03_agmt_fea_rela_h_20210721_000_000.dat")), "UTF-8"));
+                                        "D:\\work_space\\mock_data\\data\\a_pdata_t03_agmt_fea_rela_h_20210709_000_000.dat")), "UTF-8"));
                         String lineTxt1 = null;
                         while ((lineTxt1 = bfr1.readLine()) != null) {
                             result1.append(lineTxt1).append("\n");
@@ -99,7 +99,8 @@ public class MockData {
 
                     for (int j = 0; j < columnList.size(); j++) {
                         List list = new ArrayList();
-                        for (String[] arr : listb) {
+                        for (int i = 0; i < listb.size(); i++) {
+                            String[] arr = listb.get(i);
                             list.add(arr[j]);
                         }
                         resultMap.put(columnList.get(j), list);
@@ -155,16 +156,18 @@ public class MockData {
             *
             * todo:王锦鹏
             * */
-                String filePath = new MockData().getClass().getResource("/").getPath() + "\\result";
-                Date start_date = new DsDlpMockDataConfig().getStart_date();
-                String hive_name = new DsDlpMockDataConfig().getHive_name();
-                String fileName = filePath + "/" + "i_pdata" + hive_name + "_" + start_date + "000_000.dat";
+
+                //String filePath = new MockData().getClass().getResource("/").getPath() + "\\result";
+                String filePath = "D:\\work_space\\mock_data" + "\\result";
+                Date start_date = dsDlpMockDataConfig.getStart_date();
+                String hive_name = dsDlpMockDataConfig.getHive_name();
+                String fileName = filePath + "/" + "i_pdata" + hive_name + "_" + start_date.toString() + "000_000.dat";
                 try {
                     OutPutFile.generateDatFile(fileName, resultMap);
                     OutPutFile.compressFile(fileName, filePath);
                     OutPutFile.deleteFile(fileName);
                     OutPutFile.generateReadyFile(fileName, filePath);
-                    OutPutFile.update();
+                    OutPutFile.update(dsDlpMockDataConfig.getOperator(),dsDlpMockDataConfig.getHive_name());
 
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -197,7 +200,7 @@ public class MockData {
                         char sb = (char) str.charAt(number);
                         list.add(sb);
                         break;
-                    case "VARCHAR2"://可变长度的字符串
+                    case "VARCHAR"://可变长度的字符串
                     case "NCHAR"://根据字符集而定的固定长度字符串
                     case "NVARCHAR2 "://根据字符集而定的可变长度字符串
                     case "STRING":
@@ -210,11 +213,11 @@ public class MockData {
                         String str1 = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
                         Random random1 = new Random();
                         StringBuffer sb1 = new StringBuffer();
-                        for (int j = 0; j < Integer.parseInt(column.getcLength()); i++) {
+                        for (int j = 0; j < Integer.parseInt(column.getcLength()); j++) {
                             int number1 = random1.nextInt(62);
                             sb1.append(str1.charAt(number1));
                         }
-                        list.add(sb1);
+                        list.add(sb1.toString());
                         break;
                     case "INTEGER":
                         int a = NumberSource.getInstance().randomInt(0, (int) Math.pow(10, Integer.parseInt(column.getcLength())));
@@ -240,7 +243,7 @@ public class MockData {
 
     //判断是否上传数据文件
     private static boolean getDataFile () {
-        File file = new File("D:\\新建文件夹\\YoudaoNote\\cef.pak");
+        File file = new File("D:\\work_space\\mock_data\\data\\a_pdata_t03_agmt_fea_rela_h_20210709_000_000.dat");
         if (!file.exists()) {
             return false;
         }
@@ -357,8 +360,8 @@ public class MockData {
      * @throws Exception
      */
     private List<String> getPrimayKey() throws IOException {
-        String path = this.getClass().getClassLoader().getResource("loadone_pdata_t03_agmt_fea_rela_h.tpl").getFile();
-        FileReader fileReader = new FileReader(path);
+//        String path = this.getClass().getClassLoader().getResource("D:\\work_space\\mock_data\\data\\loadone_pdata_t03_agmt_fea_rela_h.tpl").getFile();
+        FileReader fileReader = new FileReader("D:\\work_space\\mock_data\\data\\loadone_pdata_t03_agmt_fea_rela_h.tpl");
         BufferedReader bfReader = new BufferedReader(fileReader);
         String temp = null;
         StringBuffer sb = new StringBuffer();
@@ -404,12 +407,12 @@ public class MockData {
         File rootPath = new File(this.getClass().getResource("/").getPath());//此路径为当前项目路径
         System.out.println("当前环境根节点目录" + rootPath);
         //2.拼接路径
-        String path = rootPath + "\\conf\\dlp_yoyo_mockdata.config";
+        String path = rootPath + "\\mock_data\\conf\\dlp_yoyo_mockdata.config";
         System.out.println(path);
         String configPath = "D:\\work_space\\mock_data\\conf\\dlp_yoyo_mockdata.config";
         //3.获取配置文件信息
         try {
-            InputStream in = new FileInputStream(path);
+            InputStream in = new FileInputStream(configPath);
             Properties p = new Properties();
             p.load(in);
             //4.获取配置文件信息

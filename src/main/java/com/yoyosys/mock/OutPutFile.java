@@ -187,19 +187,19 @@ public class OutPutFile {
      *
      * @throws SQLException
      */
-    public static void update() throws SQLException {
+    public static void update(String OPERATOR,String HIVE_NAME) throws SQLException {
         //连接对象
        Connection conn = MockData.getConnection(new MockData().getDataSourceConfig());
        PreparedStatement ps = null;
-       String OPERATOR = new DsDlpMockDataConfig().getOperator();
-       String HIVE_NAME = new DsDlpMockDataConfig().getHive_name();
+//       String OPERATOR = new DsDlpMockDataConfig().getOperator();
+//       String HIVE_NAME = new DsDlpMockDataConfig().getHive_name();
        String sql = "update DS_DLP_MOCKDATA_CONFIG set STATE = 1 where STATE = 0 and OPERATOR= ? and HIVE_NAME=?";
        try {
            ps = conn.prepareStatement(sql);
-           ps.executeUpdate();
-           System.out.println("数据更新成功");
             ps.setString(1,OPERATOR);
             ps.setString(2,HIVE_NAME);
+            ps.executeUpdate();
+           System.out.println("数据更新成功");
        } catch (SQLException e) {
            e.printStackTrace();
            System.out.println("更新失败");

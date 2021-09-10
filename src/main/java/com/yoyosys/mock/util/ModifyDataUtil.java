@@ -81,7 +81,7 @@ public class ModifyDataUtil {
      * @return
      */
     public List<String> equalsColumn(Expression expression){
-        Expression leftExpression = ((IsNullExpression) expression).getLeftExpression();
+        Expression leftExpression = ((BinaryExpression)expression).getLeftExpression();
         List<String> strings = null;
         if (leftExpression instanceof net.sf.jsqlparser.schema.Column) {
             String columnName = ((net.sf.jsqlparser.schema.Column) leftExpression).getColumnName();
