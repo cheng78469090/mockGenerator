@@ -7,6 +7,16 @@ package com.yoyosys.mock.pojo;
 public class DsConfig {
     private String loadScene;
 
+    private String FILE_ENCODING;
+
+    public String getFILE_ENCODING() {
+        return FILE_ENCODING;
+    }
+
+    public void setFILE_ENCODING(String FILE_ENCODING) {
+        this.FILE_ENCODING = FILE_ENCODING;
+    }
+
     public String getLoadScene() {
         return loadScene;
     }

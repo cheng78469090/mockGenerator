@@ -163,9 +163,10 @@ public class MockData {
                 String filePath = "D:\\work_space\\mock_data" + "\\result";
                 Date start_date = dsDlpMockDataConfig.getStart_date();
                 String hive_name = dsDlpMockDataConfig.getHive_name();
+                String charsetName="";
                 String fileName = filePath + "\\" + "i_"+hive_name + "_" + start_date.toString() + "_000_000.dat";
                 try {
-                    //OutPutFile.generateDatFile(fileName, resultMap);
+                    OutPutFile.generateDatFile(fileName, charsetName,resultMap);
                     OutPutFile.compressFile(fileName, filePath);
                     OutPutFile.deleteFile(fileName);
                     OutPutFile.generateReadyFile(fileName, filePath);
