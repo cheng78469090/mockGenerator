@@ -1,7 +1,6 @@
 package com.yoyosys.mock;
 
 import com.yoyosys.mock.pojo.Column;
-import com.yoyosys.mock.pojo.DsDlpMockDataConfig;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -128,7 +127,7 @@ public class OutPutFile {
      * @param fileName
      * @param outPath
      */
-    public static void generateReadyFile(String fileName, String outPath) {
+    public static void generateReadyFile(String fileName,String fileSize, String outPath) {
         File file1 = new File(fileName);
         String readyFileName = outPath + File.separator + file1.getName().split("\\.")[0] + ".xml";
 
@@ -146,7 +145,7 @@ public class OutPutFile {
             Element size = document.createElement("size");
             //设置filename的内容
             filename.setTextContent(file1.getName());
-            size.setTextContent("1000kb");
+            size.setTextContent(fileSize);
             //将filenanme加入到file的子节点中
             file.appendChild(filename);
             file.appendChild(size);

@@ -163,13 +163,15 @@ public class MockData {
                 String filePath = "D:\\work_space\\mock_data" + "\\result";
                 Date start_date = dsDlpMockDataConfig.getStart_date();
                 String hive_name = dsDlpMockDataConfig.getHive_name();
-                String charsetName="";
+                String charsetName=dsConfig.getFILE_ENCODING();
                 String fileName = filePath + "\\" + "i_"+hive_name + "_" + start_date.toString() + "_000_000.dat";
                 try {
                     OutPutFile.generateDatFile(fileName, charsetName,resultMap);
                     OutPutFile.compressFile(fileName, filePath);
+                    File file = new File(fileName);
+                    String size = file.length()/1024+"kb";
+                    OutPutFile.generateReadyFile(fileName,size,filePath);
                     OutPutFile.deleteFile(fileName);
-                    OutPutFile.generateReadyFile(fileName, filePath);
                     OutPutFile.update(dsDlpMockDataConfig.getOperator(),dsDlpMockDataConfig.getHive_name());
 
                 } catch (IOException e) {
@@ -509,16 +511,25 @@ public class MockData {
             PreparedStatement mockDataConfigPs = null;
             ResultSet mockDataConfigResultSet = null;
             DsConfig dsConfig = null;
+            String DS_NAME=null;
+            String DS_IDENTIFY=null;
+            if (table_name.split("_").length>0){
+                DS_NAME=table_name.split("_")[0];
+                DS_IDENTIFY = table_name.substring(DS_NAME.length()+1);
+            }
             try {
                 connection = getConnection(dataSourceConfig);
-                String dsCOnfigSql = "select LOAD_SCENE from DS_CONFIG  where DS_IDENTIFY = ?";
+                String dsCOnfigSql = "select LOAD_SCENE , FILE_ENCODING from DS_CONFIG  where DS_NAME = ?  and DS_IDENTIFY = ?";
                 PreparedStatement dsConfigPs = connection.prepareStatement(dsCOnfigSql);
-                dsConfigPs.setString(1, table_name);
+                dsConfigPs.setString(1, DS_NAME);
+                dsConfigPs.setString(2, DS_IDENTIFY);
                 //todo:获取数据加载场景
                 ResultSet dsConfigResultSet = dsConfigPs.executeQuery();
                 dsConfig = new DsConfig();
                 while (dsConfigResultSet.next()) {
                     dsConfig.setLoadScene(dsConfigResultSet.getString("LOAD_SCENE"));
+                    dsConfig.setFILE_ENCODING(dsConfigResultSet.getString("FILE_ENCODING"));
+
                 }
                 return dsConfig;
             } catch (SQLException e4) {
