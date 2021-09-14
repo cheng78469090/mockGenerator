@@ -2,6 +2,7 @@ import br.com.six2six.bfgex.RegexGen;
 import com.apifan.common.random.source.DateTimeSource;
 import com.mifmif.common.regex.Generex;
 import com.yoyosys.mock.OutPutFile;
+import com.yoyosys.mock.pojo.Column;
 import com.yoyosys.mock.util.JsqlparserUtil;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Expression;
@@ -11,6 +12,9 @@ import nl.flotsam.xeger.Xeger;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.testng.annotations.Test;
 
+import java.io.File;
+import java.io.IOException;
+import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -107,8 +111,64 @@ public class test {
         String hive_name = "pdata_t03_agmt_fea_rela_h";
         String start_date = "20210501";
         String fileName = filePath + "\\" +"i_"+ hive_name + "_" + start_date + "_000_000.dat";
+        String readyFileName="i_"+ hive_name + "_" + start_date + "_000_";
         System.out.println(fileName);
+        String charsetName="UTF-8";
 
-        OutPutFile.generateReadyFile(fileName, filePath);
+
+        LinkedHashMap<Column, List> resultMap = new LinkedHashMap<>();
+        Column column = new Column();
+        column.setFieldName("a");
+        Column column1 = new Column();
+        column1.setFieldName("b");
+        Column column2 = new Column();
+        column1.setFieldName("c");
+
+        List<String> list  = Arrays.asList("1", "2", "3","4");
+        List<String> list1  = Arrays.asList("a", "b", "c","d");
+        List<String> list2  = Arrays.asList("王", "张", "离","合");
+        resultMap.put(column,list);
+        resultMap.put(column1,list1);
+        resultMap.put(column2,list2);
+
+
+
+        try {
+           /* File file = new File(readyFileName+".xml");
+            for (int i = 1;file.exists()&& i < Integer.MAX_VALUE ; i++) {
+                fileName=filePath+File.separator + file.getName().split("\\.")[0] + "("+i+")"+".dat";
+                file=new File(fileName);
+            }*/
+            File[] allfiles = new File(filePath).listFiles();
+            int count=0;
+            for (File file : allfiles) {
+                if (file.getName().contains(readyFileName))
+                    count++;
+            }
+            int i = count / 2;
+            String num;
+            if (i <10){
+                num="00"+ i;
+            }else if (i>=100){
+                num=String.valueOf(i);
+            }else
+                num="0"+i;
+
+            fileName=filePath+File.separator + readyFileName+num+".dat";
+
+            OutPutFile.generateDatFile(fileName, charsetName,resultMap);
+            long size = new File(fileName).length();
+            OutPutFile.compressFile(fileName, filePath);
+            OutPutFile.createXml(fileName,size,filePath,charsetName);
+            OutPutFile.deleteFile(fileName);
+            //OutPutFile.update(dsDlpMockDataConfig.getOperator(),dsDlpMockDataConfig.getHive_name());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
+    @Test
+    public void test03(){
+
+}
+
 }

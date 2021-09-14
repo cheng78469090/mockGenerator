@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Map;
 
 
-
 /**
  * @Author: yjj
  * Date: 2021/9/3
@@ -54,98 +53,98 @@ public class MockData {
             StringBuilder modeFile = new StringBuilder("D:\\work_space\\mock_data\\data");//表结构存储文件路径
             StringBuilder modeFile1 = new StringBuilder("D:\\work_space\\mock_data\\data");//存量文件，用来确定分区字段
             //根据数据加载场景去对应的目录下查找该表对应的以ext开头的模板文件
-                switch (loadScene) {//数据加载场景
-                    case "B1":
-                        modeFile.append("/B1/" + hiveName + "/" + "load_" + hiveName + ".tpl");
-                        modeFile1.append("/B1_C/" + hiveName + "/" + "load_" + hiveName + ".tpl");
-                        break;
-                    case "B2":
-                        modeFile.append("/B2/" + hiveName + "/" + "load_" + hiveName + ".tpl");
-                        modeFile1.append("/B2_C/" + hiveName + "/" + "load_" + hiveName + ".tpl");
-                        break;
-                    case "B3":
-                        modeFile.append("/B3/" + hiveName + "/" + "ext_" + hiveName + ".tpl");
-                        modeFile1 = null;
-                        break;
-                    case "B4":
-                        modeFile.append("/B4/" + hiveName + "/" + "ext_" + hiveName + ".tpl");
-                        modeFile1 = null;
-                        break;
-                }
-                //表结构
-                List<Column> columnList = mockData.getColumn(modeFile, modeFile1, loadScene);
+            switch (loadScene) {//数据加载场景
+                case "B1":
+                    modeFile.append("/B1/" + hiveName + "/" + "load_" + hiveName + ".tpl");
+                    modeFile1.append("/B1_C/" + hiveName + "/" + "load_" + hiveName + ".tpl");
+                    break;
+                case "B2":
+                    modeFile.append("/B2/" + hiveName + "/" + "load_" + hiveName + ".tpl");
+                    modeFile1.append("/B2_C/" + hiveName + "/" + "load_" + hiveName + ".tpl");
+                    break;
+                case "B3":
+                    modeFile.append("/B3/" + hiveName + "/" + "ext_" + hiveName + ".tpl");
+                    modeFile1 = null;
+                    break;
+                case "B4":
+                    modeFile.append("/B4/" + hiveName + "/" + "ext_" + hiveName + ".tpl");
+                    modeFile1 = null;
+                    break;
+            }
+            //表结构
+            List<Column> columnList = mockData.getColumn(modeFile, modeFile1, loadScene);
 
-                //是否上传数据文件：读取数据文件/mockdata/data/a_pdata_t03_agmt_fea_rela_h_2021070 9_000_000.dat
-                if (getDataFile()) {
-                    //生成模拟数据集
-                    StringBuilder result1 = new StringBuilder();
-                    try {
-                        BufferedReader bfr1 = new BufferedReader(
-                                new InputStreamReader(new FileInputStream(new File(
-                                        "D:\\work_space\\mock_data\\data\\a_pdata_t03_agmt_fea_rela_h_20210709_000_000.dat")), "UTF-8"));
-                        String lineTxt1 = null;
-                        while ((lineTxt1 = bfr1.readLine()) != null) {
-                            result1.append(lineTxt1).append("\n");
-                        }
-                        bfr1.close();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-
-                    String[] createSql1 = result1.toString().split("\n");
-                    List<String[]> listb = new ArrayList<>();
-                    for (String a : createSql1) {
-                        String[] b = a.split("\\|\\+\\|");
-                        listb.add(b);
-                    }
-
-                    for (int j = 0; j < columnList.size(); j++) {
-                        List list = new ArrayList();
-                        for (int i = 0; i < listb.size(); i++) {
-                            String[] arr = listb.get(i);
-                            list.add(arr[j]);
-                        }
-                        resultMap.put(columnList.get(j), list);
-                    }
-
-                } else {
-                    //没有数据文件,获取表主键
-                    try {
-                        //设置主键标识
-                        List<String> primaryKeyList = mockData.getPrimayKey();//没有数据文件,获取表主键
-                        //生成模拟数据集
-                        for (Column column : columnList) {
-                            for (String primaryKey : primaryKeyList) {
-                                if (column.getFieldName().toUpperCase().equals(primaryKey.toUpperCase())) {
-                                    column.setPrimaryKey(true);
-                                } else {
-                                    column.setPrimaryKey(false);
-                                }
-                            }
-                        }
-
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    //生成记录条数
-                    int records = dsDlpMockDataConfig.getRecords();
-                    resultMap = mockData.createData(columnList, records);
-                }
-
-                /*
-                 * 根据条件修改数据
-                 * 1.解析where条件
-                 * 2.修改数据
-                 * todo:易建军、王燚
-                 *  return : list<map>
-                 * */
-
+            //是否上传数据文件：读取数据文件/mockdata/data/a_pdata_t03_agmt_fea_rela_h_2021070 9_000_000.dat
+            if (getDataFile()) {
+                //生成模拟数据集
+                StringBuilder result1 = new StringBuilder();
                 try {
-                    List<Expression> sqlParser = JsqlparserUtil.getSQLParser(dsDlpMockDataConfig.getConditions());
-                    LinkedHashMap<Column, List> columnListMap = modifyDataUtil.modifyData(resultMap, columnList, sqlParser);
-                } catch (JSQLParserException e) {
+                    BufferedReader bfr1 = new BufferedReader(
+                            new InputStreamReader(new FileInputStream(new File(
+                                    "D:\\work_space\\mock_data\\data\\a_pdata_t03_agmt_fea_rela_h_20210709_000_000.dat")), "UTF-8"));
+                    String lineTxt1 = null;
+                    while ((lineTxt1 = bfr1.readLine()) != null) {
+                        result1.append(lineTxt1).append("\n");
+                    }
+                    bfr1.close();
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
+
+                String[] createSql1 = result1.toString().split("\n");
+                List<String[]> listb = new ArrayList<>();
+                for (String a : createSql1) {
+                    String[] b = a.split("\\|\\+\\|");
+                    listb.add(b);
+                }
+
+                for (int j = 0; j < columnList.size(); j++) {
+                    List list = new ArrayList();
+                    for (int i = 0; i < listb.size(); i++) {
+                        String[] arr = listb.get(i);
+                        list.add(arr[j]);
+                    }
+                    resultMap.put(columnList.get(j), list);
+                }
+
+            } else {
+                //没有数据文件,获取表主键
+                try {
+                    //设置主键标识
+                    List<String> primaryKeyList = mockData.getPrimayKey();//没有数据文件,获取表主键
+                    //生成模拟数据集
+                    for (Column column : columnList) {
+                        for (String primaryKey : primaryKeyList) {
+                            if (column.getFieldName().toUpperCase().equals(primaryKey.toUpperCase())) {
+                                column.setPrimaryKey(true);
+                            } else {
+                                column.setPrimaryKey(false);
+                            }
+                        }
+                    }
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                //生成记录条数
+                int records = dsDlpMockDataConfig.getRecords();
+                resultMap = mockData.createData(columnList, records);
+            }
+
+            /*
+             * 根据条件修改数据
+             * 1.解析where条件
+             * 2.修改数据
+             * todo:易建军、王燚
+             *  return : list<map>
+             * */
+
+            try {
+                List<Expression> sqlParser = JsqlparserUtil.getSQLParser(dsDlpMockDataConfig.getConditions());
+                LinkedHashMap<Column, List> columnListMap = modifyDataUtil.modifyData(resultMap, columnList, sqlParser);
+            } catch (JSQLParserException e) {
+                e.printStackTrace();
+            }
 
             /*
             * 输出
@@ -159,37 +158,58 @@ public class MockData {
             * todo:王锦鹏
             * */
 
-                //String filePath = new MockData().getClass().getResource("/").getPath() + "\\result";
-                String filePath = "D:\\work_space\\mock_data" + "\\result";
-                Date start_date = dsDlpMockDataConfig.getStart_date();
-                String hive_name = dsDlpMockDataConfig.getHive_name();
-                String charsetName=dsConfig.getFILE_ENCODING();
-                String fileName = filePath + "\\" + "i_"+hive_name + "_" + start_date.toString() + "_000_000.dat";
-                try {
-                    OutPutFile.generateDatFile(fileName, charsetName,resultMap);
-                    OutPutFile.compressFile(fileName, filePath);
-                    File file = new File(fileName);
-                    String size = file.length()/1024+"kb";
-                    OutPutFile.generateReadyFile(fileName,size,filePath);
-                    OutPutFile.deleteFile(fileName);
-                    OutPutFile.update(dsDlpMockDataConfig.getOperator(),dsDlpMockDataConfig.getHive_name());
+            //String filePath = new MockData().getClass().getResource("/").getPath() + "\\result";
+            String filePath = "D:\\work_space\\mock_data" + "\\result";
+            String start_date = dsDlpMockDataConfig.getStartDate();
+            String hive_name = dsDlpMockDataConfig.getHive_name();
+            String charsetName = dsConfig.getFILE_ENCODING();
+            String operator =dsDlpMockDataConfig.getOperator();
+            String fileName = filePath + "\\" + "i_" + hive_name + "_" + start_date + "_000_000.dat";
+            String alikeFileName="i_"+ hive_name + "_" + start_date + "_000_";
 
-                } catch (IOException e) {
-                    e.printStackTrace();
+            MockData.outPutFile(fileName,alikeFileName,charsetName,filePath,operator,hive_name,resultMap);
 
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-
-            }
 
         }
 
+    }
 
+    private static void outPutFile(String fileName,String alikeFileName,String charsetName,String filePath,String operator,String hive_name,LinkedHashMap<Column, List> resultMap){
+        try {
+            File[] allfiles = new File(filePath).listFiles();
+            int count=0;
+            for (File file : allfiles) {
+                if (file.getName().contains(alikeFileName))
+                    count++;
+            }
+            int i = count / 2;
+            String num;
+            if (i <10){
+                num="00"+ i;
+            }else if (i>=100){
+                num=String.valueOf(i);
+            }else
+                num="0"+i;
+
+            fileName=filePath+File.separator + alikeFileName+num+".dat";
+
+            OutPutFile.generateDatFile(fileName, charsetName, resultMap);
+            OutPutFile.compressFile(fileName, filePath);
+            long size = (new File(fileName).length());
+            OutPutFile.createXml(fileName,size,filePath,charsetName);
+            OutPutFile.deleteFile(fileName);
+            OutPutFile.update(operator, hive_name);
+        } catch (IOException e) {
+            e.printStackTrace();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 
 
     //根据表结构生成模拟数据
-    private LinkedHashMap<Column, List> createData (List <Column> columnList,int records){
+    private LinkedHashMap<Column, List> createData(List<Column> columnList, int records) {
         //模拟数据集
         LinkedHashMap<Column, List> resultMap = new LinkedHashMap<>();
 
@@ -247,7 +267,7 @@ public class MockData {
 
 
     //判断是否上传数据文件
-    private static boolean getDataFile () {
+    private static boolean getDataFile() {
         File file = new File("D:\\work_space\\mock_data\\data\\a_pdata_t03_agmt_fea_rela_h_20210709_000_000.dat");
         if (!file.exists()) {
             return false;
@@ -257,7 +277,7 @@ public class MockData {
 
 
     //获取表结构
-    private List<Column> getColumn (StringBuilder filePath, StringBuilder filePath1, String loadScene){
+    private List<Column> getColumn(StringBuilder filePath, StringBuilder filePath1, String loadScene) {
         //字段类集合
         List<Column> columnList = new ArrayList<>();
         StringBuilder result = new StringBuilder();
@@ -361,6 +381,7 @@ public class MockData {
 
     /**
      * 将文件中获取到的主键放入list
+     *
      * @return
      * @throws Exception
      */
@@ -399,14 +420,13 @@ public class MockData {
     }
 
 
-
     /*
     读取配置文件
       *todo:宋金城
       *输入：
       *return: DataSourceConfig
      */
-    public DataSourceConfig getDataSourceConfig () {
+    public DataSourceConfig getDataSourceConfig() {
         DataSourceConfig dataSourceConfig = null;
         //1.获取当前jar包路径
         File rootPath = new File(this.getClass().getResource("/").getPath());//此路径为当前项目路径
@@ -446,7 +466,7 @@ public class MockData {
      * param: operator
      * return: DsDlpMockDataConfig
      */
-    public List<DsDlpMockDataConfig> getDsDlpMockDataConfig (DataSourceConfig dataSourceConfig){
+    public List<DsDlpMockDataConfig> getDsDlpMockDataConfig(DataSourceConfig dataSourceConfig) {
         List<DsDlpMockDataConfig> dsDlpMockDataConfigList = new ArrayList<>();
         if (dataSourceConfig != null) {
             Connection connection = null;
@@ -469,9 +489,9 @@ public class MockData {
                     // int  RECORDS = mockDataConfigResultSet.getInt("RECORDS");
                     dsDlpMockDataConfig.setRecords(mockDataConfigResultSet.getInt("RECORDS"));
                     // Date START_DATE = mockDataConfigResultSet.getDate("START_DATE");
-                    dsDlpMockDataConfig.setStart_date(mockDataConfigResultSet.getDate("START_DATE"));
+                    dsDlpMockDataConfig.setStartDate(mockDataConfigResultSet.getString("START_DATE"));
                     //Date END_DATE = mockDataConfigResultSet.getDate("END_DATE");
-                    dsDlpMockDataConfig.setEnd_date(mockDataConfigResultSet.getDate("END_DATE"));
+                    dsDlpMockDataConfig.setEndDate(mockDataConfigResultSet.getString("END_DATE"));
                     //String INPUT_DIR = mockDataConfigResultSet.getString("INPUT_DIR");
                     dsDlpMockDataConfig.setInput_dir(mockDataConfigResultSet.getString("INPUT_DIR"));
                     // Date ONLINE_DATE = mockDataConfigResultSet.getDate("ONLINE_DATE");
@@ -500,22 +520,23 @@ public class MockData {
 
         return dsDlpMockDataConfigList;
     }
+
     /**
      * todo: 宋金城
      * param:
      * return: DsConfig
      */
-    public DsConfig getDsConfig (DataSourceConfig dataSourceConfig, String table_name){
+    public DsConfig getDsConfig(DataSourceConfig dataSourceConfig, String table_name) {
         if (table_name != null && table_name != "") {
             Connection connection = null;
             PreparedStatement mockDataConfigPs = null;
             ResultSet mockDataConfigResultSet = null;
             DsConfig dsConfig = null;
-            String DS_NAME=null;
-            String DS_IDENTIFY=null;
-            if (table_name.split("_").length>0){
-                DS_NAME=table_name.split("_")[0];
-                DS_IDENTIFY = table_name.substring(DS_NAME.length()+1);
+            String DS_NAME = null;
+            String DS_IDENTIFY = null;
+            if (table_name.split("_").length > 0) {
+                DS_NAME = table_name.split("_")[0];
+                DS_IDENTIFY = table_name.substring(DS_NAME.length() + 1);
             }
             try {
                 connection = getConnection(dataSourceConfig);
@@ -545,10 +566,11 @@ public class MockData {
 
     /**
      * todo: 宋金城 获取数据库连接
+     *
      * @param dataSourceConfig
      * @return
      */
-    public static Connection getConnection (DataSourceConfig dataSourceConfig){
+    public static Connection getConnection(DataSourceConfig dataSourceConfig) {
         Connection connection = null;
 
         if (dataSourceConfig != null) {
@@ -583,11 +605,12 @@ public class MockData {
 
     /**
      * todo:宋金城  数据库释放资源
+     *
      * @param conn
      * @param ps
      * @param rs
      */
-    public static void close (Connection conn, PreparedStatement ps, ResultSet rs){
+    public static void close(Connection conn, PreparedStatement ps, ResultSet rs) {
         try {
             if (rs != null) {
                 rs.close();
@@ -605,7 +628,7 @@ public class MockData {
         }
 
         try {
-            if(conn!=null){
+            if (conn != null) {
                 conn.close();
             }
         } catch (SQLException e) {
@@ -613,7 +636,6 @@ public class MockData {
         }
 
     }
-
 
 
 }

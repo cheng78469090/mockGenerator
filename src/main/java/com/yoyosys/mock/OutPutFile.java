@@ -1,16 +1,12 @@
 package com.yoyosys.mock;
 
 import com.yoyosys.mock.pojo.Column;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
+import org.dom4j.Document;
+import org.dom4j.DocumentHelper;
+import org.dom4j.Element;
+import org.dom4j.io.OutputFormat;
+import org.dom4j.io.XMLWriter;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 import java.io.*;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -37,9 +33,11 @@ public class OutPutFile {
 
     /**
      * 生成dat数据文件
-     *  @param fileName
-     * @param recordList*/
-    public static void generateDatFile(String fileName,String charsetName, Map<Column, List> recordList) {
+     *
+     * @param fileName
+     * @param recordList
+     */
+    public static void generateDatFile(String fileName, String charsetName, Map<Column, List> recordList) {
         //创建输出文件：i_pdata_t03_agmt_fea_rela_h_20210709_000_000.dat
        /* String filePath = PathHelper.getRootPath()+"\\result";
         String start_date = new DsDlpMockDataConfig().getStart_date();
@@ -53,8 +51,7 @@ public class OutPutFile {
             if (!file.exists()) {
                 file.createNewFile();
             }
-
-            BufferedWriter bw = new BufferedWriter(new OutputStreamWriter (new FileOutputStream (file),charsetName));
+            BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), charsetName));
 
             Collection<List> value = recordList.values();
             ArrayList<List> values = new ArrayList<>();
@@ -63,7 +60,6 @@ public class OutPutFile {
                 values.add(s);
             }
             String[] arr = new String[values.get(1).size()];
-            System.out.println(arr.length);
             for (int j = 0; j < values.get(1).size(); j++) {
                 for (int i = 0; i < values.size(); i++) {
                     if (arr[j] == null) {
@@ -72,15 +68,16 @@ public class OutPutFile {
                     arr[j] += values.get(i).get(j) + "|+|";
                 }
             }
-            for (Object a :arr
+            for (Object a : arr
             ) {
-               bw.write((String) a+"\n");
+                bw.write((String) a + "\n");
             }
             bw.close();
 
 
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
+            file.delete();
         }
     }
 
@@ -122,54 +119,6 @@ public class OutPutFile {
     }
 
     /**
-     * 生成就绪文件
-     *
-     * @param fileName
-     * @param outPath
-     */
-    public static void generateReadyFile(String fileName,String fileSize, String outPath) {
-        File file1 = new File(fileName);
-        String readyFileName = outPath + File.separator + file1.getName().split("\\.")[0] + ".xml";
-
-        try {
-            // 创建解析器工厂
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder db = factory.newDocumentBuilder();
-            Document document = db.newDocument();
-            // 不显示standalone="no"
-            document.setXmlStandalone(true);
-            Element transmit = document.createElement("transmit-content");
-            // 向transmit-content根节点中添加子节点file
-            Element file = document.createElement("file");
-            Element filename = document.createElement("filename");
-            Element size = document.createElement("size");
-            //设置filename的内容
-            filename.setTextContent(file1.getName());
-            size.setTextContent(fileSize);
-            //将filenanme加入到file的子节点中
-            file.appendChild(filename);
-            file.appendChild(size);
-            // 将file节点添加到transmit-content根节点中
-            transmit.appendChild(file);
-            // 将transmit-content节点（已包含file）添加到dom树中
-            document.appendChild(transmit);
-            // 创建TransformerFactory对象
-            TransformerFactory tff = TransformerFactory.newInstance();
-            // 创建 Transformer对象
-            Transformer tf = tff.newTransformer();
-            // 输出内容是否使用换行
-            tf.setOutputProperty(OutputKeys.INDENT, "yes");
-            tf.setOutputProperty(OutputKeys.DOCTYPE_PUBLIC,"yes");
-            // 创建xml文件并写入内容
-            tf.transform(new DOMSource(document), new StreamResult(new File(readyFileName)));
-            System.out.println("就绪文件生成成功");
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.out.println("就绪文件生成失败");
-        }
-    }
-
-    /**
      * 实现删除文件
      *
      * @param fileName
@@ -191,28 +140,99 @@ public class OutPutFile {
      *
      * @throws SQLException
      */
-    public static void update(String OPERATOR,String HIVE_NAME) throws SQLException {
+    public static void update(String OPERATOR, String HIVE_NAME) throws SQLException {
         //连接对象
-       Connection conn = MockData.getConnection(new MockData().getDataSourceConfig());
-       PreparedStatement ps = null;
+        Connection conn = MockData.getConnection(new MockData().getDataSourceConfig());
+        PreparedStatement ps = null;
 //       String OPERATOR = new DsDlpMockDataConfig().getOperator();
 //       String HIVE_NAME = new DsDlpMockDataConfig().getHive_name();
-       String sql = "update DS_DLP_MOCKDATA_CONFIG set STATE = 1 where STATE = 0 and OPERATOR= ? and HIVE_NAME=?";
-       try {
-           ps = conn.prepareStatement(sql);
-            ps.setString(1,OPERATOR);
-            ps.setString(2,HIVE_NAME);
+        String sql = "update DS_DLP_MOCKDATA_CONFIG set STATE = 1 where STATE = 0 and OPERATOR= ? and HIVE_NAME=?";
+        try {
+            ps = conn.prepareStatement(sql);
+            ps.setString(1, OPERATOR);
+            ps.setString(2, HIVE_NAME);
             ps.executeUpdate();
-           System.out.println("数据更新成功");
-       } catch (SQLException e) {
-           e.printStackTrace();
-           System.out.println("更新失败");
-       } finally {
-           ps.close();
-           conn.close();
-       }
+            System.out.println("数据更新成功");
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.out.println("更新失败");
+        } finally {
+            ps.close();
+            conn.close();
+        }
     }
 
+    /**
+     * createXMl
+     */
+    public static void createXml(String fileName, Long fileSize, String outPath, String charsetName) {
+        File file1 = new File(fileName);
+        String readyFileName = outPath + File.separator + file1.getName().split("\\.")[0] + ".xml";
+        // 创建XML文档树
+        Document document = DocumentHelper.createDocument();
+        // 创建根节点transmit-content
+        Element itemsElement = document.addElement("transmit-content");
+        // 创建根节点下的file子节点
+        Element itemElement = itemsElement.addElement("file");
+        // file节点有两个子节点
+        Element idElement = itemElement.addElement("filename");
+        idElement.setText(file1.getName());
+        Element nameElement = itemElement.addElement("filesize");
+        nameElement.setText(String.valueOf(fileSize));
 
+        // 设置XML文档格式
+        OutputFormat outputFormat = OutputFormat.createPrettyPrint();
+        // 设置XML编码方式,即是用指定的编码方式保存XML文档到字符串(String),这里也可以指定为GBK或是ISO8859-1
+        outputFormat.setEncoding(charsetName);
+        outputFormat.setNewLineAfterDeclaration(false);
+        outputFormat.setIndent(true); //设置是否缩进
+        outputFormat.setIndent("    "); //以四个空格方式实现缩进
+        outputFormat.setNewlines(true); //设置是否换行
+
+
+        File file = new File(readyFileName);
+        if (file.exists()) {
+            file.delete();
+        }
+
+        try {
+            // xmlWriter是用来把XML文档写入字符串的(工具)
+            XMLWriter xmlWriter = new XMLWriter(new FileOutputStream(file), outputFormat);
+            //设置不对特殊字符进行转义
+            xmlWriter.setEscapeText(false);
+            // 把创建好的XML文档写入字符串
+            xmlWriter.write(document);
+            xmlWriter.close();
+
+
+            BufferedReader br=null;
+            PrintWriter pw=null;
+            StringBuffer buff=new StringBuffer();
+            String line=System.getProperty("line.separator");//平台换行!
+            String str;
+
+            br=new BufferedReader(new FileReader(readyFileName));
+            while( (str=br.readLine())!=null){
+                if (str.equals("<transmit-content>"))
+                    str=str.replaceAll("<transmit-content>","    <transmit-content>\n");
+                    buff.append(str+line);
+                }
+            pw=new PrintWriter(new FileWriter(readyFileName),true);
+            pw.println(buff);
+            if(br!=null)
+                try {
+                    br.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            if(pw!=null)
+                pw.close();
+            System.out.println("就绪文件生成成功");
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("就绪文件生成失败");
+        }
+
+    }
 }
 
