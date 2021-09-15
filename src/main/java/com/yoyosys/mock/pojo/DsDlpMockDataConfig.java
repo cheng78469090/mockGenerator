@@ -39,7 +39,7 @@ public class DsDlpMockDataConfig implements Serializable {
 
     @Override
     public String toString() {
-        return "DsDlpMockdataConfig{" +
+        return "DsDlpMockDataConfig{" +
                 "id=" + id +
                 ", hive_name='" + hive_name + '\'' +
                 ", conditions='" + conditions + '\'' +
@@ -47,10 +47,10 @@ public class DsDlpMockDataConfig implements Serializable {
                 ", start_date='" + startDate + '\'' +
                 ", end_date='" + endDate + '\'' +
                 ", input_dir='" + input_dir + '\'' +
-                ", online_date='" + online_date + '\'' +
+                ", online_date=" + online_date +
                 ", operator='" + operator + '\'' +
                 ", state=" + state +
-                ", create_time='" + create_time + '\'' +
+                ", create_time=" + create_time +
                 ", ds_name='" + ds_name + '\'' +
                 ", name_en='" + name_en + '\'' +
                 '}';

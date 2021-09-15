@@ -16,6 +16,7 @@ import java.io.*;
 import java.sql.*;
 import java.util.*;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 
@@ -179,6 +180,50 @@ public class MockData {
 
             } catch (IOException e) {
                 e.printStackTrace();
+            //String filePath = new MockData().getClass().getResource("/").getPath() + "\\result";
+            String filePath = "D:\\work_space\\mock_data" + "\\result";
+            String start_date = dsDlpMockDataConfig.getStartDate();
+            String hive_name = dsDlpMockDataConfig.getHive_name();
+            String charsetName = dsConfig.getFILE_ENCODING();
+            String operator =dsDlpMockDataConfig.getOperator();
+            String alikeFileName="i_"+ hive_name + "_" + start_date + "_000_";
+
+            outPutFile(alikeFileName,charsetName,filePath,operator,hive_name,resultMap);
+
+
+        }
+
+    }
+
+    private static void outPutFile(String alikeFileName,String charsetName,String filePath,String operator,String hive_name,LinkedHashMap<Column, List> resultMap){
+        try {
+            String fileName;
+
+            File[] allfiles = new File(filePath).listFiles();
+            int count=0;
+            for (File file : allfiles) {
+                if (file.getName().contains(alikeFileName))
+                    count++;
+            }
+            int i = count / 2;
+            String num;
+            if (i <10){
+                num="00"+ i;
+            }else if (i>=100){
+                num=String.valueOf(i);
+            }else
+                num="0"+i;
+
+            fileName=filePath+File.separator + alikeFileName+num+".dat";
+
+            OutPutFile.generateDatFile(fileName, charsetName, resultMap);
+            OutPutFile.compressFile(fileName, filePath);
+            long size = (new File(fileName).length());
+            OutPutFile.createXml(fileName,size,filePath,charsetName);
+            OutPutFile.deleteFile(fileName);
+            OutPutFile.update(operator, hive_name);
+        } catch (IOException e) {
+            e.printStackTrace();
 
             } catch (SQLException e) {
                 e.printStackTrace();
@@ -256,6 +301,7 @@ public class MockData {
         }
         return true;
     }
+
 
     //获取表结构
     private List<Column> getColumn (StringBuilder filePath, StringBuilder filePath1, String loadScene){
@@ -355,6 +401,7 @@ public class MockData {
 
     /**
      * 将文件中获取到的主键放入list
+     *
      * @return
      * @throws Exception
      */
@@ -391,6 +438,8 @@ public class MockData {
         fileReader.close();
         return listStr;
     }
+
+
 
     /*
     读取配置文件
@@ -438,7 +487,7 @@ public class MockData {
      * param: operator
      * return: DsDlpMockDataConfig
      */
-    public List<DsDlpMockDataConfig> getDsDlpMockDataConfig (DataSourceConfig dataSourceConfig){
+    public List<DsDlpMockDataConfig> getDsDlpMockDataConfig(DataSourceConfig dataSourceConfig) {
         List<DsDlpMockDataConfig> dsDlpMockDataConfigList = new ArrayList<>();
         if (dataSourceConfig != null) {
             Connection connection = null;
@@ -492,22 +541,23 @@ public class MockData {
 
         return dsDlpMockDataConfigList;
     }
+
     /**
      * todo: 宋金城
      * param:
      * return: DsConfig
      */
-    public DsConfig getDsConfig (DataSourceConfig dataSourceConfig, String table_name){
+    public DsConfig getDsConfig(DataSourceConfig dataSourceConfig, String table_name) {
         if (table_name != null && table_name != "") {
             Connection connection = null;
             PreparedStatement mockDataConfigPs = null;
             ResultSet mockDataConfigResultSet = null;
             DsConfig dsConfig = null;
-            String DS_NAME=null;
-            String DS_IDENTIFY=null;
-            if (table_name.split("_").length>0){
-                DS_NAME=table_name.split("_")[0];
-                DS_IDENTIFY = table_name.substring(DS_NAME.length()+1);
+            String DS_NAME = null;
+            String DS_IDENTIFY = null;
+            if (table_name.split("_").length > 0) {
+                DS_NAME = table_name.split("_")[0];
+                DS_IDENTIFY = table_name.substring(DS_NAME.length() + 1);
             }
             try {
                 connection = getConnection(dataSourceConfig);
@@ -537,10 +587,11 @@ public class MockData {
 
     /**
      * todo: 宋金城 获取数据库连接
+     *
      * @param dataSourceConfig
      * @return
      */
-    public static Connection getConnection (DataSourceConfig dataSourceConfig){
+    public static Connection getConnection(DataSourceConfig dataSourceConfig) {
         Connection connection = null;
 
         if (dataSourceConfig != null) {
@@ -575,11 +626,12 @@ public class MockData {
 
     /**
      * todo:宋金城  数据库释放资源
+     *
      * @param conn
      * @param ps
      * @param rs
      */
-    public static void close (Connection conn, PreparedStatement ps, ResultSet rs){
+    public static void close(Connection conn, PreparedStatement ps, ResultSet rs) {
         try {
             if (rs != null) {
                 rs.close();

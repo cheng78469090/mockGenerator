@@ -1,6 +1,8 @@
 import br.com.six2six.bfgex.RegexGen;
 import com.apifan.common.random.source.DateTimeSource;
 import com.mifmif.common.regex.Generex;
+import com.yoyosys.mock.OutPutFile;
+import com.yoyosys.mock.pojo.Column;
 import com.yoyosys.mock.util.JsqlparserUtil;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Expression;
@@ -10,8 +12,9 @@ import nl.flotsam.xeger.Xeger;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.testng.annotations.Test;
 
-import java.net.URL;
-import java.nio.file.Path;
+import java.io.File;
+import java.io.IOException;
+import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -23,7 +26,7 @@ import java.util.*;
  * Date: 2021/9/5
  */
 public class test {
-    private Map<String,List<String>> map;
+    private Map<String, List<String>> map;
 
     @Test
     public void test1() throws JSQLParserException {
@@ -44,7 +47,7 @@ public class test {
         ZoneId zoneId = ZoneId.systemDefault();
         LocalDate start = yyyyMMdd.parse("20200801").toInstant().atZone(zoneId).toLocalDate();
         LocalDate end = yyyyMMdd.parse("20200901").toInstant().atZone(zoneId).toLocalDate();
-        System.out.println(DateTimeSource.getInstance().randomDate(start,end,"yyyyMMdd"));
+        System.out.println(DateTimeSource.getInstance().randomDate(start, end, "yyyyMMdd"));
     }
 
     @Test
@@ -64,7 +67,7 @@ public class test {
     public void test6() throws ParseException {
         for (int i = 0; i < 5; i++) {
             for (int j = 0; j < 5; j++) {
-                if (j==2) {
+                if (j == 2) {
                     break;
                 }
                 System.out.print("a");
@@ -77,7 +80,7 @@ public class test {
     public void test5() throws ParseException {
 //        Generex generex = new Generex("[a-z0-9]{10,10}");
 //        Generex generex = new Generex("[0-9]{" + "12341234".toString().length() + "}");
-        Generex generex =new Generex("[0-9]{5}\\.[0-9]{5}");
+        Generex generex = new Generex("[0-9]{5}\\.[0-9]{5}");
         // Generate random String
         String randomStr = generex.random();
         System.out.println(randomStr);// a random value from the previous String list
@@ -100,9 +103,72 @@ public class test {
         // 2a 2b 2c 2e 2ee 2ef 2eg 2f 2fe 2ff 2fg 2g 2ge 2gf 2gg
         // 3a 3b 3c 3e 3ee 3ef 3eg 3f 3fe 3ff 3fg 3g 3ge 3gf 3gg
     }
+
+
     @Test
-    public void test8(){
-        URL resource = this.getClass().getClassLoader().getResource("D:\\work_space\\mock_data\\data\\loadone_pdata_t03_agmt_fea_rela_h.tpl");
-        System.out.println(resource.toString());
+    public void test01(){
+        String filePath = "C:\\Users\\wjp50\\Desktop\\新建文件夹";//+ "\\result";
+        String hive_name = "pdata_t03_agmt_fea_rela_h";
+        String start_date = "20210501";
+        String fileName = filePath + "\\" +"i_"+ hive_name + "_" + start_date + "_000_000.dat";
+        String readyFileName="i_"+ hive_name + "_" + start_date + "_000_";
+        System.out.println(fileName);
+        String charsetName="UTF-8";
+
+
+        LinkedHashMap<Column, List> resultMap = new LinkedHashMap<>();
+        Column column = new Column();
+        column.setFieldName("a");
+        Column column1 = new Column();
+        column1.setFieldName("b");
+        Column column2 = new Column();
+        column1.setFieldName("c");
+
+        List<String> list  = Arrays.asList("1", "2", "3","4");
+        List<String> list1  = Arrays.asList("a", "b", "c","d");
+        List<String> list2  = Arrays.asList("王", "张", "离","合");
+        resultMap.put(column,list);
+        resultMap.put(column1,list1);
+        resultMap.put(column2,list2);
+
+
+
+        try {
+           /* File file = new File(readyFileName+".xml");
+            for (int i = 1;file.exists()&& i < Integer.MAX_VALUE ; i++) {
+                fileName=filePath+File.separator + file.getName().split("\\.")[0] + "("+i+")"+".dat";
+                file=new File(fileName);
+            }*/
+            File[] allfiles = new File(filePath).listFiles();
+            int count=0;
+            for (File file : allfiles) {
+                if (file.getName().contains(readyFileName))
+                    count++;
+            }
+            int i = count / 2;
+            String num;
+            if (i <10){
+                num="00"+ i;
+            }else if (i>=100){
+                num=String.valueOf(i);
+            }else
+                num="0"+i;
+
+            fileName=filePath+File.separator + readyFileName+num+".dat";
+
+            OutPutFile.generateDatFile(fileName, charsetName,resultMap);
+            long size = new File(fileName).length();
+            OutPutFile.compressFile(fileName, filePath);
+            OutPutFile.createXml(fileName,size,filePath,charsetName);
+            OutPutFile.deleteFile(fileName);
+            //OutPutFile.update(dsDlpMockDataConfig.getOperator(),dsDlpMockDataConfig.getHive_name());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
+    @Test
+    public void test03(){
+
+}
+
 }
