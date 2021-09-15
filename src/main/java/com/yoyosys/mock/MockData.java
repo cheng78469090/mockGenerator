@@ -164,18 +164,19 @@ public class MockData {
             String hive_name = dsDlpMockDataConfig.getHive_name();
             String charsetName = dsConfig.getFILE_ENCODING();
             String operator =dsDlpMockDataConfig.getOperator();
-            String fileName = filePath + "\\" + "i_" + hive_name + "_" + start_date + "_000_000.dat";
             String alikeFileName="i_"+ hive_name + "_" + start_date + "_000_";
 
-            MockData.outPutFile(fileName,alikeFileName,charsetName,filePath,operator,hive_name,resultMap);
+            outPutFile(alikeFileName,charsetName,filePath,operator,hive_name,resultMap);
 
 
         }
 
     }
 
-    private static void outPutFile(String fileName,String alikeFileName,String charsetName,String filePath,String operator,String hive_name,LinkedHashMap<Column, List> resultMap){
+    private static void outPutFile(String alikeFileName,String charsetName,String filePath,String operator,String hive_name,LinkedHashMap<Column, List> resultMap){
         try {
+            String fileName;
+
             File[] allfiles = new File(filePath).listFiles();
             int count=0;
             for (File file : allfiles) {
