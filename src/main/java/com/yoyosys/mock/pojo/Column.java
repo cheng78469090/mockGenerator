@@ -71,11 +71,12 @@ public class Column {
     public Column() {
     }
 
-    public Column(String fieldName, String cType, String cLength, boolean primaryKey) {
+    public Column(String fieldName, String cType, String cLength, boolean primaryKey, boolean isPartition) {
         this.fieldName = fieldName;
         this.cType = cType;
         this.cLength = cLength;
         this.primaryKey = primaryKey;
+        this.isPartition = isPartition;
     }
 }
 
