@@ -170,29 +170,13 @@ public class MockData {
             String filePath = "D:\\work_space\\mock_data" + "\\result";
             String start_date = dsDlpMockDataConfig.getStartDate();
             String hive_name = dsDlpMockDataConfig.getHive_name();
-            String fileName = filePath + "/" + "i_pdata" + hive_name + "_" + start_date.toString() + "000_000.dat";
-            try {
-                OutPutFile.generateDatFile(fileName, resultMap);
-                OutPutFile.compressFile(fileName, filePath);
-                OutPutFile.deleteFile(fileName);
-                OutPutFile.generateReadyFile(fileName, filePath);
-                OutPutFile.update(dsDlpMockDataConfig.getOperator(),dsDlpMockDataConfig.getHive_name());
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            //String filePath = new MockData().getClass().getResource("/").getPath() + "\\result";
-            String filePath = "D:\\work_space\\mock_data" + "\\result";
-            String start_date = dsDlpMockDataConfig.getStartDate();
-            String hive_name = dsDlpMockDataConfig.getHive_name();
             String charsetName = dsConfig.getFILE_ENCODING();
             String operator =dsDlpMockDataConfig.getOperator();
             String alikeFileName="i_"+ hive_name + "_" + start_date + "_000_";
 
             outPutFile(alikeFileName,charsetName,filePath,operator,hive_name,resultMap);
-
-
         }
-
+        return true;
     }
 
     private static void outPutFile(String alikeFileName,String charsetName,String filePath,String operator,String hive_name,LinkedHashMap<Column, List> resultMap){
@@ -229,8 +213,7 @@ public class MockData {
                 e.printStackTrace();
             }
         }
-        return true;
-    }
+
 
     //根据表结构生成模拟数据
     private LinkedHashMap<Column, List> createData (List <Column> columnList, int records,
