@@ -9,6 +9,8 @@ import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.BinaryExpression;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.Parenthesis;
+import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
+import net.sf.jsqlparser.expression.operators.conditional.OrExpression;
 import net.sf.jsqlparser.expression.operators.relational.Between;
 import net.sf.jsqlparser.expression.operators.relational.InExpression;
 import net.sf.jsqlparser.expression.operators.relational.IsNullExpression;
@@ -70,25 +72,21 @@ public class JsqlparserUtil {
         StringBuffer stringBuffer = new StringBuffer();
         stringBuffer.append(sql);
         List<Expression> expressionList = new ArrayList<>();
-        Statement statement = CCJSqlParserUtil.parse(new StringReader(stringBuffer.toString()));
-        if (statement instanceof Select) {
-            Select istatement = (Select) statement;
-            Expression where = ((PlainSelect) istatement.getSelectBody()).getWhere();
-            if (null != where) {
-                try {
-                    List<Expression> list = getParser(where);
-                    expressionList.addAll(list);
-                }catch (Exception e){
+        Expression where = CCJSqlParserUtil.parseCondExpression(sql,false);
+        if (null != where) {
+            try {
+                List<Expression> list = getParser(where);
+                expressionList.addAll(list);
+            }catch (Exception e){
 
-                }finally {
-                    list.clear();
-                }
+            }finally {
+                list.clear();
             }
         }
         return expressionList;
     }
 
-    private List<Expression> getParser(Expression expression) {
+    public List<Expression> getParser(Expression expression) {
         //初始化接受获得的字段信息
         if (expression instanceof BinaryExpression) {
             //获得左边表达式
@@ -107,7 +105,11 @@ public class JsqlparserUtil {
                 getParser(leftExpression);
             } else if (leftExpression instanceof Parenthesis) {//递归调用
                 Expression expression1 = ((Parenthesis) leftExpression).getExpression();
-                getParser(expression1);
+                if (expression1 instanceof OrExpression || expression1 instanceof AndExpression){
+                    list.add(expression1);
+                }else {
+                    getParser(expression1);
+                }
             }
 
             //获得右边表达式，并分解
@@ -120,7 +122,11 @@ public class JsqlparserUtil {
                 this.parserIsNullExpression(rightExpression);
             } else if (rightExpression instanceof Parenthesis) {//递归调用
                 Expression expression1 = ((Parenthesis) rightExpression).getExpression();
-                getParser(expression1);
+                if (expression1 instanceof OrExpression || expression1 instanceof AndExpression){
+                    list.add(expression1);
+                }else {
+                    getParser(expression1);
+                }
             }
         } else if (expression instanceof Between) {
             list.add(expression);
@@ -130,7 +136,11 @@ public class JsqlparserUtil {
             this.parserIsNullExpression(expression);
         } else if (expression instanceof Parenthesis) {//递归调用
             Expression expression1 = ((Parenthesis) expression).getExpression();
-            getParser(expression1);
+            if (expression1 instanceof OrExpression || expression1 instanceof AndExpression){
+                list.add(expression1);
+            }else {
+                getParser(expression1);
+            }
         }
         return list;
     }
