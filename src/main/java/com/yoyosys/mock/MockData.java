@@ -171,15 +171,14 @@ public class MockData {
             String start_date = dsDlpMockDataConfig.getStartDate();
             String hive_name = dsDlpMockDataConfig.getHive_name();
             String charsetName = dsConfig.getFILE_ENCODING();
-            String operator =dsDlpMockDataConfig.getOperator();
+            int ID =dsDlpMockDataConfig.getId();
             String alikeFileName="i_"+ hive_name + "_" + start_date + "_000_";
-
             outPutFile(alikeFileName,charsetName,filePath,operator,hive_name,resultMap);
         }
         return true;
     }
 
-    private static void outPutFile(String alikeFileName,String charsetName,String filePath,String operator,String hive_name,LinkedHashMap<Column, List> resultMap){
+    private static void outPutFile(String alikeFileName,String charsetName,String filePath,int ID,LinkedHashMap<Column, List> resultMap){
         try {
             String fileName;
 
@@ -205,7 +204,7 @@ public class MockData {
             long size = (new File(fileName).length());
             OutPutFile.createXml(fileName,size,filePath,charsetName);
             OutPutFile.deleteFile(fileName);
-            OutPutFile.update(operator, hive_name);
+            OutPutFile.update(ID);
         } catch (IOException e) {
             e.printStackTrace();
 
