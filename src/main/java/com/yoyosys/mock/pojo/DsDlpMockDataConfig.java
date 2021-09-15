@@ -21,6 +21,22 @@ public class DsDlpMockDataConfig implements Serializable {
     private String ds_name;
     private String name_en;
 
+    public String getStartDate() {
+        return startDate;
+    }
+
+    public void setStartDate(String startDate) {
+        this.startDate = startDate;
+    }
+
+    public String getEndDate() {
+        return endDate;
+    }
+
+    public void setEndDate(String endDate) {
+        this.endDate = endDate;
+    }
+
     @Override
     public String toString() {
         return "DsDlpMockDataConfig{" +
@@ -28,8 +44,8 @@ public class DsDlpMockDataConfig implements Serializable {
                 ", hive_name='" + hive_name + '\'' +
                 ", conditions='" + conditions + '\'' +
                 ", records=" + records +
-                ", startDate='" + startDate + '\'' +
-                ", endDate='" + endDate + '\'' +
+                ", start_date='" + startDate + '\'' +
+                ", end_date='" + endDate + '\'' +
                 ", input_dir='" + input_dir + '\'' +
                 ", online_date=" + online_date +
                 ", operator='" + operator + '\'' +
@@ -72,25 +88,6 @@ public class DsDlpMockDataConfig implements Serializable {
         this.records = records;
     }
 
-    public static long getSerialVersionUID() {
-        return serialVersionUID;
-    }
-
-    public String getStartDate() {
-        return startDate;
-    }
-
-    public void setStartDate(String startDate) {
-        this.startDate = startDate;
-    }
-
-    public String getEndDate() {
-        return endDate;
-    }
-
-    public void setEndDate(String endDate) {
-        this.endDate = endDate;
-    }
 
     public String getInput_dir() {
         return input_dir;

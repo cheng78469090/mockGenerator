@@ -14,6 +14,15 @@ public class DataSourceConfig {
     private String Oracle_password;
     private String Operator;
     private String Timestamp;
+    private String dataFile;//数据文件
+
+    public String getDataFile() {
+        return dataFile;
+    }
+
+    public void setDataFile(String dataFile) {
+        this.dataFile = dataFile;
+    }
 
     public String getOracle_url() {
         return Oracle_url;
