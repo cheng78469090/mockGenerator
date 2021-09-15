@@ -173,7 +173,7 @@ public class MockData {
             String charsetName = dsConfig.getFILE_ENCODING();
             int ID =dsDlpMockDataConfig.getId();
             String alikeFileName="i_"+ hive_name + "_" + start_date + "_000_";
-            outPutFile(alikeFileName,charsetName,filePath,operator,hive_name,resultMap);
+            outPutFile(alikeFileName,charsetName,filePath,ID,resultMap);
         }
         return true;
     }
