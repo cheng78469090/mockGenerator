@@ -57,52 +57,56 @@ public class MockData {
             //结束时间
             String endDate = dsDlpMockDataConfig.getEndDate();
 
-            StringBuilder modeFile = new StringBuilder("D:\\work_space\\mock_data\\data");//表结构存储文件路径
-            StringBuilder modeFile1 = new StringBuilder("D:\\work_space\\mock_data\\data");//存量文件，用来确定分区字段
+            StringBuilder modeFile = new StringBuilder("C:\\Users\\xiaoyaoxiaodi\\Desktop\\mock_data\\data");//表结构存储文件路径
+            StringBuilder CLFile = new StringBuilder("C:\\Users\\xiaoyaoxiaodi\\Desktop\\mock_data\\data");//存量文件，用来确定分区字段
             //根据数据加载场景去对应的目录下查找该表对应的以ext开头的模板文件
             switch (loadScene) {//数据加载场景
                 case Constants.LOADSCENE01:
-                    modeFile.append("/B1/" + hiveName + "/" + "load_" + hiveName + ".tpl");
-                    modeFile1.append("/B1_C/" + hiveName + "/" + "load_" + hiveName + ".tpl");
-
+                    modeFile.append("\\B1\\" + hiveName + "\\" + "load_" + hiveName + ".tpl");
+                    CLFile.append("\\B1_C\\" + hiveName + "\\" + "load_" + hiveName + ".tpl");
                     break;
                 case Constants.LOADSCENE02:
-                    modeFile.append("/B2/" + hiveName + "/" + "load_" + hiveName + ".tpl");
-                    modeFile1.append("/B2_C/" + hiveName + "/" + "load_" + hiveName + ".tpl");
+                    modeFile.append("\\B2\\" + hiveName + "\\" + "load_" + hiveName + ".tpl");
+                    CLFile.append("\\B2_C\\" + hiveName + "\\" + "load_" + hiveName + ".tpl");
                     break;
                 case Constants.LOADSCENE03:
-                    modeFile.append("/B3/" + hiveName + "/" + "ext_" + hiveName + ".tpl");
-                    modeFile1 = null;
+                    modeFile.append("\\B3\\" + hiveName + "\\" + "ext_" + hiveName + ".tpl");
+                    CLFile = null;
                     break;
                 case Constants.LOADSCENE04:
-                    modeFile.append("/B4/" + hiveName + "/" + "ext_" + hiveName + ".tpl");
-                    modeFile1 = null;
+                    modeFile.append("\\B4\\" + hiveName + "\\" + "ext_" + hiveName + ".tpl");
+                    CLFile = null;
                     break;
             }
             //表结构
-            List<Column> columnList = mockData.getColumn(modeFile, modeFile1, loadScene);
+            List<Column> columnList = mockData.getColumn(modeFile, CLFile, loadScene);
 
             //是否上传数据文件：读取数据文件/mockdata/data/a_pdata_t03_agmt_fea_rela_h_2021070 9_000_000.dat
-            if (getDataFile()) {
+            if (getDataFile(loadScene)) {
                 //生成模拟数据集
                 StringBuilder result1 = new StringBuilder();
-                try {
-                    BufferedReader bfr1 = new BufferedReader(
-                        new InputStreamReader(new FileInputStream(new File(
-                            "D:\\work_space\\mock_data\\data\\a_pdata_t03_agmt_fea_rela_h_20210709_000_000.dat")), "UTF-8"));
-                    String lineTxt1 = null;
-                    while ((lineTxt1 = bfr1.readLine()) != null) {
-                        result1.append(lineTxt1).append("\n");
+                File fileDir = new File("C:\\Users\\xiaoyaoxiaodi\\Desktop\\mock_data\\data");
+                File[] files = fileDir.listFiles();
+                for (File file : files) {
+                    if(!file.isDirectory()){
+                        try {
+                            BufferedReader bfr1 = new BufferedReader(
+                                new InputStreamReader(new FileInputStream(file), "UTF-8"));
+                            String lineTxt1 = null;
+                            while ((lineTxt1 = bfr1.readLine()) != null) {
+                                result1.append(lineTxt1).append("\n");
+                            }
+                            bfr1.close();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                     }
-                    bfr1.close();
-                } catch (Exception e) {
-                    e.printStackTrace();
                 }
-
                 String[] createSql1 = result1.toString().split("\n");
                 List<String[]> listb = new ArrayList<>();
                 for (String a : createSql1) {
-                    String[] b = a.split("\\|\\+\\|");
+                    String[] b = a.split("\\|\\+\\|", -1);
+                    b = Arrays.copyOf(b, b.length-1);
                     listb.add(b);
                 }
 
@@ -173,7 +177,7 @@ public class MockData {
             String charsetName = dsConfig.getFILE_ENCODING();
             int ID =dsDlpMockDataConfig.getId();
             String alikeFileName="i_"+ hive_name + "_" + start_date + "_000_";
-            outPutFile(alikeFileName,charsetName,filePath,operator,hive_name,resultMap);
+            outPutFile(alikeFileName,charsetName,filePath,ID,resultMap);
         }
         return true;
     }
@@ -194,8 +198,9 @@ public class MockData {
                 num="00"+ i;
             }else if (i>=100){
                 num=String.valueOf(i);
-            }else
+            }else{
                 num="0"+i;
+            }
 
             fileName=filePath+File.separator + alikeFileName+num+".dat";
 
@@ -223,19 +228,17 @@ public class MockData {
 
         //天数
         int betweenDays = Integer.parseInt(endDate) - Integer.parseInt(startDate) + 1;
-        int n = 0;
+        int n = records;
         if (loadSence.equals(Constants.LOADSCENE04)){
             n = records * (betweenDays + 1);
         }
 
         for (Column column : columnList) {
-            List list = new ArrayList();
+            LinkedHashSet list = new LinkedHashSet<>();
 
-            for (int i = 0; i < records; i++) {
+            for (int i = 0; i < n; i++) {
                 switch (column.getcType().toUpperCase()) {
-                    case "CHAR"://
-                        list.add(MakeDataUtil.makeCharData());
-                        break;
+                    case "CHAR":
                     case "VARCHAR"://可变长度的字符串
                     case "NCHAR"://根据字符集而定的固定长度字符串
                     case "NVARCHAR2 "://根据字符集而定的可变长度字符串
@@ -252,38 +255,48 @@ public class MockData {
                                     list.add(MakeDataUtil.makeDateData(startDate,endDate));
                                     break;
                                 }else{
-                                    list.add( Integer.parseInt(startDate) + (i / records % 10));
+                                    list.add(Integer.parseInt(startDate) + (i / records % 10 - 1) + "");
+                                    break;
                                 }
                             }
                             list.add(MakeDataUtil.makeDateData(startDate,endDate));
                             break;
                         }
-                        list.add(MakeDataUtil.makeStringData(column));
+                        list.add(MakeDataUtil.makeStringData(column,list));
                         break;
                     case "INTEGER":
-                        list.add(MakeDataUtil.makeIntData(column));
+                        list.add(MakeDataUtil.makeIntData(column,list));
                         break;
                     case "NUMBER":
                     case "DECIMAL":
                     case "FLOAT":
-                        list.add(MakeDataUtil.makeNumData(column));
+                        list.add(MakeDataUtil.makeNumData(column,list));
                         break;
                 }
+
             }
-            resultMap.put(column, list);
+            List arrayList = new ArrayList();
+            Iterator i = list.iterator();
+            while (i.hasNext()){
+                arrayList.add(i.next());
+            }
+
+            resultMap.put(column, arrayList);
         }
         return resultMap;
     }
 
     //判断是否上传数据文件
-    private static boolean getDataFile () {
-        File file = new File("D:\\work_space\\mock_data\\data\\a_pdata_t03_agmt_fea_rela_h_20210709_000_000.dat");
+    private static boolean getDataFile (String loadScene) {
+        if (loadScene.equals(Constants.LOADSCENE04)){
+            return false;
+        }
+        File file = new File("C:\\Users\\xiaoyaoxiaodi\\Desktop\\mock_data\\data\\a_pdata_t03_agmt_fea_rela_h_20210709_000_000.dat");
         if (!file.exists()) {
             return false;
         }
         return true;
     }
-
 
     //获取表结构
     private List<Column> getColumn (StringBuilder filePath, StringBuilder filePath1, String loadScene){
@@ -295,7 +308,7 @@ public class MockData {
             //读取表结构文件
             BufferedReader bfr = new BufferedReader(
                 new InputStreamReader(new FileInputStream(
-                    new File(filePath.toString())), "UTF-8"));
+                    new File(filePath+"")), "UTF-8"));
             String lineTxt = null;
             while ((lineTxt = bfr.readLine()) != null) {
                 result.append(lineTxt).append("\n");
@@ -304,8 +317,8 @@ public class MockData {
             if (filePath1 != null) {
                 //读取存量文件
                 BufferedReader bfr1 = new BufferedReader(
-                        new InputStreamReader(new FileInputStream(
-                                new File(filePath1.toString())), "UTF-8"));
+                    new InputStreamReader(new FileInputStream(
+                        new File(filePath1.toString())), "UTF-8"));
                 String lineTxt1 = null;
                 while ((lineTxt1 = bfr.readLine()) != null) {
                     result1.append(lineTxt1).append("\n");
@@ -333,21 +346,17 @@ public class MockData {
             //设置字段名
             column.setFieldName(sqlStructure[0]);
             //设置字段是否为分区字段
-            String partitionField = null;
             switch (loadScene) {//数据加载场景
                 case Constants.LOADSCENE01:
                 case Constants.LOADSCENE02:
                     String[] sql = result1.toString().split("\n");
                     for (String s : sql) {
-                        if (s.toLowerCase().contains(Constants.AS_BDAP_ETLDATE)) {
-                            String[] s1 = s.split(" ");
-                            partitionField = s1[0];
+                        if (s.toLowerCase().contains(Constants.AS_BDAP_ETLDATE) &&
+                            s.toLowerCase().contains(column.getFieldName().toLowerCase())) {
+                            column.setPartition(true);
+                        }else {
+                            column.setPartition(false);
                         }
-                    }
-                    if (column.getFieldName().toUpperCase().equals(partitionField.toUpperCase())) {
-                        column.setPartition(true);
-                    } else {
-                        column.setPartition(false);
                     }
                     break;
                 case Constants.LOADSCENE03:
@@ -389,7 +398,7 @@ public class MockData {
      */
     private List<String> getPrimayKey() throws IOException {
 //        String path = this.getClass().getClassLoader().getResource("D:\\work_space\\mock_data\\data\\loadone_pdata_t03_agmt_fea_rela_h.tpl").getFile();
-        FileReader fileReader = new FileReader("D:\\work_space\\mock_data\\data\\loadone_pdata_t03_agmt_fea_rela_h.tpl");
+        FileReader fileReader = new FileReader("C:\\Users\\xiaoyaoxiaodi\\Desktop\\mock_data\\data\\loadone_pdata_t03_agmt_fea_rela_h.tpl");
         BufferedReader bfReader = new BufferedReader(fileReader);
         String temp = null;
         StringBuffer sb = new StringBuffer();
@@ -421,8 +430,6 @@ public class MockData {
         return listStr;
     }
 
-
-
     /*
     读取配置文件
       *todo:宋金城
@@ -437,7 +444,7 @@ public class MockData {
         //2.拼接路径
         String path = rootPath + "\\mock_data\\conf\\dlp_yoyo_mockdata.config";
         System.out.println(path);
-        String configPath = "D:\\work_space\\mock_data\\conf\\dlp_yoyo_mockdata.config";
+        String configPath = "C:\\Users\\xiaoyaoxiaodi\\Desktop\\mock_data\\conf\\dlp_yoyo_mockdata.config";
         //3.获取配置文件信息
         try {
             InputStream in = new FileInputStream(configPath);
