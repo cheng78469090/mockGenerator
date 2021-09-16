@@ -173,7 +173,7 @@ public class MockData {
             String charsetName = dsConfig.getFILE_ENCODING();
             int ID =dsDlpMockDataConfig.getId();
             String alikeFileName="i_"+ hive_name + "_" + start_date + "_000_";
-            outPutFile(alikeFileName,charsetName,filePath,operator,hive_name,resultMap);
+            outPutFile(alikeFileName,charsetName,filePath,ID,resultMap);
         }
         return true;
     }
@@ -185,8 +185,9 @@ public class MockData {
             File[] allfiles = new File(filePath).listFiles();
             int count=0;
             for (File file : allfiles) {
-                if (file.getName().contains(alikeFileName))
+                if (file.getName().contains(alikeFileName)){
                     count++;
+                }
             }
             int i = count / 2;
             String num;
@@ -194,8 +195,9 @@ public class MockData {
                 num="00"+ i;
             }else if (i>=100){
                 num=String.valueOf(i);
-            }else
+            }else{
                 num="0"+i;
+            }
 
             fileName=filePath+File.separator + alikeFileName+num+".dat";
 
