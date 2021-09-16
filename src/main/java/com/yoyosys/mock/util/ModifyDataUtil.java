@@ -10,6 +10,7 @@ import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
 import net.sf.jsqlparser.expression.operators.conditional.OrExpression;
 import net.sf.jsqlparser.expression.operators.relational.*;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.RandomUtils;
 
 import java.io.BufferedReader;
 import java.text.ParseException;
@@ -18,6 +19,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.TemporalUnit;
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -37,7 +39,7 @@ public class ModifyDataUtil {
 
     private JsqlparserUtil jsqlparserUtil = new JsqlparserUtil();
 
-    private Long counterExample = 0L;
+    private Long counterExample = 3L;
 
 
     /**
@@ -67,8 +69,6 @@ public class ModifyDataUtil {
 
         } else if (expression instanceof IsNullExpression) {
             List<String> strings = equalsColumn(expression);
-            parserIsNullExpression(expression,strings,((Integer)strings.size()).longValue());
-            ((IsNullExpression) expression).setNot(!((IsNullExpression) expression).isNot());
             parserIsNullExpression(expression,strings,counterExample);
 
         } else if (expression instanceof Between) {
@@ -120,8 +120,8 @@ public class ModifyDataUtil {
             parserParenthesisExpression(leftExpression,rightExpression,false,strings,((Integer)strings.size()).longValue());
             parserParenthesisExpression(leftExpression,rightExpression,true,strings,counterExample);
         }else if (expression instanceof OrExpression) {
-            Expression leftExpression = ((AndExpression) expression).getLeftExpression();
-            Expression rightExpression = ((AndExpression) expression).getRightExpression();
+            Expression leftExpression = ((OrExpression) expression).getLeftExpression();
+            Expression rightExpression = ((OrExpression) expression).getRightExpression();
             List<String> strings = equalsColumn(leftExpression);
             parserParenthesisExpression(leftExpression,rightExpression,true,strings,((Integer)strings.size()).longValue());
             parserParenthesisExpression(leftExpression,rightExpression,false,strings,counterExample);
@@ -134,13 +134,24 @@ public class ModifyDataUtil {
      * @return
      */
     public List<String> equalsColumn(Expression expression){
-        Expression leftExpression = ((BinaryExpression)expression).getLeftExpression();
+        Expression leftExpression = null;
+        if (expression instanceof BinaryExpression) {
+            leftExpression = ((BinaryExpression)expression).getLeftExpression();
+        }else if (expression instanceof Between) {
+            leftExpression = ((Between) expression).getLeftExpression();
+        }else if (expression instanceof IsNullExpression) {
+            leftExpression = ((IsNullExpression) expression).getLeftExpression();
+        }else if (expression instanceof InExpression) {
+            leftExpression = ((InExpression) expression).getLeftExpression();
+        }
+
         List<String> strings = null;
         if (leftExpression instanceof net.sf.jsqlparser.schema.Column) {
             String columnName = ((net.sf.jsqlparser.schema.Column) leftExpression).getColumnName();
             for (Column column : columns) {
                 if (columnName.equals(column.getFieldName())){
                     strings = data.get(column);
+                    break;
                 }
             }
         }else {
@@ -205,7 +216,7 @@ public class ModifyDataUtil {
                         }
                     }
                 }
-            }else if (IsDateFormat.isRqFormat(expressions.get(0).toString())) {
+            }else if (IsDateFormat.isRqFormat(expressions.get(0).toString().replace("\"", "").replace("\'", ""))) {
                 SimpleDateFormat yyyyMMdd = new SimpleDateFormat("yyyyMMdd");
                 ZoneId zoneId = ZoneId.systemDefault();
                 for (int i=0;i<size;i++){
@@ -213,8 +224,8 @@ public class ModifyDataUtil {
                     String random = "";
                     while(true){
                         try {
-                            random = DateTimeSource.getInstance().randomDate(yyyyMMdd.parse(expressions.get(0).toString()).getYear(),"yyyyMMdd");
-                        } catch (ParseException e) {
+                            random = DateTimeSource.getInstance().randomFutureDate("yyyyMMdd");
+                        } catch (Exception e) {
                             e.printStackTrace();
                         }
                         for (Expression expression1 : expressions) {
@@ -231,7 +242,7 @@ public class ModifyDataUtil {
                     }
                 }
             } else {
-                Generex generex = new Generex("[a-z0-9A-Z]{"+expressions.get(0)+"}");
+                Generex generex = new Generex("[a-z0-9A-Z]{"+expressions.get(0).toString().replace("\"", "").replace("\'", "").length()+"}");
                 for (int i=0;i<size;i++){
                     String s = "";
                     boolean flag = true;
@@ -264,8 +275,10 @@ public class ModifyDataUtil {
     public void parserParenthesisExpression(Expression leftExpression,Expression rightExpression,Boolean isNot,List<String> strings,Long size) {
         //最小值
         Expression min = null;
+
         //最大值
         Expression max = null;
+
         //小于等于
         boolean minEquals = true;
         //大于等于
@@ -311,60 +324,66 @@ public class ModifyDataUtil {
                 minEquals = false;
             }
         }
-
+        if (min.toString().compareTo(max.toString())>0){
+            Expression expression = max;
+            max = min;
+            min = expression;
+        }
+        String minReplace = min.toString().replace("\"", "").replace("\'", "");
+        String maxReplace = max.toString().replace("\"", "").replace("\'", "");
         if (!isNot){
             if(max instanceof LongValue){
                 if (minEquals==false && maxEquals==false){
                     for (int i=0;i<size;i++){
-                        Long l = NumberSource.getInstance().randomLong(Long.parseLong(min.toString())-1, Long.parseLong(max.toString())-1);
+                        Long l = ThreadLocalRandom.current().nextLong(Long.parseLong(min.toString())-1, Long.parseLong(max.toString())-1);
                         strings.set(i,l.toString());
                     }
                 } else if (minEquals==true && maxEquals == false) {
                     for (int i=0;i<size;i++){
-                        Long l = NumberSource.getInstance().randomLong(Long.parseLong(min.toString())-1, Long.parseLong(max.toString()));
+                        Long l = ThreadLocalRandom.current().nextLong(Long.parseLong(min.toString())-1, Long.parseLong(max.toString()));
                         strings.set(i,l.toString());
                     }
                 } else if (minEquals==false && maxEquals == true) {
                     for (int i=0;i<size;i++){
-                        Long l = NumberSource.getInstance().randomLong(Long.parseLong(min.toString()), Long.parseLong(max.toString())-1);
+                        Long l = ThreadLocalRandom.current().nextLong(Long.parseLong(min.toString()), Long.parseLong(max.toString())-1);
                         strings.set(i,l.toString());
                     }
                 } else if (minEquals==true && maxEquals == true) {
                     for (int i=0;i<size;i++){
-                        Long l = NumberSource.getInstance().randomLong(Long.parseLong(min.toString()), Long.parseLong(max.toString()));
+                        Long l = ThreadLocalRandom.current().nextLong(Long.parseLong(min.toString()), Long.parseLong(max.toString()));
                         strings.set(i,l.toString());
                     }
                 }
             } else if (max instanceof DoubleValue) {
                 if (minEquals==false && maxEquals==false){
                     for (int i=0;i<size;i++){
-                        Double l = NumberSource.getInstance().randomDouble(Double.parseDouble(min.toString())-1, Double.parseDouble(max.toString())-1);
+                        Double l = ThreadLocalRandom.current().nextDouble(Double.parseDouble(min.toString())-1, Double.parseDouble(max.toString())-1);
                         strings.set(i,l.toString());
                     }
                 } else if (minEquals==true && maxEquals == false) {
                     for (int i=0;i<size;i++){
-                        Double l = NumberSource.getInstance().randomDouble(Double.parseDouble(min.toString())-1, Double.parseDouble(max.toString()));
+                        Double l = ThreadLocalRandom.current().nextDouble(Double.parseDouble(min.toString())-1, Double.parseDouble(max.toString()));
                         strings.set(i,l.toString());
                     }
                 } else if (minEquals==false && maxEquals == true) {
                     for (int i=0;i<size;i++){
-                        Double l = NumberSource.getInstance().randomDouble(Double.parseDouble(min.toString()), Double.parseDouble(max.toString())-1);
+                        Double l = ThreadLocalRandom.current().nextDouble(Double.parseDouble(min.toString()), Double.parseDouble(max.toString())-1);
                         strings.set(i,l.toString());
                     }
                 } else if (minEquals==true && maxEquals == true) {
                     for (int i=0;i<size;i++){
-                        Double l = NumberSource.getInstance().randomDouble(Double.parseDouble(min.toString()), Double.parseDouble(max.toString()));
+                        Double l = ThreadLocalRandom.current().nextDouble(Double.parseDouble(min.toString()), Double.parseDouble(max.toString()));
                         strings.set(i,l.toString());
                     }
                 }
-            } else if (IsDateFormat.isRqFormat(max.toString())){
+            } else if (IsDateFormat.isRqFormat(maxReplace)){
                 SimpleDateFormat yyyyMMdd = new SimpleDateFormat("yyyyMMdd");
                 ZoneId zoneId = ZoneId.systemDefault();
                 LocalDate maxDate = null;
                 LocalDate minDate = null;
                 try {
-                    maxDate = yyyyMMdd.parse(max.toString()).toInstant().atZone(zoneId).toLocalDate();
-                    minDate = yyyyMMdd.parse(min.toString()).toInstant().atZone(zoneId).toLocalDate();
+                    maxDate = yyyyMMdd.parse(maxReplace).toInstant().atZone(zoneId).toLocalDate();
+                    minDate = yyyyMMdd.parse(minReplace).toInstant().atZone(zoneId).toLocalDate();
                 } catch (ParseException e) {
                     e.printStackTrace();
                 }
@@ -394,8 +413,8 @@ public class ModifyDataUtil {
             if(max instanceof LongValue){
                 if (minEquals==false && maxEquals==false){
                     for (int i=0;i<size;i++){
-                        Long l = NumberSource.getInstance().randomLong(Long.parseLong(min.toString())-10*strings.size(),Long.parseLong(min.toString())-1);
-                        Long s = NumberSource.getInstance().randomLong(Long.parseLong(max.toString())+1,Long.parseLong(max.toString())+10*strings.size());
+                        Long l = ThreadLocalRandom.current().nextLong(Long.parseLong(min.toString())-10*strings.size(),Long.parseLong(min.toString())-1);
+                        Long s = ThreadLocalRandom.current().nextLong(Long.parseLong(max.toString())+1,Long.parseLong(max.toString())+10*strings.size());
                         if(i%2==0){
                             strings.set(i,l.toString());
                         }else {
@@ -404,8 +423,8 @@ public class ModifyDataUtil {
                     }
                 } else if (minEquals==true && maxEquals == false) {
                     for (int i=0;i<size;i++){
-                        Long l = NumberSource.getInstance().randomLong(Long.parseLong(min.toString())-10*strings.size(),Long.parseLong(min.toString()));
-                        Long s = NumberSource.getInstance().randomLong(Long.parseLong(max.toString())+1,Long.parseLong(max.toString())+10*strings.size());
+                        Long l = ThreadLocalRandom.current().nextLong(Long.parseLong(min.toString())-10*strings.size(),Long.parseLong(min.toString()));
+                        Long s = ThreadLocalRandom.current().nextLong(Long.parseLong(max.toString())+1,Long.parseLong(max.toString())+10*strings.size());
                         if(i%2==0){
                             strings.set(i,l.toString());
                         }else {
@@ -414,8 +433,8 @@ public class ModifyDataUtil {
                     }
                 } else if (minEquals==false && maxEquals == true) {
                     for (int i=0;i<size;i++){
-                        Long l = NumberSource.getInstance().randomLong(Long.parseLong(min.toString())-10*strings.size(),Long.parseLong(min.toString())-1);
-                        Long s = NumberSource.getInstance().randomLong(Long.parseLong(max.toString()),Long.parseLong(max.toString())+10*strings.size());
+                        Long l = ThreadLocalRandom.current().nextLong(Long.parseLong(min.toString())-10*strings.size(),Long.parseLong(min.toString())-1);
+                        Long s = ThreadLocalRandom.current().nextLong(Long.parseLong(max.toString()),Long.parseLong(max.toString())+10*strings.size());
                         if(i%2==0){
                             strings.set(i,l.toString());
                         }else {
@@ -424,8 +443,8 @@ public class ModifyDataUtil {
                     }
                 } else if (minEquals==true && maxEquals == true) {
                     for (int i=0;i<size;i++){
-                        Long l = NumberSource.getInstance().randomLong(Long.parseLong(min.toString())-10*strings.size(),Long.parseLong(min.toString()));
-                        Long s = NumberSource.getInstance().randomLong(Long.parseLong(max.toString()),Long.parseLong(max.toString())+10*strings.size());
+                        Long l = ThreadLocalRandom.current().nextLong(Long.parseLong(min.toString())-10*strings.size(),Long.parseLong(min.toString()));
+                        Long s = ThreadLocalRandom.current().nextLong(Long.parseLong(max.toString()),Long.parseLong(max.toString())+10*strings.size());
                         if(i%2==0){
                             strings.set(i,l.toString());
                         }else {
@@ -436,8 +455,8 @@ public class ModifyDataUtil {
             } else if (max instanceof DoubleValue) {
                 if (minEquals==false && maxEquals==false){
                     for (int i=0;i<size;i++){
-                        Double l = NumberSource.getInstance().randomDouble(Double.parseDouble(min.toString())-10*strings.size(), Double.parseDouble(min.toString())-1);
-                        Double s = NumberSource.getInstance().randomDouble(Double.parseDouble(min.toString())+1, Double.parseDouble(min.toString())+10*strings.size());
+                        Double l = ThreadLocalRandom.current().nextDouble(Double.parseDouble(min.toString())-10*strings.size(), Double.parseDouble(min.toString())-1);
+                        Double s = ThreadLocalRandom.current().nextDouble(Double.parseDouble(min.toString())+1, Double.parseDouble(min.toString())+10*strings.size());
                         if(i%2==0){
                             strings.set(i,l.toString());
                         }else {
@@ -446,8 +465,8 @@ public class ModifyDataUtil {
                     }
                 } else if (minEquals==true && maxEquals == false) {
                     for (int i=0;i<size;i++){
-                        Double l = NumberSource.getInstance().randomDouble(Double.parseDouble(min.toString())-10*strings.size(), Double.parseDouble(min.toString()));
-                        Double s = NumberSource.getInstance().randomDouble(Double.parseDouble(min.toString())+1, Double.parseDouble(min.toString())+10*strings.size());
+                        Double l = ThreadLocalRandom.current().nextDouble(Double.parseDouble(min.toString())-10*strings.size(), Double.parseDouble(min.toString()));
+                        Double s = ThreadLocalRandom.current().nextDouble(Double.parseDouble(min.toString())+1, Double.parseDouble(min.toString())+10*strings.size());
                         if(i%2==0){
                             strings.set(i,l.toString());
                         }else {
@@ -456,8 +475,8 @@ public class ModifyDataUtil {
                     }
                 } else if (minEquals==false && maxEquals == true) {
                     for (int i=0;i<size;i++){
-                        Double l = NumberSource.getInstance().randomDouble(Double.parseDouble(min.toString())-10*strings.size(), Double.parseDouble(min.toString())-1);
-                        Double s = NumberSource.getInstance().randomDouble(Double.parseDouble(min.toString()), Double.parseDouble(min.toString())+10*strings.size());
+                        Double l = ThreadLocalRandom.current().nextDouble(Double.parseDouble(min.toString())-10*strings.size(), Double.parseDouble(min.toString())-1);
+                        Double s = ThreadLocalRandom.current().nextDouble(Double.parseDouble(min.toString()), Double.parseDouble(min.toString())+10*strings.size());
                         if(i%2==0){
                             strings.set(i,l.toString());
                         }else {
@@ -466,8 +485,8 @@ public class ModifyDataUtil {
                     }
                 } else if (minEquals==true && maxEquals == true) {
                     for (int i=0;i<size;i++){
-                        Double l = NumberSource.getInstance().randomDouble(Double.parseDouble(min.toString())-10*strings.size(), Double.parseDouble(min.toString()));
-                        Double s = NumberSource.getInstance().randomDouble(Double.parseDouble(min.toString()), Double.parseDouble(min.toString())+10*strings.size());
+                        Double l = ThreadLocalRandom.current().nextDouble(Double.parseDouble(min.toString())-10*strings.size(), Double.parseDouble(min.toString()));
+                        Double s = ThreadLocalRandom.current().nextDouble(Double.parseDouble(min.toString()), Double.parseDouble(min.toString())+10*strings.size());
                         if(i%2==0){
                             strings.set(i,l.toString());
                         }else {
@@ -475,21 +494,21 @@ public class ModifyDataUtil {
                         }
                     }
                 }
-            } else if (IsDateFormat.isRqFormat(max.toString())){
+            } else if (IsDateFormat.isRqFormat(maxReplace)){
                 SimpleDateFormat yyyyMMdd = new SimpleDateFormat("yyyyMMdd");
                 ZoneId zoneId = ZoneId.systemDefault();
                 LocalDate maxDate = null;
                 LocalDate minDate = null;
                 try {
-                    maxDate = yyyyMMdd.parse(max.toString()).toInstant().atZone(zoneId).toLocalDate();
-                    minDate = yyyyMMdd.parse(min.toString()).toInstant().atZone(zoneId).toLocalDate();
+                    maxDate = yyyyMMdd.parse(maxReplace).toInstant().atZone(zoneId).toLocalDate();
+                    minDate = yyyyMMdd.parse(minReplace).toInstant().atZone(zoneId).toLocalDate();
                 } catch (ParseException e) {
                     e.printStackTrace();
                 }
                 if (minEquals==false && maxEquals==false){
                     for (int i=0;i<size;i++){
-                        String yyyyMMdd1 = DateTimeSource.getInstance().randomDate(minDate.minusDays(10*strings.size()), minDate.minusDays(1), "yyyyMMdd");
-                        String yyyyMMdd2 = DateTimeSource.getInstance().randomDate(maxDate.plusDays(1), maxDate.plusDays(10*strings.size()), "yyyyMMdd");
+                        String yyyyMMdd1 = DateTimeSource.getInstance().randomPastDate(minDate.minusDays(1), "yyyyMMdd");
+                        String yyyyMMdd2 = DateTimeSource.getInstance().randomFutureDate(maxDate.plusDays(1), "yyyyMMdd");
                         if(i%2==0){
                             strings.set(i,yyyyMMdd1);
                         }else {
@@ -498,8 +517,8 @@ public class ModifyDataUtil {
                     }
                 } else if (minEquals==true && maxEquals == false) {
                     for (int i=0;i<size;i++){
-                        String yyyyMMdd1 = DateTimeSource.getInstance().randomDate(minDate.minusDays(10*strings.size()), minDate, "yyyyMMdd");
-                        String yyyyMMdd2 = DateTimeSource.getInstance().randomDate(maxDate.plusDays(1), maxDate.plusDays(10*strings.size()), "yyyyMMdd");
+                        String yyyyMMdd1 = DateTimeSource.getInstance().randomPastDate(minDate, "yyyyMMdd");
+                        String yyyyMMdd2 = DateTimeSource.getInstance().randomFutureDate(maxDate.plusDays(1), "yyyyMMdd");
                         if(i%2==0){
                             strings.set(i,yyyyMMdd1);
                         }else {
@@ -508,8 +527,8 @@ public class ModifyDataUtil {
                     }
                 } else if (minEquals==false && maxEquals == true) {
                     for (int i=0;i<size;i++){
-                        String yyyyMMdd1 = DateTimeSource.getInstance().randomDate(minDate.minusDays(10*strings.size()), minDate.minusDays(1), "yyyyMMdd");
-                        String yyyyMMdd2 = DateTimeSource.getInstance().randomDate(maxDate, maxDate.plusDays(10*strings.size()), "yyyyMMdd");
+                        String yyyyMMdd1 = DateTimeSource.getInstance().randomPastDate(minDate.minusDays(1), "yyyyMMdd");
+                        String yyyyMMdd2 = DateTimeSource.getInstance().randomFutureDate(maxDate, "yyyyMMdd");
                         if(i%2==0){
                             strings.set(i,yyyyMMdd1);
                         }else {
@@ -518,8 +537,8 @@ public class ModifyDataUtil {
                     }
                 } else if (minEquals==true && maxEquals == true) {
                     for (int i=0;i<size;i++){
-                        String yyyyMMdd1 = DateTimeSource.getInstance().randomDate(minDate.minusDays(10*strings.size()), minDate, "yyyyMMdd");
-                        String yyyyMMdd2 = DateTimeSource.getInstance().randomDate(maxDate, maxDate.plusDays(10*strings.size()), "yyyyMMdd");
+                        String yyyyMMdd1 = DateTimeSource.getInstance().randomPastDate(minDate, "yyyyMMdd");
+                        String yyyyMMdd2 = DateTimeSource.getInstance().randomFutureDate(maxDate, "yyyyMMdd");
                         if(i%2==0){
                             strings.set(i,yyyyMMdd1);
                         }else {
@@ -539,6 +558,10 @@ public class ModifyDataUtil {
         Expression leftExpression = ((IsNullExpression) expression).getLeftExpression();
         boolean not = ((IsNullExpression) expression).isNot();
         if (!not) {
+            for (int i=Integer.valueOf(size.toString());i<strings.size();i++){
+                strings.set(i,null);
+            }
+        } else {
             for (int i=0;i<size;i++){
                 strings.set(i,null);
             }
@@ -553,6 +576,14 @@ public class ModifyDataUtil {
         Expression leftExpression = expression.getLeftExpression();
         Expression betweenExpressionStart = expression.getBetweenExpressionStart();
         Expression betweenExpressionEnd = expression.getBetweenExpressionEnd();
+        if (betweenExpressionStart instanceof SignedExpression) {
+            betweenExpressionStart = ((SignedExpression) betweenExpressionStart).getExpression();
+        }
+        if (betweenExpressionEnd instanceof SignedExpression) {
+            betweenExpressionEnd = ((SignedExpression) betweenExpressionEnd).getExpression();
+        }
+        String replaceStart = betweenExpressionStart.toString().replace("\"", "").replace("\'", "");
+        String replaceEnd = betweenExpressionEnd.toString().replace("\"", "").replace("\'", "");
         SimpleDateFormat yyyyMMdd = new SimpleDateFormat("yyyyMMdd");
         ZoneId zoneId = ZoneId.systemDefault();
         boolean not = expression.isNot();
@@ -561,18 +592,18 @@ public class ModifyDataUtil {
                 Long start = Long.parseLong(betweenExpressionStart.toString());
                 Long end = Long.parseLong(betweenExpressionEnd.toString());
                 for (int i=0;i<size;i++){
-                    strings.set(i,String.valueOf(NumberSource.getInstance().randomLong(start, end)));
+                    strings.set(i,String.valueOf(ThreadLocalRandom.current().nextLong(start, end)));
                 }
             }else if (betweenExpressionStart instanceof DoubleValue || betweenExpressionEnd instanceof DoubleValue) {
                 Double start = Double.valueOf(betweenExpressionStart.toString());
                 Double end = Double.valueOf(betweenExpressionEnd.toString());
                 for (int i=0;i<size;i++){
-                    strings.set(i,String.valueOf(NumberSource.getInstance().randomDouble(start, end)));
+                    strings.set(i,String.valueOf(ThreadLocalRandom.current().nextDouble(start, end)));
                 }
-            }else if (IsDateFormat.isRqFormat(betweenExpressionStart.toString())) {
+            }else if (IsDateFormat.isRqFormat(replaceStart)) {
                 try {
-                    LocalDate start = yyyyMMdd.parse(betweenExpressionStart.toString()).toInstant().atZone(zoneId).toLocalDate();
-                    LocalDate end = yyyyMMdd.parse(betweenExpressionEnd.toString()).toInstant().atZone(zoneId).toLocalDate();
+                    LocalDate start = yyyyMMdd.parse(replaceStart).toInstant().atZone(zoneId).toLocalDate();
+                    LocalDate end = yyyyMMdd.parse(replaceEnd).toInstant().atZone(zoneId).toLocalDate();
                     for (int i=0;i<size;i++){
                         strings.set(i, DateTimeSource.getInstance().randomDate(start,end,"yyyyMMdd"));
                     }
@@ -586,9 +617,9 @@ public class ModifyDataUtil {
                 Long end = Long.parseLong(betweenExpressionEnd.toString());
                 for (int i=0;i<size;i++){
                     if (i%2==0){
-                        strings.set(i,String.valueOf(NumberSource.getInstance().randomLong(start-10*size,start-1)));
+                        strings.set(i,String.valueOf(ThreadLocalRandom.current().nextLong(start-10*size,start-1)));
                     }else {
-                        strings.set(i,String.valueOf(NumberSource.getInstance().randomLong(end+1,end+10*size)));
+                        strings.set(i,String.valueOf(ThreadLocalRandom.current().nextLong(end+1,end+10*size)));
                     }
                 }
             }else if (betweenExpressionStart instanceof DoubleValue || betweenExpressionEnd instanceof DoubleValue) {
@@ -596,15 +627,15 @@ public class ModifyDataUtil {
                 Double end = Double.valueOf(betweenExpressionEnd.toString());
                 for (int i=0;i<size;i++){
                     if (i%2==0){
-                        strings.set(i,String.valueOf(NumberSource.getInstance().randomDouble(start-10*size,start-1)));
+                        strings.set(i,String.valueOf(ThreadLocalRandom.current().nextDouble(start-10*size,start-1)));
                     }else {
-                        strings.set(i,String.valueOf(NumberSource.getInstance().randomDouble(end+1,end+10*size)));
+                        strings.set(i,String.valueOf(ThreadLocalRandom.current().nextDouble(end+1,end+10*size)));
                     }
                 }
-            }else if (IsDateFormat.isRqFormat(betweenExpressionStart.toString())) {
+            }else if (IsDateFormat.isRqFormat(replaceStart)) {
                 try {
-                    LocalDate start = yyyyMMdd.parse(betweenExpressionStart.toString()).toInstant().atZone(zoneId).toLocalDate();
-                    LocalDate end = yyyyMMdd.parse(betweenExpressionEnd.toString()).toInstant().atZone(zoneId).toLocalDate();
+                    LocalDate start = yyyyMMdd.parse(replaceStart).toInstant().atZone(zoneId).toLocalDate();
+                    LocalDate end = yyyyMMdd.parse(replaceEnd).toInstant().atZone(zoneId).toLocalDate();
                     for (int i=0;i<size;i++){
                         if (i%2==0){
                             strings.set(i,String.valueOf(DateTimeSource.getInstance().randomDate(start.minusDays(10*size),start.minusDays(1),"yyyyMMdd")));
@@ -685,6 +716,9 @@ public class ModifyDataUtil {
      */
     public void parserNotEqualsToExpression(Expression expression,List<String> strings,Long size) {
         Expression rightExpression = ((BinaryExpression) expression).getRightExpression();
+        if (rightExpression instanceof SignedExpression) {
+            rightExpression = ((SignedExpression) rightExpression).getExpression();
+        }
         SimpleDateFormat yyyyMMdd = new SimpleDateFormat("yyyyMMdd");
         ZoneId zoneId = ZoneId.systemDefault();
         if (IsDateFormat.isRqFormat(rightExpression.toString())) {
@@ -702,7 +736,7 @@ public class ModifyDataUtil {
         } else if (rightExpression instanceof LongValue) {
             Long a = ((LongValue) rightExpression).getValue();
             for (int i=0;i<size;i++){
-                Long l = NumberSource.getInstance().randomLong(a - strings.size() * 10, a + strings.size() * 10);
+                Long l = ThreadLocalRandom.current().nextLong(a - strings.size() * 10, a + strings.size() * 10);
                 if (!a.equals(l)){
                     strings.set(i,l.toString());
                 }
@@ -710,7 +744,7 @@ public class ModifyDataUtil {
         } else if (rightExpression instanceof DoubleValue) {
             Double a = ((DoubleValue) rightExpression).getValue();
             for (int i=0;i<size;i++){
-                Double l = NumberSource.getInstance().randomDouble(a - strings.size() * 10, a + strings.size() * 10);
+                Double l = ThreadLocalRandom.current().nextDouble(a - strings.size() * 10, a + strings.size() * 10);
                 if (!a.equals(l)){
                     strings.set(i,l.toString());
                 } else {
@@ -718,7 +752,7 @@ public class ModifyDataUtil {
                 }
             }
         } else if (rightExpression instanceof StringValue) {
-            String value = ((StringValue) rightExpression).getValue();
+            String value = ((StringValue) rightExpression).getValue().replace("\"", "").replace("\'", "");;
             int length = value.length();
             for (int i=0;i<size;i++){
                 String s = RandomStringUtils.randomAlphanumeric(length);
@@ -737,23 +771,27 @@ public class ModifyDataUtil {
      */
     public void parserGreaterThanToExpression(Expression expression,List<String> strings,Long size) {
         Expression rightExpression = ((BinaryExpression) expression).getRightExpression();
+        if (rightExpression instanceof SignedExpression) {
+            rightExpression = ((SignedExpression) rightExpression).getExpression();
+        }
+        String replace = rightExpression.toString().replace("\"", "").replace("\'", "");
         if (rightExpression instanceof LongValue) {
             Long l = ((LongValue) rightExpression).getValue();
             for (int i=0;i<size;i++){
-                Long l1 = NumberSource.getInstance().randomLong(l+1, l + strings.size() * 10);
+                Long l1 = ThreadLocalRandom.current().nextLong(l+1, l + strings.size() * 10);
                 strings.set(i,l1.toString());
             }
         } else if (rightExpression instanceof DoubleValue) {
             Double value = ((DoubleValue) rightExpression).getValue();
             for (int i=0;i<size;i++){
-                Double l1 = NumberSource.getInstance().randomDouble(value+1, value + strings.size() * 10);
+                Double l1 = ThreadLocalRandom.current().nextDouble(value+1, value + strings.size() * 10);
                 strings.set(i,l1.toString());
             }
-        } else if (IsDateFormat.isRqFormat(rightExpression.toString())) {
+        } else if (IsDateFormat.isRqFormat(replace)) {
             SimpleDateFormat yyyyMMdd = new SimpleDateFormat("yyyyMMdd");
             ZoneId zoneId = ZoneId.systemDefault();
             try {
-                LocalDate localDate = yyyyMMdd.parse(rightExpression.toString()).toInstant().atZone(zoneId).toLocalDate();
+                LocalDate localDate = yyyyMMdd.parse(replace).toInstant().atZone(zoneId).toLocalDate();
                 for (int i=0;i<size;i++) {
                     String yyyyMMdd1 = DateTimeSource.getInstance().randomFutureDate(localDate.plusDays(1), "yyyyMMdd");
                     strings.set(i,yyyyMMdd1);
@@ -771,23 +809,27 @@ public class ModifyDataUtil {
      */
     public void parserGreaterThanEqualsToExpression(Expression expression,List<String> strings,Long size) {
         Expression rightExpression = ((BinaryExpression) expression).getRightExpression();
+        if (rightExpression instanceof SignedExpression) {
+            rightExpression = ((SignedExpression) rightExpression).getExpression();
+        }
+        String replace = rightExpression.toString().replace("\"", "").replace("\'", "");
         if (rightExpression instanceof LongValue) {
             Long l = ((LongValue) rightExpression).getValue();
             for (int i=0;i<size;i++){
-                Long l1 = NumberSource.getInstance().randomLong(l, l + strings.size() * 10);
+                Long l1 = ThreadLocalRandom.current().nextLong(l, l + strings.size() * 10);
                 strings.set(i,l1.toString());
             }
         } else if (rightExpression instanceof DoubleValue) {
             Double value = ((DoubleValue) rightExpression).getValue();
             for (int i=0;i<size;i++){
-                Double l1 = NumberSource.getInstance().randomDouble(value, value + strings.size() * 10);
+                Double l1 = ThreadLocalRandom.current().nextDouble(value, value + strings.size() * 10);
                 strings.set(i,l1.toString());
             }
-        } else if (IsDateFormat.isRqFormat(rightExpression.toString())) {
+        } else if (IsDateFormat.isRqFormat(replace)) {
             SimpleDateFormat yyyyMMdd = new SimpleDateFormat("yyyyMMdd");
             ZoneId zoneId = ZoneId.systemDefault();
             try {
-                LocalDate localDate = yyyyMMdd.parse(rightExpression.toString()).toInstant().atZone(zoneId).toLocalDate();
+                LocalDate localDate = yyyyMMdd.parse(replace).toInstant().atZone(zoneId).toLocalDate();
                 for (int i=0;i<size;i++) {
                     String yyyyMMdd1 = DateTimeSource.getInstance().randomFutureDate(localDate, "yyyyMMdd");
                     strings.set(i,yyyyMMdd1);
@@ -805,16 +847,20 @@ public class ModifyDataUtil {
      */
     public void parserMinorThanToExpression(Expression expression,List<String> strings,Long size) {
         Expression rightExpression = ((BinaryExpression) expression).getRightExpression();
+        if (rightExpression instanceof SignedExpression) {
+            rightExpression = ((SignedExpression) rightExpression).getExpression();
+        }
+        String replace = rightExpression.toString().replace("\"", "").replace("\'", "");
         if (rightExpression instanceof LongValue) {
             Long l = ((LongValue) rightExpression).getValue();
             if ((l-strings.size() * 10)<0){
                 for (int i=0;i<size;i++){
-                    Long l1 = NumberSource.getInstance().randomLong(0, l - 1);
+                    Long l1 = ThreadLocalRandom.current().nextLong(0, l - 1);
                     strings.set(i,l1.toString());
                 }
             } else {
                 for (int i=0;i<size;i++){
-                    Long l1 = NumberSource.getInstance().randomLong(l - strings.size() * 10, l - 1);
+                    Long l1 = ThreadLocalRandom.current().nextLong(l - strings.size() * 10, l - 1);
                     strings.set(i,l1.toString());
                 }
             }
@@ -822,20 +868,20 @@ public class ModifyDataUtil {
             Double l = ((DoubleValue) rightExpression).getValue();
             if ((l-strings.size() * 10)<0){
                 for (int i=0;i<size;i++){
-                    Double l1 = NumberSource.getInstance().randomDouble(0, l - 1);
+                    Double l1 = ThreadLocalRandom.current().nextDouble(0, l - 1);
                     strings.set(i,l1.toString());
                 }
             } else {
                 for (int i=0;i<size;i++){
-                    Double l1 = NumberSource.getInstance().randomDouble(l - strings.size() * 10, l - 1);
+                    Double l1 = ThreadLocalRandom.current().nextDouble(l - strings.size() * 10, l - 1);
                     strings.set(i,l1.toString());
                 }
             }
-        } else if (IsDateFormat.isRqFormat(rightExpression.toString())) {
+        } else if (IsDateFormat.isRqFormat(replace)) {
             SimpleDateFormat yyyyMMdd = new SimpleDateFormat("yyyyMMdd");
             ZoneId zoneId = ZoneId.systemDefault();
             try {
-                LocalDate localDate = yyyyMMdd.parse(rightExpression.toString()).toInstant().atZone(zoneId).toLocalDate();
+                LocalDate localDate = yyyyMMdd.parse(replace).toInstant().atZone(zoneId).toLocalDate();
                 for (int i=0;i<size;i++) {
                     String yyyyMMdd1 = DateTimeSource.getInstance().randomPastDate(localDate.minusDays(1), "yyyyMMdd");
                     strings.set(i,yyyyMMdd1);
@@ -852,16 +898,20 @@ public class ModifyDataUtil {
      */
     public void parserMinorThanEqualsToExpression(Expression expression,List<String> strings,Long size) {
         Expression rightExpression = ((BinaryExpression) expression).getRightExpression();
+        if (rightExpression instanceof SignedExpression) {
+            rightExpression = ((SignedExpression) rightExpression).getExpression();
+        }
+        String replace = rightExpression.toString().replace("\"", "").replace("\'", "");
         if (rightExpression instanceof LongValue) {
             Long l = ((LongValue) rightExpression).getValue();
             if ((l-strings.size() * 10)<0){
                 for (int i=0;i<size;i++){
-                    Long l1 = NumberSource.getInstance().randomLong(0, l);
+                    Long l1 = ThreadLocalRandom.current().nextLong(0, l);
                     strings.set(i,l1.toString());
                 }
             } else {
                 for (int i=0;i<size;i++){
-                    Long l1 = NumberSource.getInstance().randomLong(l - strings.size() * 10, l);
+                    Long l1 = ThreadLocalRandom.current().nextLong(l - strings.size() * 10, l);
                     strings.set(i,l1.toString());
                 }
             }
@@ -869,20 +919,20 @@ public class ModifyDataUtil {
             Double l = ((DoubleValue) rightExpression).getValue();
             if ((l-strings.size() * 10)<0){
                 for (int i=0;i<size;i++){
-                    Double l1 = NumberSource.getInstance().randomDouble(0, l);
+                    Double l1 = ThreadLocalRandom.current().nextDouble(0, l);
                     strings.set(i,l1.toString());
                 }
             } else {
                 for (int i=0;i<size;i++){
-                    Double l1 = NumberSource.getInstance().randomDouble(l - strings.size() * 10, l);
+                    Double l1 = ThreadLocalRandom.current().nextDouble(l - strings.size() * 10, l);
                     strings.set(i,l1.toString());
                 }
             }
-        } else if (IsDateFormat.isRqFormat(rightExpression.toString())) {
+        } else if (IsDateFormat.isRqFormat(replace)) {
             SimpleDateFormat yyyyMMdd = new SimpleDateFormat("yyyyMMdd");
             ZoneId zoneId = ZoneId.systemDefault();
             try {
-                LocalDate localDate = yyyyMMdd.parse(rightExpression.toString()).toInstant().atZone(zoneId).toLocalDate();
+                LocalDate localDate = yyyyMMdd.parse(replace).toInstant().atZone(zoneId).toLocalDate();
                 for (int i=0;i<size;i++) {
                     String yyyyMMdd1 = DateTimeSource.getInstance().randomPastDate(localDate, "yyyyMMdd");
                     strings.set(i,yyyyMMdd1);

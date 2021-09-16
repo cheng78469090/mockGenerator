@@ -15,6 +15,34 @@ public class DataSourceConfig {
     private String Operator;
     private String Timestamp;
     private String dataFile;//数据文件
+    private String ModeFilePath;//模板文件路径
+    private String DataFilePath;//数据文件路径
+    private String ResultFilePath;//输出文件路径
+
+
+    public String getModeFilePath() {
+        return ModeFilePath;
+    }
+
+    public void setModeFilePath(String modeFilePath) {
+        ModeFilePath = modeFilePath;
+    }
+
+    public String getDataFilePath() {
+        return DataFilePath;
+    }
+
+    public void setDataFilePath(String dataFilePath) {
+        DataFilePath = dataFilePath;
+    }
+
+    public String getResultFilePath() {
+        return ResultFilePath;
+    }
+
+    public void setResultFilePath(String resultFilePath) {
+        ResultFilePath = resultFilePath;
+    }
 
     public String getDataFile() {
         return dataFile;
