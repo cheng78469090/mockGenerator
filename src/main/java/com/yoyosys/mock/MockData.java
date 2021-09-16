@@ -167,7 +167,7 @@ public class MockData {
              * */
 
             //String filePath = new MockData().getClass().getResource("/").getPath() + "\\result";
-            String filePath = "D:\\work_space\\mock_data" + "\\result";
+            String filePath = dataSourceConfig.getResultFilePath();
             String start_date = dsDlpMockDataConfig.getStartDate();
             String hive_name = dsDlpMockDataConfig.getHive_name();
             String charsetName = dsConfig.getFILE_ENCODING();
