@@ -16,7 +16,6 @@ import java.io.*;
 import java.sql.*;
 import java.util.*;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 
@@ -40,7 +39,7 @@ public class MockData {
 
     //根据配置生成数据
     private boolean makeData(MockData mockData, DataSourceConfig dataSourceConfig,
-            List<DsDlpMockDataConfig> dsDlpMockDataConfigs, ModifyDataUtil modifyDataUtil){
+                             List<DsDlpMockDataConfig> dsDlpMockDataConfigs, ModifyDataUtil modifyDataUtil) {
         for (DsDlpMockDataConfig dsDlpMockDataConfig : dsDlpMockDataConfigs) {
             //读取表结构：获取配置类中的表名，根据表名去DS_CONFIG中查找数据加载场景(LOAD_SCENE)
             DsConfig dsConfig = mockData.getDsConfig(dataSourceConfig, dsDlpMockDataConfig.getHive_name());
@@ -88,8 +87,8 @@ public class MockData {
                 StringBuilder result1 = new StringBuilder();
                 try {
                     BufferedReader bfr1 = new BufferedReader(
-                        new InputStreamReader(new FileInputStream(new File(
-                            "D:\\work_space\\mock_data\\data\\a_pdata_t03_agmt_fea_rela_h_20210709_000_000.dat")), "UTF-8"));
+                            new InputStreamReader(new FileInputStream(new File(
+                                    "D:\\work_space\\mock_data\\data\\a_pdata_t03_agmt_fea_rela_h_20210709_000_000.dat")), "UTF-8"));
                     String lineTxt1 = null;
                     while ((lineTxt1 = bfr1.readLine()) != null) {
                         result1.append(lineTxt1).append("\n");
@@ -171,60 +170,62 @@ public class MockData {
             String start_date = dsDlpMockDataConfig.getStartDate();
             String hive_name = dsDlpMockDataConfig.getHive_name();
             String charsetName = dsConfig.getFILE_ENCODING();
-            int ID =dsDlpMockDataConfig.getId();
-            String alikeFileName="i_"+ hive_name + "_" + start_date + "_000_";
-            outPutFile(alikeFileName,charsetName,filePath,ID,resultMap);
+            int ID = dsDlpMockDataConfig.getId();
+            String alikeFileName = "i_" + hive_name + "_" + start_date + "_000_";
+
+            outPutFile(alikeFileName, charsetName, filePath, ID, resultMap);
         }
         return true;
     }
 
-    private static void outPutFile(String alikeFileName,String charsetName,String filePath,int ID,LinkedHashMap<Column, List> resultMap){
+    private static void outPutFile(String alikeFileName, String charsetName, String filePath, int ID, LinkedHashMap<Column, List> resultMap) {
         try {
             String fileName;
 
             File[] allfiles = new File(filePath).listFiles();
-            int count=0;
+            int count = 0;
             for (File file : allfiles) {
                 if (file.getName().contains(alikeFileName))
                     count++;
             }
             int i = count / 2;
             String num;
-            if (i <10){
-                num="00"+ i;
-            }else if (i>=100){
-                num=String.valueOf(i);
-            }else
-                num="0"+i;
+            if (i < 10) {
+                num = "00" + i;
+            } else if (i >= 100) {
+                num = String.valueOf(i);
+            } else {
+                num = "0" + i;
+            }
 
-            fileName=filePath+File.separator + alikeFileName+num+".dat";
+            fileName = filePath + File.separator + alikeFileName + num + ".dat";
 
             OutPutFile.generateDatFile(fileName, charsetName, resultMap);
             OutPutFile.compressFile(fileName, filePath);
             long size = (new File(fileName).length());
-            OutPutFile.createXml(fileName,size,filePath,charsetName);
+            OutPutFile.createXml(fileName, size, filePath, charsetName);
             OutPutFile.deleteFile(fileName);
             OutPutFile.update(ID);
         } catch (IOException e) {
             e.printStackTrace();
 
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
+    }
 
 
     //根据表结构生成模拟数据
-    private LinkedHashMap<Column, List> createData (List <Column> columnList, int records,
-                                                    String startDate, String endDate,
-                                                    String loadSence){
+    private LinkedHashMap<Column, List> createData(List<Column> columnList, int records,
+                                                   String startDate, String endDate,
+                                                   String loadSence) {
         //模拟数据集
         LinkedHashMap<Column, List> resultMap = new LinkedHashMap<>();
 
         //天数
         int betweenDays = Integer.parseInt(endDate) - Integer.parseInt(startDate) + 1;
         int n = 0;
-        if (loadSence.equals(Constants.LOADSCENE04)){
+        if (loadSence.equals(Constants.LOADSCENE04)) {
             n = records * (betweenDays + 1);
         }
 
@@ -243,19 +244,19 @@ public class MockData {
                     case "LONG"://超长字符串
                         //日期型
                         if (column.getIsPartition()) {
-                            if (loadSence.equals(Constants.LOADSCENE04)){
-                                if (i < n / (betweenDays + 1)){
-                                    if (column.getFieldName().toUpperCase().equals(Constants.END_DT)){
+                            if (loadSence.equals(Constants.LOADSCENE04)) {
+                                if (i < n / (betweenDays + 1)) {
+                                    if (column.getFieldName().toUpperCase().equals(Constants.END_DT)) {
                                         list.add(Constants.MAX_DT);
                                         break;
                                     }
-                                    list.add(MakeDataUtil.makeDateData(startDate,endDate));
+                                    list.add(MakeDataUtil.makeDateData(startDate, endDate));
                                     break;
-                                }else{
-                                    list.add( Integer.parseInt(startDate) + (i / records % 10));
+                                } else {
+                                    list.add(Integer.parseInt(startDate) + (i / records % 10));
                                 }
                             }
-                            list.add(MakeDataUtil.makeDateData(startDate,endDate));
+                            list.add(MakeDataUtil.makeDateData(startDate, endDate));
                             break;
                         }
                         list.add(MakeDataUtil.makeStringData(column));
@@ -276,7 +277,7 @@ public class MockData {
     }
 
     //判断是否上传数据文件
-    private static boolean getDataFile () {
+    private static boolean getDataFile() {
         File file = new File("D:\\work_space\\mock_data\\data\\a_pdata_t03_agmt_fea_rela_h_20210709_000_000.dat");
         if (!file.exists()) {
             return false;
@@ -286,7 +287,7 @@ public class MockData {
 
 
     //获取表结构
-    private List<Column> getColumn (StringBuilder filePath, StringBuilder filePath1, String loadScene){
+    private List<Column> getColumn(StringBuilder filePath, StringBuilder filePath1, String loadScene) {
         //字段类集合
         List<Column> columnList = new ArrayList<>();
         StringBuilder result = new StringBuilder();
@@ -294,8 +295,8 @@ public class MockData {
         try {
             //读取表结构文件
             BufferedReader bfr = new BufferedReader(
-                new InputStreamReader(new FileInputStream(
-                    new File(filePath.toString())), "UTF-8"));
+                    new InputStreamReader(new FileInputStream(
+                            new File(filePath.toString())), "UTF-8"));
             String lineTxt = null;
             while ((lineTxt = bfr.readLine()) != null) {
                 result.append(lineTxt).append("\n");
@@ -422,14 +423,13 @@ public class MockData {
     }
 
 
-
     /*
     读取配置文件
       *todo:宋金城
       *输入：
       *return: DataSourceConfig
      */
-    public DataSourceConfig getDataSourceConfig () {
+    public DataSourceConfig getDataSourceConfig() {
         DataSourceConfig dataSourceConfig = null;
         //1.获取当前jar包路径
         File rootPath = new File(this.getClass().getResource("/").getPath());//此路径为当前项目路径

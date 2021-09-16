@@ -38,20 +38,17 @@ public class OutPutFile {
      * @param recordList
      */
     public static void generateDatFile(String fileName, String charsetName, Map<Column, List> recordList) {
-        //创建输出文件：i_pdata_t03_agmt_fea_rela_h_20210709_000_000.dat
-       /* String filePath = PathHelper.getRootPath()+"\\result";
-        String start_date = new DsDlpMockDataConfig().getStart_date();
-        String hive_name = new DsDlpMockDataConfig().getHive_name();
-        String fileName=filePath+"/"+"i_pdata"+hive_name+"_"+start_date+"000_000.dat";*/
 
         File file = new File(fileName);
-
+        /*String fileName1 = fileName+"(1)";*/
+        String line = System.getProperty("line.separator");
 
         try {
             if (!file.exists()) {
                 file.createNewFile();
             }
             BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), charsetName));
+           /* BufferedWriter bw1 = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileName1), charsetName));*/
 
             Collection<List> value = recordList.values();
             ArrayList<List> values = new ArrayList<>();
@@ -70,7 +67,10 @@ public class OutPutFile {
             }
             for (Object a : arr
             ) {
-                bw.write((String) a + "\n");
+                /*if (file.length()>=1024*1024*2){
+                    bw1.write(a+line);
+                }*/
+                bw.write((String) a +line);
             }
             bw.close();
 
@@ -147,7 +147,7 @@ public class OutPutFile {
         String sql = "update DS_DLP_MOCKDATA_CONFIG set STATE = 1 where ID=?";
         try {
             ps = conn.prepareStatement(sql);
-            ps.setInt(1,ID);
+            ps.setInt(1, ID);
             ps.executeUpdate();
             System.out.println("数据更新成功");
         } catch (SQLException e) {
@@ -202,27 +202,27 @@ public class OutPutFile {
             xmlWriter.close();
 
 
-            BufferedReader br=null;
-            PrintWriter pw=null;
-            StringBuffer buff=new StringBuffer();
-            String line=System.getProperty("line.separator");//平台换行!
+            BufferedReader br = null;
+            PrintWriter pw = null;
+            StringBuffer buff = new StringBuffer();
+            String line = System.getProperty("line.separator");//平台换行!
             String str;
 
-            br=new BufferedReader(new FileReader(readyFileName));
-            while( (str=br.readLine())!=null){
+            br = new BufferedReader(new FileReader(readyFileName));
+            while ((str = br.readLine()) != null) {
                 if (str.equals("<transmit-content>"))
-                    str=str.replaceAll("<transmit-content>","    <transmit-content>\n");
-                    buff.append(str+line);
-                }
-            pw=new PrintWriter(new FileWriter(readyFileName),true);
+                    str = str.replaceAll("<transmit-content>", "    <transmit-content>\n");
+                buff.append(str + line);
+            }
+            pw = new PrintWriter(new FileWriter(readyFileName), true);
             pw.println(buff);
-            if(br!=null)
+            if (br != null)
                 try {
                     br.close();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-            if(pw!=null)
+            if (pw != null)
                 pw.close();
             System.out.println("就绪文件生成成功");
         } catch (IOException e) {
