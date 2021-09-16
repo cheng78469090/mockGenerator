@@ -57,8 +57,8 @@ public class MockData {
             //结束时间
             String endDate = dsDlpMockDataConfig.getEndDate();
 
-            StringBuilder modeFile = new StringBuilder("C:\\Users\\xiaoyaoxiaodi\\Desktop\\mock_data\\data");//表结构存储文件路径
-            StringBuilder CLFile = new StringBuilder("C:\\Users\\xiaoyaoxiaodi\\Desktop\\mock_data\\data");//存量文件，用来确定分区字段
+            StringBuilder modeFile = new StringBuilder(dataSourceConfig.getModeFilePath());//表结构存储文件路径
+            StringBuilder CLFile = new StringBuilder(dataSourceConfig.getModeFilePath());//存量文件，用来确定分区字段
             //根据数据加载场景去对应的目录下查找该表对应的以ext开头的模板文件
             switch (loadScene) {//数据加载场景
                 case Constants.LOADSCENE01:
@@ -82,10 +82,10 @@ public class MockData {
             List<Column> columnList = mockData.getColumn(modeFile, CLFile, loadScene);
 
             //是否上传数据文件：读取数据文件/mockdata/data/a_pdata_t03_agmt_fea_rela_h_2021070 9_000_000.dat
-            if (getDataFile(loadScene)) {
+            if (getDataFile(loadScene, dataSourceConfig.getDataFilePath() )) {
                 //生成模拟数据集
                 StringBuilder result1 = new StringBuilder();
-                File fileDir = new File("C:\\Users\\xiaoyaoxiaodi\\Desktop\\mock_data\\data");
+                File fileDir = new File(dataSourceConfig.getDataFilePath());
                 File[] files = fileDir.listFiles();
                 for (File file : files) {
                     if(!file.isDirectory()){
@@ -121,23 +121,23 @@ public class MockData {
 
             } else {
                 //没有数据文件,获取表主键
-                try {
-                    //设置主键标识
-                    List<String> primaryKeyList = mockData.getPrimayKey();//没有数据文件,获取表主键
-                    //生成模拟数据集
-                    for (Column column : columnList) {
-                        for (String primaryKey : primaryKeyList) {
-                            if (column.getFieldName().toUpperCase().equals(primaryKey.toUpperCase())) {
-                                column.setPrimaryKey(true);
-                            } else {
-                                column.setPrimaryKey(false);
-                            }
-                        }
-                    }
-
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+//                try {
+//                    //设置主键标识
+//                    List<String> primaryKeyList = mockData.getPrimayKey();//没有数据文件,获取表主键
+//                    //生成模拟数据集
+//                    for (Column column : columnList) {
+//                        for (String primaryKey : primaryKeyList) {
+//                            if (column.getFieldName().toUpperCase().equals(primaryKey.toUpperCase())) {
+//                                column.setPrimaryKey(true);
+//                            } else {
+//                                column.setPrimaryKey(false);
+//                            }
+//                        }
+//                    }
+//
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                }
                 //生成记录条数
                 int records = dsDlpMockDataConfig.getRecords();
                 resultMap = mockData.createData(columnList, records, startDate, endDate, loadScene);
@@ -287,13 +287,15 @@ public class MockData {
     }
 
     //判断是否上传数据文件
-    private static boolean getDataFile (String loadScene) {
+    private static boolean getDataFile (String loadScene, String filePath) {
         if (loadScene.equals(Constants.LOADSCENE04)){
             return false;
         }
-        File file = new File("C:\\Users\\xiaoyaoxiaodi\\Desktop\\mock_data\\data\\a_pdata_t03_agmt_fea_rela_h_20210709_000_000.dat");
-        if (!file.exists()) {
-            return false;
+        File file = new File(getDataFilePath);
+        if(file.isDirectory()){
+            if(file.list().length>0){
+                return false;
+            }
         }
         return true;
     }
@@ -396,39 +398,39 @@ public class MockData {
      * @return
      * @throws Exception
      */
-    private List<String> getPrimayKey() throws IOException {
-//        String path = this.getClass().getClassLoader().getResource("D:\\work_space\\mock_data\\data\\loadone_pdata_t03_agmt_fea_rela_h.tpl").getFile();
-        FileReader fileReader = new FileReader("C:\\Users\\xiaoyaoxiaodi\\Desktop\\mock_data\\data\\loadone_pdata_t03_agmt_fea_rela_h.tpl");
-        BufferedReader bfReader = new BufferedReader(fileReader);
-        String temp = null;
-        StringBuffer sb = new StringBuffer();
-        int startWtih = 0;
-        int endWith = 0;
-        int line = 1;
-        while ((temp = bfReader.readLine()) != null) {
-            if (temp != null && temp.length() > 0) {
-                sb.append(temp);
-            }
-            if (sb.toString().contains("on")) {
-                startWtih = sb.indexOf("on");
-            }
-            if (sb.toString().contains("where")) {
-                endWith = sb.indexOf("where", startWtih);
-            }
-        }
-        String subStr = sb.toString().substring(startWtih, endWith);
-        List<String> listStr = new ArrayList<String>();
-        String[] arrStr = subStr.split(" ");
-        for (int i = 0; i < arrStr.length; i++) {
-            if (arrStr[i].contains("<=>")) {
-                String str = arrStr[i].substring(arrStr[i].indexOf(".") + 1, arrStr[i].indexOf("<"));
-                listStr.add(str);
-            }
-        }
-        bfReader.close();
-        fileReader.close();
-        return listStr;
-    }
+//    private List<String> getPrimayKey() throws IOException {
+////        String path = this.getClass().getClassLoader().getResource("D:\\work_space\\mock_data\\data\\loadone_pdata_t03_agmt_fea_rela_h.tpl").getFile();
+//        FileReader fileReader = new FileReader("C:\\Users\\xiaoyaoxiaodi\\Desktop\\mock_data\\data\\loadone_pdata_t03_agmt_fea_rela_h.tpl");
+//        BufferedReader bfReader = new BufferedReader(fileReader);
+//        String temp = null;
+//        StringBuffer sb = new StringBuffer();
+//        int startWtih = 0;
+//        int endWith = 0;
+//        int line = 1;
+//        while ((temp = bfReader.readLine()) != null) {
+//            if (temp != null && temp.length() > 0) {
+//                sb.append(temp);
+//            }
+//            if (sb.toString().contains("on")) {
+//                startWtih = sb.indexOf("on");
+//            }
+//            if (sb.toString().contains("where")) {
+//                endWith = sb.indexOf("where", startWtih);
+//            }
+//        }
+//        String subStr = sb.toString().substring(startWtih, endWith);
+//        List<String> listStr = new ArrayList<String>();
+//        String[] arrStr = subStr.split(" ");
+//        for (int i = 0; i < arrStr.length; i++) {
+//            if (arrStr[i].contains("<=>")) {
+//                String str = arrStr[i].substring(arrStr[i].indexOf(".") + 1, arrStr[i].indexOf("<"));
+//                listStr.add(str);
+//            }
+//        }
+//        bfReader.close();
+//        fileReader.close();
+//        return listStr;
+//    }
 
     /*
     读取配置文件
