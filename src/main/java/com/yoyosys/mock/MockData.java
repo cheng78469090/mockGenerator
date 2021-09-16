@@ -171,7 +171,7 @@ public class MockData {
              * */
 
             //String filePath = new MockData().getClass().getResource("/").getPath() + "\\result";
-            String filePath = "D:\\work_space\\mock_data" + "\\result";
+            String filePath = dataSourceConfig.getResultFilePath();
             String start_date = dsDlpMockDataConfig.getStartDate();
             String hive_name = dsDlpMockDataConfig.getHive_name();
             String charsetName = dsConfig.getFILE_ENCODING();
@@ -189,8 +189,9 @@ public class MockData {
             File[] allfiles = new File(filePath).listFiles();
             int count=0;
             for (File file : allfiles) {
-                if (file.getName().contains(alikeFileName))
+                if (file.getName().contains(alikeFileName)){
                     count++;
+                }
             }
             int i = count / 2;
             String num;
@@ -459,6 +460,9 @@ public class MockData {
             String oracle_pasd = p.getProperty("Oracle_password");
             String Operator = p.getProperty("Operator");
             String Timestamp = p.getProperty("Timestamp");
+            String ModeFilePath = p.getProperty("ModeFilePath");
+            String DataFilePath = p.getProperty("DataFilePath");
+            String ResultFilePath = p.getProperty("ResultFilePath");
             dataSourceConfig = new DataSourceConfig();
             dataSourceConfig.setOracle_driver(oracle_driver);
             dataSourceConfig.setOracle_url(oracle_url);
@@ -466,6 +470,9 @@ public class MockData {
             dataSourceConfig.setOracle_password(oracle_pasd);
             dataSourceConfig.setOperator(Operator);
             dataSourceConfig.setTimestamp(Timestamp);
+            dataSourceConfig.setModeFilePath(ModeFilePath);
+            dataSourceConfig.setDataFilePath(DataFilePath);
+            dataSourceConfig.setResultFilePath(ResultFilePath);
             return dataSourceConfig;
         } catch (IOException io) {
             System.out.println("读取配置文件异常" + io);
