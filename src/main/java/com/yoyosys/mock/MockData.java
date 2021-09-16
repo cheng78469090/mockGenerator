@@ -292,7 +292,7 @@ public class MockData {
         if (loadScene.equals(Constants.LOADSCENE04)){
             return false;
         }
-        File file = new File(getDataFilePath);
+        File file = new File(filePath);
         if(file.isDirectory()){
             if(file.list().length>0){
                 return false;
