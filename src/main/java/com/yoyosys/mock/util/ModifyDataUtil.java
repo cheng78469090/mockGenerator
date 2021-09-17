@@ -751,8 +751,8 @@ public class ModifyDataUtil {
                     i--;
                 }
             }
-        } else if (rightExpression instanceof StringValue) {
-            String value = ((StringValue) rightExpression).getValue().replace("\"", "").replace("\'", "");;
+        } else {
+            String value = rightExpression.toString().replace("\"", "").replace("\'", "");;
             int length = value.length();
             for (int i=0;i<size;i++){
                 String s = RandomStringUtils.randomAlphanumeric(length);
