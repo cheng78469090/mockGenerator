@@ -54,8 +54,12 @@ public class ModifyDataUtil {
         this.data = data;
         this.columns = columns;
         this.expressions = expressions;
-        for (Expression expression : expressions) {
-            getParser(expression);
+        if (data.get(0).size()<counterExample){
+            System.out.println("生成的数据不能小于反例数据"+counterExample);
+        } else {
+            for (Expression expression : expressions) {
+                getParser(expression);
+            }
         }
         return this.data;
     }
