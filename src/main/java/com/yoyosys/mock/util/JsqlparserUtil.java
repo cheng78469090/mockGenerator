@@ -116,6 +116,8 @@ public class JsqlparserUtil {
             Expression rightExpression = ((BinaryExpression) expression).getRightExpression();
             if (rightExpression instanceof BinaryExpression) {
                 getParser(rightExpression);
+            } else if (rightExpression instanceof Between) {
+                list.add(rightExpression);
             } else if (rightExpression instanceof InExpression) {
                 this.parserInExpression(rightExpression);
             } else if (rightExpression instanceof IsNullExpression) {

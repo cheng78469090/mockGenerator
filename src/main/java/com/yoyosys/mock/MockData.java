@@ -16,7 +16,6 @@ import java.io.*;
 import java.sql.*;
 import java.util.*;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 
@@ -153,7 +152,7 @@ public class MockData {
 
             try {
                 List<Expression> sqlParser = JsqlparserUtil.getSQLParser(dsDlpMockDataConfig.getConditions());
-                LinkedHashMap<Column, List> columnListMap = modifyDataUtil.modifyData(resultMap, columnList, sqlParser);
+                modifyDataUtil.modifyData(resultMap, columnList, sqlParser);
             } catch (JSQLParserException e) {
                 e.printStackTrace();
             }
@@ -235,8 +234,10 @@ public class MockData {
         }
 
         for (Column column : columnList) {
-            LinkedHashSet list = new LinkedHashSet<>();
-
+            Collection list = new LinkedHashSet<>();
+            if (column.getIsPartition() == true){
+                list = new ArrayList<>();
+            }
             for (int i = 0; i < n; i++) {
                 switch (column.getcType().toUpperCase()) {
                     case "CHAR":
@@ -277,9 +278,9 @@ public class MockData {
 
             }
             List arrayList = new ArrayList();
-            Iterator i = list.iterator();
-            while (i.hasNext()){
-                arrayList.add(i.next());
+            Iterator iterator = list.iterator();
+            while (iterator.hasNext()){
+                arrayList.add(iterator.next());
             }
 
             resultMap.put(column, arrayList);
