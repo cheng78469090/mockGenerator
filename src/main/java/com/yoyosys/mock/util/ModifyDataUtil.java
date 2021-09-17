@@ -658,7 +658,7 @@ public class ModifyDataUtil {
      */
     public void parserLikeExpression(Expression expression,List<String> strings,Long size) {
         Expression rightExpression = ((BinaryExpression) expression).getRightExpression();
-        String[] split = rightExpression.toString().split("");
+        String[] split = rightExpression.toString().replace("\"", "").replace("\'", "").split("");
         Generex generex1 = new Generex("[0-9A-Za-z]");
         Generex generex2 = new Generex("[0-9A-Za-z]{1,5}");
         if (((LikeExpression) expression).isNot()){
