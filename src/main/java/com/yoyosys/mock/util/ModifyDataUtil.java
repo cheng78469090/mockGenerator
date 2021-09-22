@@ -42,6 +42,7 @@ public class ModifyDataUtil {
 
     private Long counterExample = 3L;
 
+    private List<Column> modifyColumn = new ArrayList<>();
 
     /**
      * 主方法
@@ -54,13 +55,10 @@ public class ModifyDataUtil {
         this.data = data;
         this.columns = columns;
         this.expressions = expressions;
-        if (data.get(0).size()<counterExample){
-            System.out.println("生成的数据不能小于反例数据"+counterExample);
-        } else {
-            for (Expression expression : expressions) {
-                getParser(expression);
-            }
+        for (Expression expression : expressions) {
+            getParser(expression);
         }
+        reviseCounter();
         return this.data;
     }
 
@@ -156,6 +154,7 @@ public class ModifyDataUtil {
             for (Column column : columns) {
                 if (columnName.equals(column.getFieldName())){
                     strings = data.get(column);
+                    modifyColumn.add(column);
                     break;
                 }
             }
@@ -163,6 +162,26 @@ public class ModifyDataUtil {
             //todo 抛出左侧为表达式异常
         }
         return strings;
+    }
+
+    /**
+     * 反例数据修改
+     */
+    public void reviseCounter(){
+        try {
+            for (int i = 0; i < modifyColumn.size(); i++) {
+                List<String> list = data.get(modifyColumn.get(i));
+                list.set(1,"");
+                list.set(2,null);
+                Collections.swap(list,0,i*3);
+                Collections.swap(list,1,i*3+1);
+                Collections.swap(list,2,i*3+2);
+            }
+        }catch (Exception e){
+            //todo exception
+        }finally {
+            modifyColumn.clear();
+        }
     }
 
     /**
