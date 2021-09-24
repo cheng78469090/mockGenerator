@@ -26,6 +26,7 @@ import java.util.List;
  */
 public class MockData {
     public static void main(String[] args) {
+        long startTime = System.currentTimeMillis();
         MockData mockData = new MockData();
         //读取模拟数据配置文件（dlp_yoyo_mockdata.config）：数据库连接信息
         DataSourceConfig dataSourceConfig = mockData.getDataSourceConfig();
@@ -34,12 +35,14 @@ public class MockData {
 
         ModifyDataUtil modifyDataUtil = new ModifyDataUtil();
         mockData.makeData(mockData, dataSourceConfig, dsDlpMockDataConfigs, modifyDataUtil);
+        long endTime = System.currentTimeMillis();
+        System.out.println("===插入数据花费:" + (endTime - startTime)/1000 + "s===");
 
     }
 
     //根据配置生成数据
     private boolean makeData(MockData mockData, DataSourceConfig dataSourceConfig,
-            List<DsDlpMockDataConfig> dsDlpMockDataConfigs, ModifyDataUtil modifyDataUtil){
+                             List<DsDlpMockDataConfig> dsDlpMockDataConfigs, ModifyDataUtil modifyDataUtil) {
         for (DsDlpMockDataConfig dsDlpMockDataConfig : dsDlpMockDataConfigs) {
             //读取表结构：获取配置类中的表名，根据表名去DS_CONFIG中查找数据加载场景(LOAD_SCENE)
             DsConfig dsConfig = mockData.getDsConfig(dataSourceConfig, dsDlpMockDataConfig.getHive_name());
@@ -81,16 +84,16 @@ public class MockData {
             List<Column> columnList = mockData.getColumn(modeFile, CLFile, loadScene);
 
             //是否上传数据文件：读取数据文件/mockdata/data/a_pdata_t03_agmt_fea_rela_h_2021070 9_000_000.dat
-            if (getDataFile(loadScene, dataSourceConfig.getDataFilePath() )) {
+            if (getDataFile(loadScene, dataSourceConfig.getDataFilePath())) {
                 //生成模拟数据集
                 StringBuilder result1 = new StringBuilder();
                 File fileDir = new File(dataSourceConfig.getDataFilePath());
                 File[] files = fileDir.listFiles();
                 for (File file : files) {
-                    if(!file.isDirectory()){
+                    if (!file.isDirectory()) {
                         try {
                             BufferedReader bfr1 = new BufferedReader(
-                                new InputStreamReader(new FileInputStream(file), "UTF-8"));
+                                    new InputStreamReader(new FileInputStream(file), "UTF-8"));
                             String lineTxt1 = null;
                             while ((lineTxt1 = bfr1.readLine()) != null) {
                                 result1.append(lineTxt1).append("\n");
@@ -105,7 +108,7 @@ public class MockData {
                 List<String[]> listb = new ArrayList<>();
                 for (String a : createSql1) {
                     String[] b = a.split("\\|\\+\\|", -1);
-                    b = Arrays.copyOf(b, b.length-1);
+                    b = Arrays.copyOf(b, b.length - 1);
                     listb.add(b);
                 }
 
@@ -174,68 +177,91 @@ public class MockData {
             String start_date = dsDlpMockDataConfig.getStartDate();
             String hive_name = dsDlpMockDataConfig.getHive_name();
             String charsetName = dsConfig.getFILE_ENCODING();
-            int ID =dsDlpMockDataConfig.getId();
-            String alikeFileName="i_"+ hive_name + "_" + start_date + "_000_";
-            outPutFile(alikeFileName,charsetName,filePath,ID,resultMap);
+
+
+            if (charsetName==null||charsetName.trim().length()==0){
+                charsetName="UTF-8";
+            }
+
+            int ID = dsDlpMockDataConfig.getId();
+            String alikeFileName = "i_" + hive_name + "_" + start_date + "_000_";
+            String fileFormat=dataSourceConfig.getFileFormat();
+            String AllFileFormat=dataSourceConfig.getAllFileFormat();
+            String readyFileFormat=dataSourceConfig.getReadyFileFormat();
+            outPutFile(alikeFileName, charsetName,fileFormat,AllFileFormat,filePath, ID, resultMap,readyFileFormat);
         }
+
         return true;
     }
 
-    private static void outPutFile(String alikeFileName,String charsetName,String filePath,int ID,LinkedHashMap<Column, List> resultMap){
+    private static void outPutFile(String alikeFileName, String charsetName,String fileFormat,String AllFileFormat,String filePath, int ID, LinkedHashMap<Column, List> resultMap,String readyFileFormat) {
         try {
             String fileName;
 
             File[] allfiles = new File(filePath).listFiles();
-            int count=0;
+            int count = 0;
             for (File file : allfiles) {
-                if (file.getName().contains(alikeFileName)){
+                if (file.getName().contains(alikeFileName)) {
                     count++;
                 }
             }
             int i = count / 2;
             String num;
-            if (i <10){
-                num="00"+ i;
-            }else if (i>=100){
-                num=String.valueOf(i);
-            }else{
-                num="0"+i;
+            if (i < 10) {
+                num = "00" + i;
+            } else if (i >= 100) {
+                num = String.valueOf(i);
+            } else {
+                num = "0" + i;
             }
 
-            fileName=filePath+File.separator + alikeFileName+num+".dat";
 
-            OutPutFile.generateDatFile(fileName, charsetName, resultMap);
-            OutPutFile.compressFile(fileName, filePath);
-            long size = (new File(fileName).length());
-            OutPutFile.createXml(fileName,size,filePath,charsetName);
-            OutPutFile.deleteFile(fileName);
-            OutPutFile.update(ID);
+            fileName = filePath + File.separator + alikeFileName + num + fileFormat;
+            if (AllFileFormat.equalsIgnoreCase("1")) {
+                OutPutFile.generateDatFile(fileName, charsetName, resultMap);
+                long size = (new File(fileName).length());
+                OutPutFile.createXml(fileName, size, filePath, charsetName,readyFileFormat);
+                OutPutFile.update(ID);
+            } else if (AllFileFormat.equalsIgnoreCase( "3")) {
+                OutPutFile.generateDatFile(fileName, charsetName, resultMap);
+                OutPutFile.compressFile(fileName, filePath);
+                long size = (new File(fileName).length());
+                OutPutFile.createXml(fileName, size, filePath, charsetName,readyFileFormat);
+                //OutPutFile.update(ID);
+            } else {
+                OutPutFile.generateDatFile(fileName, charsetName, resultMap);
+                OutPutFile.compressFile(fileName, filePath);
+                long size = (new File(fileName).length());
+                OutPutFile.createXml(fileName, size, filePath, charsetName,readyFileFormat);
+                OutPutFile.deleteFile(fileName);
+               // OutPutFile.update(ID);
+            }
         } catch (IOException e) {
             e.printStackTrace();
 
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
+    }
 
 
     //根据表结构生成模拟数据
-    private LinkedHashMap<Column, List> createData (List <Column> columnList, int records,
-                                                    String startDate, String endDate,
-                                                    String loadSence){
+    private LinkedHashMap<Column, List> createData(List<Column> columnList, int records,
+                                                   String startDate, String endDate,
+                                                   String loadSence) {
         //模拟数据集
         LinkedHashMap<Column, List> resultMap = new LinkedHashMap<>();
 
         //天数
         int betweenDays = Integer.parseInt(endDate) - Integer.parseInt(startDate) + 1;
         int n = records;
-        if (loadSence.equals(Constants.LOADSCENE04)){
+        if (loadSence.equals(Constants.LOADSCENE04)) {
             n = records * (betweenDays + 1);
         }
 
         for (Column column : columnList) {
             Collection list = new LinkedHashSet<>();
-            if (column.getIsPartition() == true){
+            if (column.getIsPartition() == true) {
                 list = new ArrayList<>();
             }
             for (int i = 0; i < n; i++) {
@@ -248,38 +274,38 @@ public class MockData {
                     case "LONG"://超长字符串
                         //日期型
                         if (column.getIsPartition()) {
-                            if (loadSence.equals(Constants.LOADSCENE04)){
-                                if (i < n / (betweenDays + 1)){
-                                    if (column.getFieldName().toUpperCase().equals(Constants.END_DT)){
+                            if (loadSence.equals(Constants.LOADSCENE04)) {
+                                if (i < n / (betweenDays + 1)) {
+                                    if (column.getFieldName().toUpperCase().equals(Constants.END_DT)) {
                                         list.add(Constants.MAX_DT);
                                         break;
                                     }
-                                    list.add(MakeDataUtil.makeDateData(startDate,endDate));
+                                    list.add(MakeDataUtil.makeDateData(startDate, endDate));
                                     break;
-                                }else{
+                                } else {
                                     list.add(Integer.parseInt(startDate) + (i / records % 10 - 1) + "");
                                     break;
                                 }
                             }
-                            list.add(MakeDataUtil.makeDateData(startDate,endDate));
+                            list.add(MakeDataUtil.makeDateData(startDate, endDate));
                             break;
                         }
-                        list.add(MakeDataUtil.makeStringData(column,list));
+                        list.add(MakeDataUtil.makeStringData(column, list));
                         break;
                     case "INTEGER":
-                        list.add(MakeDataUtil.makeIntData(column,list));
+                        list.add(MakeDataUtil.makeIntData(column, list));
                         break;
                     case "NUMBER":
                     case "DECIMAL":
                     case "FLOAT":
-                        list.add(MakeDataUtil.makeNumData(column,list));
+                        list.add(MakeDataUtil.makeNumData(column, list));
                         break;
                 }
 
             }
             List arrayList = new ArrayList();
             Iterator iterator = list.iterator();
-            while (iterator.hasNext()){
+            while (iterator.hasNext()) {
                 arrayList.add(iterator.next());
             }
 
@@ -289,13 +315,13 @@ public class MockData {
     }
 
     //判断是否上传数据文件
-    private static boolean getDataFile (String loadScene, String filePath) {
-        if (loadScene.equals(Constants.LOADSCENE04)){
+    private static boolean getDataFile(String loadScene, String filePath) {
+        if (loadScene.equals(Constants.LOADSCENE04)) {
             return false;
         }
         File file = new File(filePath);
-        if(file.isDirectory()){
-            if(file.list().length>0){
+        if (file.isDirectory()) {
+            if (file.list().length > 0) {
                 return false;
             }
         }
@@ -303,7 +329,7 @@ public class MockData {
     }
 
     //获取表结构
-    private List<Column> getColumn (StringBuilder filePath, StringBuilder filePath1, String loadScene){
+    private List<Column> getColumn(StringBuilder filePath, StringBuilder filePath1, String loadScene) {
         //字段类集合
         List<Column> columnList = new ArrayList<>();
         StringBuilder result = new StringBuilder();
@@ -311,8 +337,8 @@ public class MockData {
         try {
             //读取表结构文件
             BufferedReader bfr = new BufferedReader(
-                new InputStreamReader(new FileInputStream(
-                    new File(filePath+"")), "UTF-8"));
+                    new InputStreamReader(new FileInputStream(
+                            new File(filePath + "")), "UTF-8"));
             String lineTxt = null;
             while ((lineTxt = bfr.readLine()) != null) {
                 result.append(lineTxt).append("\n");
@@ -321,8 +347,8 @@ public class MockData {
             if (filePath1 != null) {
                 //读取存量文件
                 BufferedReader bfr1 = new BufferedReader(
-                    new InputStreamReader(new FileInputStream(
-                        new File(filePath1.toString())), "UTF-8"));
+                        new InputStreamReader(new FileInputStream(
+                                new File(filePath1.toString())), "UTF-8"));
                 String lineTxt1 = null;
                 while ((lineTxt1 = bfr.readLine()) != null) {
                     result1.append(lineTxt1).append("\n");
@@ -356,9 +382,9 @@ public class MockData {
                     String[] sql = result1.toString().split("\n");
                     for (String s : sql) {
                         if (s.toLowerCase().contains(Constants.AS_BDAP_ETLDATE) &&
-                            s.toLowerCase().contains(column.getFieldName().toLowerCase())) {
+                                s.toLowerCase().contains(column.getFieldName().toLowerCase())) {
                             column.setPartition(true);
-                        }else {
+                        } else {
                             column.setPartition(false);
                         }
                     }
@@ -440,7 +466,7 @@ public class MockData {
       *输入：
       *return: DataSourceConfig
      */
-    public DataSourceConfig getDataSourceConfig () {
+    public DataSourceConfig getDataSourceConfig() {
         DataSourceConfig dataSourceConfig = null;
         //1.获取当前jar包路径
         File rootPath = new File(this.getClass().getResource("/").getPath());//此路径为当前项目路径
@@ -448,7 +474,7 @@ public class MockData {
         //2.拼接路径
         String path = rootPath + "\\mock_data\\conf\\dlp_yoyo_mockdata.config";
         System.out.println(path);
-        String configPath = "C:\\Users\\xiaoyaoxiaodi\\Desktop\\mock_data\\conf\\dlp_yoyo_mockdata.config";
+        String configPath = "D:\\work_space\\mock_data\\conf\\dlp_yoyo_mockdata.config";
         //3.获取配置文件信息
         try {
             InputStream in = new FileInputStream(configPath);
@@ -464,6 +490,9 @@ public class MockData {
             String ModeFilePath = p.getProperty("ModeFilePath");
             String DataFilePath = p.getProperty("DataFilePath");
             String ResultFilePath = p.getProperty("ResultFilePath");
+            String FileFormat = p.getProperty("FileFormat");
+            String AllFileFormat = p.getProperty("AllFileFormat");
+            String readyFileFormat = p.getProperty("readyFileFormat");
             dataSourceConfig = new DataSourceConfig();
             dataSourceConfig.setOracle_driver(oracle_driver);
             dataSourceConfig.setOracle_url(oracle_url);
@@ -474,6 +503,9 @@ public class MockData {
             dataSourceConfig.setModeFilePath(ModeFilePath);
             dataSourceConfig.setDataFilePath(DataFilePath);
             dataSourceConfig.setResultFilePath(ResultFilePath);
+            dataSourceConfig.setFileFormat(FileFormat);
+            dataSourceConfig.setAllFileFormat(AllFileFormat);
+            dataSourceConfig.setReadyFileFormat(readyFileFormat);
             return dataSourceConfig;
         } catch (IOException io) {
             System.out.println("读取配置文件异常" + io);
