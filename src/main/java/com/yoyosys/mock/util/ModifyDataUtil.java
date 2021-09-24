@@ -12,6 +12,7 @@ import net.sf.jsqlparser.expression.operators.relational.*;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.RandomUtils;
 
+import javax.xml.transform.Result;
 import java.io.BufferedReader;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -41,6 +42,7 @@ public class ModifyDataUtil {
 
     private Long counterExample = 3L;
 
+    private List<Column> modifyColumn = new ArrayList<>();
 
     /**
      * 主方法
@@ -56,6 +58,7 @@ public class ModifyDataUtil {
         for (Expression expression : expressions) {
             getParser(expression);
         }
+        reviseCounter();
         return this.data;
     }
 
@@ -151,6 +154,7 @@ public class ModifyDataUtil {
             for (Column column : columns) {
                 if (columnName.equals(column.getFieldName())){
                     strings = data.get(column);
+                    modifyColumn.add(column);
                     break;
                 }
             }
@@ -158,6 +162,26 @@ public class ModifyDataUtil {
             //todo 抛出左侧为表达式异常
         }
         return strings;
+    }
+
+    /**
+     * 反例数据修改
+     */
+    public void reviseCounter(){
+        try {
+            for (int i = 0; i < modifyColumn.size(); i++) {
+                List<String> list = data.get(modifyColumn.get(i));
+                list.set(1,"");
+                list.set(2,null);
+                Collections.swap(list,0,i*3);
+                Collections.swap(list,1,i*3+1);
+                Collections.swap(list,2,i*3+2);
+            }
+        }catch (Exception e){
+            //todo exception
+        }finally {
+            modifyColumn.clear();
+        }
     }
 
     /**
@@ -658,7 +682,7 @@ public class ModifyDataUtil {
      */
     public void parserLikeExpression(Expression expression,List<String> strings,Long size) {
         Expression rightExpression = ((BinaryExpression) expression).getRightExpression();
-        String[] split = rightExpression.toString().split("");
+        String[] split = rightExpression.toString().replace("\"", "").replace("\'", "").split("");
         Generex generex1 = new Generex("[0-9A-Za-z]");
         Generex generex2 = new Generex("[0-9A-Za-z]{1,5}");
         if (((LikeExpression) expression).isNot()){
