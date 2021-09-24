@@ -159,7 +159,7 @@ public class test {
             OutPutFile.generateDatFile(fileName, charsetName,resultMap);
             long size = new File(fileName).length();
             OutPutFile.compressFile(fileName, filePath);
-            OutPutFile.createXml(fileName,size,filePath,charsetName);
+            OutPutFile.createXml(fileName,size,filePath,charsetName,readyFileName);
             OutPutFile.deleteFile(fileName);
             //OutPutFile.update(dsDlpMockDataConfig.getOperator(),dsDlpMockDataConfig.getHive_name());
         } catch (IOException e) {
@@ -168,7 +168,9 @@ public class test {
     }
     @Test
     public void test03(){
+        String a="dat,XML,zip";
+        System.out.println(a.toLowerCase());
 
-}
+    }
 
 }
