@@ -601,7 +601,7 @@ public class MockData {
                 System.out.println("获取数据库连接失败" + e4);
             } finally {
                 close(connection, mockDataConfigPs, mockDataConfigResultSet);
-                System.out.println("关闭资源成功");
+               // System.out.println("关闭资源成功");
             }
         }
 
@@ -645,7 +645,7 @@ public class MockData {
                 return dsConfig;
             } finally {
                 close(connection, mockDataConfigPs, mockDataConfigResultSet);
-                System.out.println("关闭资源成功");
+               // System.out.println("关闭资源成功");
             }
         }
         return null;
@@ -665,10 +665,10 @@ public class MockData {
                 ////
                 //1.加载驱动
 
-                System.out.println("加载驱动");
+                //System.out.println("加载驱动");
                 Class.forName("oracle.jdbc.driver.OracleDriver").newInstance();
                 //2.获取连接
-                System.out.println("获取连接");
+              //  System.out.println("获取连接");
                 connection = DriverManager.getConnection(dataSourceConfig.getOracle_url(), dataSourceConfig.getOracle_user(), dataSourceConfig.getOracle_password());
                 System.out.println("获取连接成功");
             } catch (InstantiationException e1) {
