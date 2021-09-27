@@ -47,7 +47,7 @@ public class MockData {
     //根据配置生成数据
     private boolean makeData(MockData mockData, DataSourceConfig dataSourceConfig,
             List<DsDlpMockDataConfig> dsDlpMockDataConfigs, ModifyDataUtil modifyDataUtil){
-        //创建多线程
+        //创建线程池
         ThreadFactory threadFactory = new ThreadFactoryBuilder().setNameFormat("线程-%d").build();
         int threadCount = Integer.parseInt(dataSourceConfig.getThreadCount());
         ThreadPoolExecutor threadPool = new ThreadPoolExecutor(threadCount, threadCount,
