@@ -1,6 +1,7 @@
 package com.yoyosys.mock;
 
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.yoyosys.mock.pojo.Column;
 import com.yoyosys.mock.pojo.DataSourceConfig;
 import com.yoyosys.mock.pojo.DsConfig;
@@ -19,6 +20,10 @@ import java.util.*;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -42,7 +47,14 @@ public class MockData {
     //根据配置生成数据
     private boolean makeData(MockData mockData, DataSourceConfig dataSourceConfig,
             List<DsDlpMockDataConfig> dsDlpMockDataConfigs, ModifyDataUtil modifyDataUtil){
+        //创建多线程
+        int threadCount = Integer.parseInt(dataSourceConfig.getThreadCount());
+        ThreadPoolExecutor threadPool = new ThreadPoolExecutor(threadCount, threadCount,
+                10, TimeUnit.SECONDS,
+                new LinkedBlockingQueue<Runnable>(1024), new ThreadFactoryBuilder().setNameFormat("demo-pool-%d").build(), new ThreadPoolExecutor.AbortPolicy());
         for (DsDlpMockDataConfig dsDlpMockDataConfig : dsDlpMockDataConfigs) {
+            //使用多线程调用
+
             //读取表结构：获取配置类中的表名，根据表名去DS_CONFIG中查找数据加载场景(LOAD_SCENE)
             DsConfig dsConfig = mockData.getDsConfig(dataSourceConfig, dsDlpMockDataConfig.getHive_name());
 
