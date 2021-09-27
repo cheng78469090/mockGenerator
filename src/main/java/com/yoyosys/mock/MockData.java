@@ -48,10 +48,11 @@ public class MockData {
     private boolean makeData(MockData mockData, DataSourceConfig dataSourceConfig,
             List<DsDlpMockDataConfig> dsDlpMockDataConfigs, ModifyDataUtil modifyDataUtil){
         //创建多线程
+        ThreadFactory threadFactory = new ThreadFactoryBuilder().setNameFormat("线程-%d").build();
         int threadCount = Integer.parseInt(dataSourceConfig.getThreadCount());
         ThreadPoolExecutor threadPool = new ThreadPoolExecutor(threadCount, threadCount,
                 10, TimeUnit.SECONDS,
-                new LinkedBlockingQueue<Runnable>(1024), new ThreadFactoryBuilder().setNameFormat("demo-pool-%d").build(), new ThreadPoolExecutor.AbortPolicy());
+                new LinkedBlockingQueue<Runnable>(1024), threadFactory, new ThreadPoolExecutor.AbortPolicy());
 
         for (DsDlpMockDataConfig dsDlpMockDataConfig : dsDlpMockDataConfigs) {
             //使用多线程调用
@@ -530,8 +531,8 @@ public class MockData {
         //1.获取当前jar包路径
         File rootPath = new File(this.getClass().getProtectionDomain().getCodeSource().getLocation().getFile());//此路径为当前项目路径
         //2.拼接路径
-        String path = rootPath.getParent() + "\\conf\\dlp_yoyo_mockdata.config";
-        path = "D:\\work_space\\mock_data\\conf\\dlp_yoyo_mockdata.config";
+        String path = rootPath.getParent() + "\\conf\\dlp_yoyo_mockdata.config";//配置文件绝对路径
+        path = "D:\\work_space\\mock_data\\conf\\dlp_yoyo_mockdata.config";//该行代码为测试时修改的本地路径，如果部署到linux服务器上要将该行代码注释
         //3.获取配置文件信息
         try {
             InputStream in = new FileInputStream(path);
@@ -688,7 +689,7 @@ public class MockData {
                 //2.获取连接
               //  System.out.println("获取连接");
                 connection = DriverManager.getConnection(dataSourceConfig.getOracle_url(), dataSourceConfig.getOracle_user(), dataSourceConfig.getOracle_password());
-                System.out.println("获取连接成功");
+                //System.out.println("获取连接成功");
             } catch (InstantiationException e1) {
                 e1.printStackTrace();
                 System.out.println("实例异常" + e1);
