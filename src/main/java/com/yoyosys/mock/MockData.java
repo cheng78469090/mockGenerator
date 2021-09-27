@@ -531,6 +531,7 @@ public class MockData {
             String ModeFilePath = p.getProperty("ModeFilePath");
             String DataFilePath = p.getProperty("DataFilePath");
             String ResultFilePath = p.getProperty("ResultFilePath");
+            String ThreadCount = p.getProperty("ThreadCount");
             dataSourceConfig = new DataSourceConfig();
             dataSourceConfig.setOracle_driver(oracle_driver);
             dataSourceConfig.setOracle_url(oracle_url);
@@ -541,6 +542,7 @@ public class MockData {
             dataSourceConfig.setModeFilePath(ModeFilePath);
             dataSourceConfig.setDataFilePath(DataFilePath);
             dataSourceConfig.setResultFilePath(ResultFilePath);
+            dataSourceConfig.setThreadCount(ThreadCount);
             return dataSourceConfig;
         } catch (IOException io) {
             System.out.println("读取配置文件异常" + io);
