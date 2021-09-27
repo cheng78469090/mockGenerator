@@ -4,6 +4,7 @@ import com.apifan.common.random.source.DateTimeSource;
 import com.apifan.common.random.source.NumberSource;
 import com.mifmif.common.regex.Generex;
 import com.yoyosys.mock.pojo.Column;
+import org.apache.commons.lang.StringUtils;
 
 import java.time.LocalDate;
 import java.util.Collection;
@@ -14,10 +15,13 @@ import java.util.Random;
 public class MakeDataUtil {
 
     //随机生成char类型
-    public static char makeCharData(){
+    public static char makeCharData(Column column, Collection list){
         Random random = new Random();
-        int number = random.nextInt(Constants.STR.length());
-        return (char) Constants.STR.charAt(number);
+        int number = 0;
+        do{
+            number = random.nextInt(Constants.STR1.length());
+        }while(list.contains(number + ""));
+        return (char) Constants.STR1.charAt(number);
     }
 
     //随机生成日期类型
@@ -34,10 +38,16 @@ public class MakeDataUtil {
 
     //随机生成字符串
     public static String makeStringData(Column column, Collection list){
+        if (StringUtils.isBlank(column.getcLength()) || Integer.parseInt(column.getcLength()) > 255){
+            column.setcLength("32");
+        }
         Random random1 = new Random();
         StringBuffer sb1 = new StringBuffer();
         do {
             int length=random1.nextInt(Integer.parseInt(column.getcLength())/2);
+            if (length == 0 ){
+                length = 1;
+            }
             for (int j = 0; j < length; j++) {
                 int number1 = random1.nextInt(Constants.STR.length());
                 sb1.append(Constants.STR.charAt(number1));
@@ -48,16 +58,22 @@ public class MakeDataUtil {
 
     //随机生成整数
     public static String makeIntData(Column column, Collection list){
+        if (StringUtils.isBlank(column.getcLength())){
+            column.setcLength("8");
+        }
         String result = null;
         do{
             result = NumberSource.getInstance().randomInt(0,
                     (int) Math.pow(10, Integer.parseInt(column.getcLength()))) + "";
-        }while(!list.contains(result));
+        }while(list.contains(result));
         return result;
     }
 
     //随机生成小数类型
     public static String makeNumData(Column column, Collection list){
+        if (StringUtils.isBlank(column.getcLength())){
+            column.setcLength("8,8");
+        }
         String[] length = column.getcLength().split(",");
         String a = null;
         String b = null;
@@ -65,9 +81,16 @@ public class MakeDataUtil {
         do{
             a = NumberSource.getInstance().randomInt(0,
                     (int) Math.pow(10, Integer.parseInt(length[0]))) + "";
-            b = NumberSource.getInstance().randomInt(0,
-                    (int) Math.pow(10, Integer.parseInt(length[1]))) + "";
-            result = a + "." + b;
+            if (Integer.parseInt(length[1]) != 0){
+                b = NumberSource.getInstance().randomInt(0,
+                        (int) Math.pow(10, Integer.parseInt(length[1]))) + "";
+            }
+
+            if (b == null){
+                result = a;
+            }else{
+                result = a + "." + b;
+            }
         }while(list.contains(result));
         return result;
     }
