@@ -528,15 +528,13 @@ public class MockData {
     public DataSourceConfig getDataSourceConfig () {
         DataSourceConfig dataSourceConfig = null;
         //1.获取当前jar包路径
-        File rootPath = new File(this.getClass().getResource("/").getPath());//此路径为当前项目路径
-        System.out.println("当前环境根节点目录" + rootPath);
+        File rootPath = new File(this.getClass().getProtectionDomain().getCodeSource().getLocation().getFile());//此路径为当前项目路径
         //2.拼接路径
-        String path = rootPath + "\\mock_data\\conf\\dlp_yoyo_mockdata.config";
-        System.out.println(path);
-        String configPath = "C:\\Users\\xiaoyaoxiaodi\\Desktop\\mock_data\\conf\\dlp_yoyo_mockdata.config";
+        String path = rootPath.getParent() + "\\conf\\dlp_yoyo_mockdata.config";
+        path = "D:\\work_space\\mock_data\\conf\\dlp_yoyo_mockdata.config";
         //3.获取配置文件信息
         try {
-            InputStream in = new FileInputStream(configPath);
+            InputStream in = new FileInputStream(path);
             Properties p = new Properties();
             p.load(in);
             //4.获取配置文件信息
