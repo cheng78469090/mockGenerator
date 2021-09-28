@@ -120,7 +120,7 @@ public class MockData {
                         File fileDir = new File(dataSourceConfig.getDataFilePath());
                         File[] files = fileDir.listFiles();
                         for (File file : files) {
-                            if(!file.isDirectory()){
+                            if(!file.isDirectory() && file.getName().toLowerCase().contains(hiveName.toLowerCase())){
                                 try {
                                     BufferedReader bfr1 = new BufferedReader(
                                             new InputStreamReader(new FileInputStream(file), "UTF-8"));
@@ -241,6 +241,7 @@ public class MockData {
             });
 
         }//for循环的括号
+        threadPool.shutdown();
         return true;
     }
 
@@ -270,7 +271,7 @@ public class MockData {
         }
     }
 
-    private static void outPutFile(String alikeFileName,String charsetName,String filePath,int ID,LinkedHashMap<Column, List> resultMap){
+    private synchronized static void outPutFile(String alikeFileName,String charsetName,String filePath,int ID,LinkedHashMap<Column, List> resultMap){
         try {
             String fileName;
 
