@@ -248,6 +248,7 @@ public class MockData {
             });
 
         }
+        threadPool.shutdown();
         return true;
     }
 
