@@ -18,6 +18,7 @@ public class DataSourceConfig {
     private String ModeFilePath;//模板文件路径
     private String DataFilePath;//数据文件路径
     private String ResultFilePath;//输出文件路径
+    private String ThreadCount;//最大线程数
     private String FileFormat;
     private String AllFileFormat;
     private String readyFileFormat;
@@ -44,6 +45,13 @@ public class DataSourceConfig {
 
     public void setFileFormat(String fileFormat) {
         FileFormat = fileFormat;
+    }
+    public String getThreadCount() {
+        return ThreadCount;
+    }
+
+    public void setThreadCount(String threadCount) {
+        ThreadCount = threadCount;
     }
 
     public String getModeFilePath() {

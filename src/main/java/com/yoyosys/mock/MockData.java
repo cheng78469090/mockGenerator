@@ -1,6 +1,7 @@
 package com.yoyosys.mock;
 
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.yoyosys.mock.pojo.Column;
 import com.yoyosys.mock.pojo.DataSourceConfig;
 import com.yoyosys.mock.pojo.DsConfig;
@@ -13,20 +14,25 @@ import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Expression;
 
 import java.io.*;
+
 import java.sql.*;
 import java.util.*;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 
 /**
  * @Author: yjj
  * Date: 2021/9/3
  */
+
 public class MockData {
     public static void main(String[] args) {
-        long startTime = System.currentTimeMillis();
         MockData mockData = new MockData();
         //读取模拟数据配置文件（dlp_yoyo_mockdata.config）：数据库连接信息
         DataSourceConfig dataSourceConfig = mockData.getDataSourceConfig();
@@ -35,94 +41,149 @@ public class MockData {
 
         ModifyDataUtil modifyDataUtil = new ModifyDataUtil();
         mockData.makeData(mockData, dataSourceConfig, dsDlpMockDataConfigs, modifyDataUtil);
-        long endTime = System.currentTimeMillis();
-        System.out.println("===插入数据花费:" + (endTime - startTime)/1000 + "s===");
 
     }
 
     //根据配置生成数据
     private boolean makeData(MockData mockData, DataSourceConfig dataSourceConfig,
-                             List<DsDlpMockDataConfig> dsDlpMockDataConfigs, ModifyDataUtil modifyDataUtil) {
+            List<DsDlpMockDataConfig> dsDlpMockDataConfigs, ModifyDataUtil modifyDataUtil){
+        //创建线程池
+        ThreadFactory threadFactory = new ThreadFactoryBuilder().setNameFormat("线程-%d").build();
+        int threadCount = Integer.parseInt(dataSourceConfig.getThreadCount());
+        ThreadPoolExecutor threadPool = new ThreadPoolExecutor(threadCount, threadCount,
+                10, TimeUnit.SECONDS,
+                new LinkedBlockingQueue<Runnable>(1024), threadFactory, new ThreadPoolExecutor.AbortPolicy());
+
         for (DsDlpMockDataConfig dsDlpMockDataConfig : dsDlpMockDataConfigs) {
-            //读取表结构：获取配置类中的表名，根据表名去DS_CONFIG中查找数据加载场景(LOAD_SCENE)
-            DsConfig dsConfig = mockData.getDsConfig(dataSourceConfig, dsDlpMockDataConfig.getHive_name());
+            //使用多线程调用
+            threadPool.execute(new Runnable() {
+                @Override
+                public void run() {
+                    //读取表结构：获取配置类中的表名，根据表名去DS_CONFIG中查找数据加载场景(LOAD_SCENE)
+                    DsConfig dsConfig = mockData.getDsConfig(dataSourceConfig, dsDlpMockDataConfig.getHive_name());
 
-            //todo: 王震宣  解析模板文件
+                    //todo: 王震宣  解析模板文件
+                    List<Expression> sqlParser = null;
+                    try {
+                        sqlParser = JsqlparserUtil.getSQLParser(dsDlpMockDataConfig.getConditions());
+                    } catch (JSQLParserException e) {
+                        e.printStackTrace();
+                    }
+                    int noRecords = sqlParser.size() * 3;
+                    //模拟数据集
+                    LinkedHashMap<Column, List> resultMap = new LinkedHashMap<>();
+                    String hiveName = dsDlpMockDataConfig.getHive_name();
+                    //数据加载场景
+                    String loadScene = dsConfig.getLoadScene().substring(0, 2);
+                    //开始时间
+                    String startDate = dsDlpMockDataConfig.getStartDate();
+                    //结束时间
+                    String endDate = dsDlpMockDataConfig.getEndDate();
+                    //生成记录条数
+                    int records = dsDlpMockDataConfig.getRecords();
 
-            //模拟数据集
-            LinkedHashMap<Column, List> resultMap = new LinkedHashMap<>();
-            String hiveName = dsDlpMockDataConfig.getHive_name();
-            //数据加载场景
-            String loadScene = dsConfig.getLoadScene().substring(0, 2);
-            //开始时间
-            String startDate = dsDlpMockDataConfig.getStartDate();
-            //结束时间
-            String endDate = dsDlpMockDataConfig.getEndDate();
-
-            StringBuilder modeFile = new StringBuilder(dataSourceConfig.getModeFilePath());//表结构存储文件路径
-            StringBuilder CLFile = new StringBuilder(dataSourceConfig.getModeFilePath());//存量文件，用来确定分区字段
-            //根据数据加载场景去对应的目录下查找该表对应的以ext开头的模板文件
-            switch (loadScene) {//数据加载场景
-                case Constants.LOADSCENE01:
-                    modeFile.append("\\B1\\" + hiveName + "\\" + "load_" + hiveName + ".tpl");
-                    CLFile.append("\\B1_C\\" + hiveName + "\\" + "load_" + hiveName + ".tpl");
-                    break;
-                case Constants.LOADSCENE02:
-                    modeFile.append("\\B2\\" + hiveName + "\\" + "load_" + hiveName + ".tpl");
-                    CLFile.append("\\B2_C\\" + hiveName + "\\" + "load_" + hiveName + ".tpl");
-                    break;
-                case Constants.LOADSCENE03:
-                    modeFile.append("\\B3\\" + hiveName + "\\" + "ext_" + hiveName + ".tpl");
-                    CLFile = null;
-                    break;
-                case Constants.LOADSCENE04:
-                    modeFile.append("\\B4\\" + hiveName + "\\" + "ext_" + hiveName + ".tpl");
-                    CLFile = null;
-                    break;
-            }
-            //表结构
-            List<Column> columnList = mockData.getColumn(modeFile, CLFile, loadScene);
-
-            //是否上传数据文件：读取数据文件/mockdata/data/a_pdata_t03_agmt_fea_rela_h_2021070 9_000_000.dat
-            if (getDataFile(loadScene, dataSourceConfig.getDataFilePath())) {
-                //生成模拟数据集
-                StringBuilder result1 = new StringBuilder();
-                File fileDir = new File(dataSourceConfig.getDataFilePath());
-                File[] files = fileDir.listFiles();
-                for (File file : files) {
-                    if (!file.isDirectory()) {
-                        try {
-                            BufferedReader bfr1 = new BufferedReader(
-                                    new InputStreamReader(new FileInputStream(file), "UTF-8"));
-                            String lineTxt1 = null;
-                            while ((lineTxt1 = bfr1.readLine()) != null) {
-                                result1.append(lineTxt1).append("\n");
+                    StringBuilder modeFile = new StringBuilder(dataSourceConfig.getModeFilePath());//表结构存储文件路径
+                    StringBuilder CLFile = new StringBuilder(dataSourceConfig.getModeFilePath());//存量文件，用来确定分区字段
+                    //根据数据加载场景去对应的目录下查找该表对应的以ext开头的模板文件
+                    switch (loadScene) {//数据加载场景
+                        case Constants.LOADSCENE01:
+                            modeFile.append("\\B1\\" + hiveName + "\\" + "ext_" + hiveName + ".tpl");
+                            CLFile.append("\\B1_C\\" + hiveName + "\\" + "load_" + hiveName + ".tpl");
+                            break;
+                        case Constants.LOADSCENE02:
+                            modeFile.append("\\B2\\" + hiveName + "\\" + "ext_" + hiveName + ".tpl");
+                            CLFile.append("\\B2_C\\" + hiveName + "\\" + "load_" + hiveName + ".tpl");
+                            break;
+                        case Constants.LOADSCENE03:
+                            modeFile.append("\\B3\\" + hiveName + "\\" + "ext_" + hiveName + ".tpl");
+                            CLFile = null;
+                            break;
+                        case Constants.LOADSCENE04:
+                            modeFile.append("\\B4\\" + hiveName + "\\" + "ext_" + hiveName + ".tpl");
+                            CLFile = null;
+                            break;
+                    }
+                    //表结构
+                    List<Column> columnList = mockData.getColumn(modeFile, CLFile, loadScene);
+                    //天数
+                    int betweenDays = Integer.parseInt(endDate) - Integer.parseInt(startDate) + 1;
+                    //需要生成的数据条数，无所谓 B几(加上反例数据之后的条数)
+                    int n = records + noRecords;
+                    if (loadScene.equals(Constants.LOADSCENE04)) {
+                        n = records * (betweenDays + 1) + noRecords;
+                    }
+                    //是否上传数据文件
+                    if (getDataFile(dataSourceConfig.getDataFilePath())) {
+                        //生成模拟数据集
+                        StringBuilder result = new StringBuilder();
+                        //获取指定目录下的所有数据文件
+                        File fileDir = new File(dataSourceConfig.getDataFilePath());
+                        File[] files = fileDir.listFiles();
+                        for (File file : files) {
+                            if (!file.isDirectory()) {
+                                try {
+                                    BufferedReader bfr1 = new BufferedReader(
+                                            new InputStreamReader(new FileInputStream(file), "UTF-8"));
+                                    String lineTxt1 = null;
+                                    while ((lineTxt1 = bfr1.readLine()) != null) {
+                                        result.append(lineTxt1).append("\n");
+                                    }
+                                    bfr1.close();
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
                             }
-                            bfr1.close();
-                        } catch (Exception e) {
-                            e.printStackTrace();
                         }
-                    }
-                }
-                String[] createSql1 = result1.toString().split("\n");
-                List<String[]> listb = new ArrayList<>();
-                for (String a : createSql1) {
-                    String[] b = a.split("\\|\\+\\|", -1);
-                    b = Arrays.copyOf(b, b.length - 1);
-                    listb.add(b);
-                }
+                        //将所有数据文件中的数据放到一个集合中，因为有可能上传多个数据文件
+                        String[] createSql1 = result.toString().split("\n");
 
-                for (int j = 0; j < columnList.size(); j++) {
-                    List list = new ArrayList();
-                    for (int i = 0; i < listb.size(); i++) {
-                        String[] arr = listb.get(i);
-                        list.add(arr[j]);
-                    }
-                    resultMap.put(columnList.get(j), list);
-                }
 
-            } else {
-                //没有数据文件,获取表主键
+                        //如果数据文件中的数据小于要求的条数，则再生成对应条数记录
+                        if (createSql1.length < n) {
+                            int makeNum = n - createSql1.length;
+                            LinkedHashMap<Column, List> resultSonMap =
+                                    mockData.createData(columnList, makeNum, startDate, endDate, loadScene);
+                            //将新生成的记录与原本数据文件中的记录合并
+                            resultMap.putAll(resultSonMap);
+                        }
+                        List<String[]> listb = new ArrayList<>();
+                        for (String a : createSql1) {
+                            String[] b = a.split("\\|\\+\\|", -1);
+                            //去掉末尾分隔符|+|后面的多余元素
+                            b = Arrays.copyOf(b, b.length - 1);
+                            //listb里存放的是一条条记录，以数组形式，每个数组是一条记录
+                            listb.add(b);
+                        }
+                        //如果resultMap之前没有赋值过，则把数据文件中的数据放入集合中
+                        if (resultMap.size() == 0) {
+                            for (int j = 0; j < columnList.size(); j++) {
+                                List list = new ArrayList();
+                                for (int i = 0; i < listb.size(); i++) {
+                                    String[] arr = listb.get(i);
+                                    list.add(arr[j]);
+                                }
+                                //resultMap用来存放所有数据文件中的数据，列式存储
+                                resultMap.put(columnList.get(j), list);
+                            }
+                        } else {//如果resultMap之前赋值过，则把数据文件中的数据，追加到生成的数据后
+                            int j = 0;
+                            for (Column column : resultMap.keySet()) {
+                                List list = resultMap.get(column);
+//                        for (int j = 0; j < columnList.size(); j++) {
+                                List list1 = new ArrayList();
+                                for (int i = 0; i < listb.size(); i++) {
+                                    String[] arr = listb.get(i);
+                                    list1.add(arr[j]);
+                                }
+                                list.addAll(list1);
+                                j++;
+                                //resultMap用来存放所有数据文件中的数据，列式存储
+//                            resultMap.put(columnList.get(j), list);
+//                        }
+                            }
+                        }
+                    } else {
+                        //没有数据文件,获取表主键
 //                try {
 //                    //设置主键标识
 //                    List<String> primaryKeyList = mockData.getPrimayKey();//没有数据文件,获取表主键
@@ -140,61 +201,84 @@ public class MockData {
 //                } catch (Exception e) {
 //                    e.printStackTrace();
 //                }
-                //生成记录条数
-                int records = dsDlpMockDataConfig.getRecords();
-                resultMap = mockData.createData(columnList, records, startDate, endDate, loadScene);
-            }
+                        resultMap = mockData.createData(columnList, n, startDate, endDate, loadScene);
+                    }
+                    //处理resultMap的分区字段
+                    if (loadScene.equals(Constants.LOADSCENE04)) {
+                        modiDate(n, noRecords, records, resultMap, startDate, endDate);
+                    }
 
-            /*
-             * 根据条件修改数据
-             * 1.解析where条件
-             * 2.修改数据
-             * todo:易建军、王燚
-             *  return : list<map>
-             * */
+                    /*
+                     * 根据条件修改数据
+                     * 1.解析where条件
+                     * 2.修改数据
+                     * todo:易建军、王燚
+                     *  return : list<map>
+                     * */
+                    modifyDataUtil.modifyData(resultMap, columnList, sqlParser);
 
-            try {
-                List<Expression> sqlParser = JsqlparserUtil.getSQLParser(dsDlpMockDataConfig.getConditions());
-                modifyDataUtil.modifyData(resultMap, columnList, sqlParser);
-            } catch (JSQLParserException e) {
-                e.printStackTrace();
-            }
-
-            /**
-             * 输出
-             创建输出路径：/result
-             创建输出文件：i_pdata_t03_agmt_fea_rela_h_20210709_000_000.dat
-             压缩输出文件：i_pdata_t03_agmt_fea_rela_h_20210709_000_000.dat.Z
-             创建加载完成的就绪文件：i_pdata_t03_agmt_fea_rela_h_20210709_000_000.xml
-             删除输出的dat文件
-             修改状态：修改配置类中状态属性为‘1’（成功），写回到对应配置表中。
-             *
-             * todo:王锦鹏
-             * */
-
-            //String filePath = new MockData().getClass().getResource("/").getPath() + "\\result";
-            String filePath = dataSourceConfig.getResultFilePath();
-            String start_date = dsDlpMockDataConfig.getStartDate();
-            String hive_name = dsDlpMockDataConfig.getHive_name();
-            String charsetName = dsConfig.getFILE_ENCODING();
+                    /**
+                     * 输出
+                     创建输出路径：/result
+                     创建输出文件：i_pdata_t03_agmt_fea_rela_h_20210709_000_000.dat
+                     压缩输出文件：i_pdata_t03_agmt_fea_rela_h_20210709_000_000.dat.Z
+                     创建加载完成的就绪文件：i_pdata_t03_agmt_fea_rela_h_20210709_000_000.xml
+                     删除输出的dat文件
+                     修改状态：修改配置类中状态属性为‘1’（成功），写回到对应配置表中。
+                     *
+                     * todo:王锦鹏
+                     * */
+                    String filePath = dataSourceConfig.getResultFilePath();
+                    String start_date = dsDlpMockDataConfig.getStartDate();
+                    String hive_name = dsDlpMockDataConfig.getHive_name();
+                    String charsetName = dsConfig.getFILE_ENCODING();
 
 
-            if (charsetName==null||charsetName.trim().length()==0){
-                charsetName="UTF-8";
-            }
+                    if (charsetName == null || charsetName.trim().length() == 0) {
+                        charsetName = "UTF-8";
+                    }
 
-            int ID = dsDlpMockDataConfig.getId();
-            String alikeFileName = "i_" + hive_name + "_" + start_date + "_000_";
-            String fileFormat=dataSourceConfig.getFileFormat();
-            String AllFileFormat=dataSourceConfig.getAllFileFormat();
-            String readyFileFormat=dataSourceConfig.getReadyFileFormat();
-            outPutFile(alikeFileName, charsetName,fileFormat,AllFileFormat,filePath, ID, resultMap,readyFileFormat);
+                    int ID = dsDlpMockDataConfig.getId();
+                    String alikeFileName = "i_" + hive_name + "_" + start_date + "_000_";
+                    String fileFormat = dataSourceConfig.getFileFormat();
+                    String AllFileFormat = dataSourceConfig.getAllFileFormat();
+                    String readyFileFormat = dataSourceConfig.getReadyFileFormat();
+                    outPutFile(alikeFileName, charsetName, fileFormat, AllFileFormat, filePath, ID, resultMap, readyFileFormat);
+                }
+            });
+
         }
-
         return true;
     }
 
-    private static void outPutFile(String alikeFileName, String charsetName,String fileFormat,String AllFileFormat,String filePath, int ID, LinkedHashMap<Column, List> resultMap,String readyFileFormat) {
+
+
+    //处理resultMap的分区字段
+    private void modiDate(int n, int noRecords, int records, LinkedHashMap<Column, List> resultMap, String startDate,  String endDate) {
+        List startDatelist = null;
+        List endDatelist = null;
+        for(Column column : resultMap.keySet()){
+            if (column.getFieldName().toUpperCase().equals(Constants.START_DT)){
+                startDatelist = resultMap.get(column);
+            }
+            if (column.getFieldName().toUpperCase().equals(Constants.END_DT)){
+                endDatelist = resultMap.get(column);
+            }
+        }
+
+        for (int i = -noRecords; i < n - noRecords; i++){
+            if (i < records){
+                startDatelist.set(i + noRecords, MakeDataUtil.makeDateData(startDate,endDate));
+                endDatelist.set(i + noRecords, Constants.MAX_DT);
+            }else{
+                String x = Integer.parseInt(startDate) + (i / records % 10 - 1) + "";
+                startDatelist.set(i + noRecords, x);
+                endDatelist.set(i + noRecords, x);
+            }
+        }
+    }
+
+    private static void outPutFile(String alikeFileName,String charsetName,String fileFormat,String AllFileFormat,String filePath,int ID,LinkedHashMap<Column, List> resultMap,String readyFileFormat){
         try {
             String fileName;
 
@@ -244,92 +328,88 @@ public class MockData {
         }
     }
 
-
     //根据表结构生成模拟数据
     private LinkedHashMap<Column, List> createData(List<Column> columnList, int records,
                                                    String startDate, String endDate,
                                                    String loadSence) {
         //模拟数据集
         LinkedHashMap<Column, List> resultMap = new LinkedHashMap<>();
-
-        //天数
-        int betweenDays = Integer.parseInt(endDate) - Integer.parseInt(startDate) + 1;
-        int n = records;
-        if (loadSence.equals(Constants.LOADSCENE04)) {
-            n = records * (betweenDays + 1);
-        }
-
         for (Column column : columnList) {
             Collection list = new LinkedHashSet<>();
-            if (column.getIsPartition() == true) {
-                list = new ArrayList<>();
+            if (column.getIsPartition() == true ||
+                column.getcType().toUpperCase().equals("STRING") ||
+                column.getcType().toUpperCase().equals("CHAR") ||
+                column.getcLength().equals(1 + "")){
+                    list = new ArrayList<>();
             }
-            for (int i = 0; i < n; i++) {
+            for (int i = 0; i < records; i++) {
                 switch (column.getcType().toUpperCase()) {
                     case "CHAR":
+                        list.add(MakeDataUtil.makeCharData(column,list));
+                        break;
+                    case "STRING":
+                        //日期型
+                        if (column.getIsPartition()) {
+                            if (loadSence.equals(Constants.LOADSCENE04)){
+                                list.add(null);
+                                break;
+                            }else{
+                                list.add(MakeDataUtil.makeDateData(startDate,endDate));
+                                break;
+                            }
+                        }
+                        list.add(MakeDataUtil.makeDateData(startDate,endDate));
+                        break;
                     case "VARCHAR"://可变长度的字符串
                     case "NCHAR"://根据字符集而定的固定长度字符串
                     case "NVARCHAR2 "://根据字符集而定的可变长度字符串
-                    case "STRING":
                     case "LONG"://超长字符串
                         //日期型
                         if (column.getIsPartition()) {
-                            if (loadSence.equals(Constants.LOADSCENE04)) {
-                                if (i < n / (betweenDays + 1)) {
-                                    if (column.getFieldName().toUpperCase().equals(Constants.END_DT)) {
-                                        list.add(Constants.MAX_DT);
-                                        break;
-                                    }
-                                    list.add(MakeDataUtil.makeDateData(startDate, endDate));
-                                    break;
-                                } else {
-                                    list.add(Integer.parseInt(startDate) + (i / records % 10 - 1) + "");
-                                    break;
-                                }
+                            if (loadSence.equals(Constants.LOADSCENE04)){
+                                list.add(null);
+                                break;
+                            }else{
+                                list.add(MakeDataUtil.makeDateData(startDate,endDate));
+                                break;
                             }
-                            list.add(MakeDataUtil.makeDateData(startDate, endDate));
+                        }
+                        if (Integer.parseInt(column.getcLength()) == 1){
+                            list.add(MakeDataUtil.makeCharData(column,list));
                             break;
                         }
-                        list.add(MakeDataUtil.makeStringData(column, list));
+                        list.add(MakeDataUtil.makeStringData(column,list));
                         break;
                     case "INTEGER":
-                        list.add(MakeDataUtil.makeIntData(column, list));
+                    case "INT":
+                        list.add(MakeDataUtil.makeIntData(column,list));
                         break;
                     case "NUMBER":
                     case "DECIMAL":
                     case "FLOAT":
-                        list.add(MakeDataUtil.makeNumData(column, list));
+                        list.add(MakeDataUtil.makeNumData(column,list));
                         break;
                 }
-
             }
-            List arrayList = new ArrayList();
-            Iterator iterator = list.iterator();
-            while (iterator.hasNext()) {
-                arrayList.add(iterator.next());
-            }
-
+            List arrayList = new ArrayList(list);
             resultMap.put(column, arrayList);
         }
         return resultMap;
     }
 
     //判断是否上传数据文件
-    private static boolean getDataFile(String loadScene, String filePath) {
-        if (loadScene.equals(Constants.LOADSCENE04)) {
-            return false;
-        }
+    private static boolean getDataFile ( String filePath) {
         File file = new File(filePath);
-        if (file.isDirectory()) {
-            if (file.list().length > 0) {
-                return false;
+        if(file.isDirectory()){
+            if(file.list().length>0){
+                return true;
             }
         }
-        return true;
+        return false;
     }
 
     //获取表结构
-    private List<Column> getColumn(StringBuilder filePath, StringBuilder filePath1, String loadScene) {
+    private List<Column> getColumn (StringBuilder filePath, StringBuilder filePath1, String loadScene){
         //字段类集合
         List<Column> columnList = new ArrayList<>();
         StringBuilder result = new StringBuilder();
@@ -337,8 +417,8 @@ public class MockData {
         try {
             //读取表结构文件
             BufferedReader bfr = new BufferedReader(
-                    new InputStreamReader(new FileInputStream(
-                            new File(filePath + "")), "UTF-8"));
+                new InputStreamReader(new FileInputStream(
+                    new File(filePath + "")), "UTF-8"));
             String lineTxt = null;
             while ((lineTxt = bfr.readLine()) != null) {
                 result.append(lineTxt).append("\n");
@@ -347,10 +427,10 @@ public class MockData {
             if (filePath1 != null) {
                 //读取存量文件
                 BufferedReader bfr1 = new BufferedReader(
-                        new InputStreamReader(new FileInputStream(
-                                new File(filePath1.toString())), "UTF-8"));
+                    new InputStreamReader(new FileInputStream(
+                        new File(filePath1 + "")), "UTF-8"));
                 String lineTxt1 = null;
-                while ((lineTxt1 = bfr.readLine()) != null) {
+                while ((lineTxt1 = bfr1.readLine()) != null) {
                     result1.append(lineTxt1).append("\n");
                 }
                 bfr1.close();
@@ -382,9 +462,10 @@ public class MockData {
                     String[] sql = result1.toString().split("\n");
                     for (String s : sql) {
                         if (s.toLowerCase().contains(Constants.AS_BDAP_ETLDATE) &&
-                                s.toLowerCase().contains(column.getFieldName().toLowerCase())) {
+                            s.toLowerCase().contains(column.getFieldName().toLowerCase())) {
                             column.setPartition(true);
-                        } else {
+                            break;
+                        }else {
                             column.setPartition(false);
                         }
                     }
@@ -466,18 +547,16 @@ public class MockData {
       *输入：
       *return: DataSourceConfig
      */
-    public DataSourceConfig getDataSourceConfig() {
+    public DataSourceConfig getDataSourceConfig () {
         DataSourceConfig dataSourceConfig = null;
         //1.获取当前jar包路径
-        File rootPath = new File(this.getClass().getResource("/").getPath());//此路径为当前项目路径
-        System.out.println("当前环境根节点目录" + rootPath);
+        File rootPath = new File(this.getClass().getProtectionDomain().getCodeSource().getLocation().getFile());//此路径为当前项目路径
         //2.拼接路径
-        String path = rootPath + "\\mock_data\\conf\\dlp_yoyo_mockdata.config";
-        System.out.println(path);
-        String configPath = "D:\\work_space\\mock_data\\conf\\dlp_yoyo_mockdata.config";
+        String path = rootPath.getParent() + "\\conf\\dlp_yoyo_mockdata.config";//配置文件绝对路径
+        path = "D:\\work_space\\mock_data\\conf\\dlp_yoyo_mockdata.config";//该行代码为测试时修改的本地路径，如果部署到linux服务器上要将该行代码注释
         //3.获取配置文件信息
         try {
-            InputStream in = new FileInputStream(configPath);
+            InputStream in = new FileInputStream(path);
             Properties p = new Properties();
             p.load(in);
             //4.获取配置文件信息
@@ -490,9 +569,7 @@ public class MockData {
             String ModeFilePath = p.getProperty("ModeFilePath");
             String DataFilePath = p.getProperty("DataFilePath");
             String ResultFilePath = p.getProperty("ResultFilePath");
-            String FileFormat = p.getProperty("FileFormat");
-            String AllFileFormat = p.getProperty("AllFileFormat");
-            String readyFileFormat = p.getProperty("readyFileFormat");
+            String ThreadCount = p.getProperty("ThreadCount");
             dataSourceConfig = new DataSourceConfig();
             dataSourceConfig.setOracle_driver(oracle_driver);
             dataSourceConfig.setOracle_url(oracle_url);
@@ -503,9 +580,7 @@ public class MockData {
             dataSourceConfig.setModeFilePath(ModeFilePath);
             dataSourceConfig.setDataFilePath(DataFilePath);
             dataSourceConfig.setResultFilePath(ResultFilePath);
-            dataSourceConfig.setFileFormat(FileFormat);
-            dataSourceConfig.setAllFileFormat(AllFileFormat);
-            dataSourceConfig.setReadyFileFormat(readyFileFormat);
+            dataSourceConfig.setThreadCount(ThreadCount);
             return dataSourceConfig;
         } catch (IOException io) {
             System.out.println("读取配置文件异常" + io);
@@ -691,3 +766,4 @@ public class MockData {
 
 
 }
+

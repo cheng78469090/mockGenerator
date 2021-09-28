@@ -24,4 +24,7 @@ public class Constants {
             "次品式活设及管特件长求老头基资边流路级少图山统接知较长将组见 " +
             "计别她手角期根论运农指几九区强放决西被乾做必战先回则任取据处 " +
             "写存候毛亲快效斯院查江型眼王按格养易置派";
+
+    //字符，随机生成用
+    public static final String STR1 = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 }
