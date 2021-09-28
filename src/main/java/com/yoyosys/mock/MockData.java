@@ -109,7 +109,7 @@ public class MockData {
                     int betweenDays = Integer.parseInt(endDate) - Integer.parseInt(startDate) + 1;
                     //需要生成的数据条数，无所谓 B几(加上反例数据之后的条数)
                     int n = records + noRecords;
-                    if (loadScene.equals(Constants.LOADSCENE04)) {
+                    if (loadScene.equals(Constants.LOADSCENE04)){
                         n = records * (betweenDays + 1) + noRecords;
                     }
                     //是否上传数据文件
@@ -120,7 +120,7 @@ public class MockData {
                         File fileDir = new File(dataSourceConfig.getDataFilePath());
                         File[] files = fileDir.listFiles();
                         for (File file : files) {
-                            if (!file.isDirectory()) {
+                            if(!file.isDirectory() && file.getName().toLowerCase().contains(hiveName.toLowerCase())){
                                 try {
                                     BufferedReader bfr1 = new BufferedReader(
                                             new InputStreamReader(new FileInputStream(file), "UTF-8"));
@@ -139,7 +139,7 @@ public class MockData {
 
 
                         //如果数据文件中的数据小于要求的条数，则再生成对应条数记录
-                        if (createSql1.length < n) {
+                        if (createSql1.length < n ){
                             int makeNum = n - createSql1.length;
                             LinkedHashMap<Column, List> resultSonMap =
                                     mockData.createData(columnList, makeNum, startDate, endDate, loadScene);
@@ -150,12 +150,12 @@ public class MockData {
                         for (String a : createSql1) {
                             String[] b = a.split("\\|\\+\\|", -1);
                             //去掉末尾分隔符|+|后面的多余元素
-                            b = Arrays.copyOf(b, b.length - 1);
+                            b = Arrays.copyOf(b, b.length-1);
                             //listb里存放的是一条条记录，以数组形式，每个数组是一条记录
                             listb.add(b);
                         }
                         //如果resultMap之前没有赋值过，则把数据文件中的数据放入集合中
-                        if (resultMap.size() == 0) {
+                        if (resultMap.size() == 0){
                             for (int j = 0; j < columnList.size(); j++) {
                                 List list = new ArrayList();
                                 for (int i = 0; i < listb.size(); i++) {
@@ -165,9 +165,9 @@ public class MockData {
                                 //resultMap用来存放所有数据文件中的数据，列式存储
                                 resultMap.put(columnList.get(j), list);
                             }
-                        } else {//如果resultMap之前赋值过，则把数据文件中的数据，追加到生成的数据后
+                        }else{//如果resultMap之前赋值过，则把数据文件中的数据，追加到生成的数据后
                             int j = 0;
-                            for (Column column : resultMap.keySet()) {
+                            for(Column column : resultMap.keySet()){
                                 List list = resultMap.get(column);
 //                        for (int j = 0; j < columnList.size(); j++) {
                                 List list1 = new ArrayList();
@@ -204,8 +204,8 @@ public class MockData {
                         resultMap = mockData.createData(columnList, n, startDate, endDate, loadScene);
                     }
                     //处理resultMap的分区字段
-                    if (loadScene.equals(Constants.LOADSCENE04)) {
-                        modiDate(n, noRecords, records, resultMap, startDate, endDate);
+                    if (loadScene.equals(Constants.LOADSCENE04)){
+                        modiDate(n,noRecords,records,resultMap,startDate,endDate);
                     }
 
                     /*
@@ -228,6 +228,8 @@ public class MockData {
                      *
                      * todo:王锦鹏
                      * */
+
+                    //String filePath = new MockData().getClass().getResource("/").getPath() + "\\result";
                     String filePath = dataSourceConfig.getResultFilePath();
                     String start_date = dsDlpMockDataConfig.getStartDate();
                     String hive_name = dsDlpMockDataConfig.getHive_name();
@@ -255,7 +257,8 @@ public class MockData {
 
 
     //处理resultMap的分区字段
-    private void modiDate(int n, int noRecords, int records, LinkedHashMap<Column, List> resultMap, String startDate,  String endDate) {
+    private void modiDate(int n, int noRecords, int records,
+                          LinkedHashMap<Column, List> resultMap, String startDate,  String endDate) {
         List startDatelist = null;
         List endDatelist = null;
         for(Column column : resultMap.keySet()){
@@ -284,9 +287,9 @@ public class MockData {
             String fileName;
 
             File[] allfiles = new File(filePath).listFiles();
-            int count = 0;
+            int count=0;
             for (File file : allfiles) {
-                if (file.getName().contains(alikeFileName)) {
+                if (file.getName().contains(alikeFileName)){
                     count++;
                 }
             }
@@ -300,6 +303,7 @@ public class MockData {
                 num = "0" + i;
             }
 
+            fileName=filePath+File.separator + alikeFileName+num+".dat";
 
             fileName = filePath + File.separator + alikeFileName + num + fileFormat;
             if (AllFileFormat.equalsIgnoreCase("1")) {
@@ -331,9 +335,9 @@ public class MockData {
     }
 
     //根据表结构生成模拟数据
-    private LinkedHashMap<Column, List> createData(List<Column> columnList, int records,
-                                                   String startDate, String endDate,
-                                                   String loadSence) {
+    private LinkedHashMap<Column, List> createData (List <Column> columnList, int records,
+                                                    String startDate, String endDate,
+                                                    String loadSence){
         //模拟数据集
         LinkedHashMap<Column, List> resultMap = new LinkedHashMap<>();
         for (Column column : columnList) {
@@ -649,7 +653,7 @@ public class MockData {
                 System.out.println("获取数据库连接失败" + e4);
             } finally {
                 close(connection, mockDataConfigPs, mockDataConfigResultSet);
-                System.out.println("关闭资源成功");
+               // System.out.println("关闭资源成功");
             }
         }
 
@@ -693,7 +697,7 @@ public class MockData {
                 return dsConfig;
             } finally {
                 close(connection, mockDataConfigPs, mockDataConfigResultSet);
-                System.out.println("关闭资源成功");
+               // System.out.println("关闭资源成功");
             }
         }
         return null;
@@ -713,12 +717,12 @@ public class MockData {
                 ////
                 //1.加载驱动
 
-                System.out.println("加载驱动");
+                //System.out.println("加载驱动");
                 Class.forName("oracle.jdbc.driver.OracleDriver").newInstance();
                 //2.获取连接
-                System.out.println("获取连接");
+              //  System.out.println("获取连接");
                 connection = DriverManager.getConnection(dataSourceConfig.getOracle_url(), dataSourceConfig.getOracle_user(), dataSourceConfig.getOracle_password());
-                System.out.println("获取连接成功");
+                //System.out.println("获取连接成功");
             } catch (InstantiationException e1) {
                 e1.printStackTrace();
                 System.out.println("实例异常" + e1);
