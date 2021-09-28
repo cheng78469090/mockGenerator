@@ -279,7 +279,7 @@ public class MockData {
         }
     }
 
-    private static void outPutFile(String alikeFileName,String charsetName,String fileFormat,String AllFileFormat,String filePath,int ID,LinkedHashMap<Column, List> resultMap,String readyFileFormat){
+    private synchronized static void outPutFile(String alikeFileName,String charsetName,String fileFormat,String AllFileFormat,String filePath,int ID,LinkedHashMap<Column, List> resultMap,String readyFileFormat){
         try {
             String fileName;
 
@@ -306,25 +306,26 @@ public class MockData {
                 OutPutFile.generateDatFile(fileName, charsetName, resultMap);
                 long size = (new File(fileName).length());
                 OutPutFile.createXml(fileName, size, filePath, charsetName,readyFileFormat);
-                OutPutFile.update(ID);
+                //OutPutFile.update(ID);
             } else if (AllFileFormat.equalsIgnoreCase( "3")) {
                 OutPutFile.generateDatFile(fileName, charsetName, resultMap);
                 OutPutFile.compressFile(fileName, filePath);
                 long size = (new File(fileName).length());
                 OutPutFile.createXml(fileName, size, filePath, charsetName,readyFileFormat);
-                OutPutFile.update(ID);
+                //OutPutFile.update(ID);
             } else {
                 OutPutFile.generateDatFile(fileName, charsetName, resultMap);
                 OutPutFile.compressFile(fileName, filePath);
                 long size = (new File(fileName).length());
                 OutPutFile.createXml(fileName, size, filePath, charsetName,readyFileFormat);
                 OutPutFile.deleteFile(fileName);
-                OutPutFile.update(ID);
+                //OutPutFile.update(ID);
             }
+            TimeUnit.MILLISECONDS.sleep(10);
         } catch (IOException e) {
             e.printStackTrace();
 
-        } catch (SQLException e) {
+        } catch (InterruptedException e) {
             e.printStackTrace();
         }
     }
