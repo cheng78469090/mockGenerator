@@ -311,14 +311,14 @@ public class MockData {
                 OutPutFile.compressFile(fileName, filePath);
                 long size = (new File(fileName).length());
                 OutPutFile.createXml(fileName, size, filePath, charsetName,readyFileFormat);
-                //OutPutFile.update(ID);
+                OutPutFile.update(ID);
             } else {
                 OutPutFile.generateDatFile(fileName, charsetName, resultMap);
                 OutPutFile.compressFile(fileName, filePath);
                 long size = (new File(fileName).length());
                 OutPutFile.createXml(fileName, size, filePath, charsetName,readyFileFormat);
                 OutPutFile.deleteFile(fileName);
-               // OutPutFile.update(ID);
+                OutPutFile.update(ID);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -570,6 +570,9 @@ public class MockData {
             String DataFilePath = p.getProperty("DataFilePath");
             String ResultFilePath = p.getProperty("ResultFilePath");
             String ThreadCount = p.getProperty("ThreadCount");
+            String FileFormat = p.getProperty("FileFormat");
+            String AllFileFormat = p.getProperty("AllFileFormat");
+            String readyFileFormat = p.getProperty("readyFileFormat");
             dataSourceConfig = new DataSourceConfig();
             dataSourceConfig.setOracle_driver(oracle_driver);
             dataSourceConfig.setOracle_url(oracle_url);
@@ -581,6 +584,9 @@ public class MockData {
             dataSourceConfig.setDataFilePath(DataFilePath);
             dataSourceConfig.setResultFilePath(ResultFilePath);
             dataSourceConfig.setThreadCount(ThreadCount);
+            dataSourceConfig.setFileFormat(FileFormat);
+            dataSourceConfig.setAllFileFormat(AllFileFormat);
+            dataSourceConfig.setreadyFileFormat(readyFileFormat);
             return dataSourceConfig;
         } catch (IOException io) {
             System.out.println("读取配置文件异常" + io);

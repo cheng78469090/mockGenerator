@@ -27,7 +27,7 @@ public class DataSourceConfig {
         return readyFileFormat;
     }
 
-    public void setReadyFileFormat(String readyFileFormat) {
+    public void setreadyFileFormat(String readyFileFormat) {
         this.readyFileFormat = readyFileFormat;
     }
 
