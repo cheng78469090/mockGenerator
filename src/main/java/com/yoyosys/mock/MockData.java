@@ -303,33 +303,33 @@ public class MockData {
                 num = "0" + i;
             }
 
-            fileName=filePath+File.separator + alikeFileName+num+fileFormat;
-
             fileName = filePath + File.separator + alikeFileName + num + fileFormat;
             if (AllFileFormat.equalsIgnoreCase("1")) {
                 OutPutFile.generateDatFile(fileName, charsetName, resultMap);
                 long size = (new File(fileName).length());
                 OutPutFile.createXml(fileName, size, filePath, charsetName,readyFileFormat);
-                //OutPutFile.update(ID);
+                OutPutFile.update(ID);
             } else if (AllFileFormat.equalsIgnoreCase( "3")) {
                 OutPutFile.generateDatFile(fileName, charsetName, resultMap);
                 OutPutFile.compressFile(fileName, filePath);
                 long size = (new File(fileName).length());
                 OutPutFile.createXml(fileName, size, filePath, charsetName,readyFileFormat);
-                //OutPutFile.update(ID);
+                OutPutFile.update(ID);
             } else {
                 OutPutFile.generateDatFile(fileName, charsetName, resultMap);
                 OutPutFile.compressFile(fileName, filePath);
                 long size = (new File(fileName).length());
                 OutPutFile.createXml(fileName, size, filePath, charsetName,readyFileFormat);
                 OutPutFile.deleteFile(fileName);
-                //OutPutFile.update(ID);
+                OutPutFile.update(ID);
             }
             TimeUnit.MILLISECONDS.sleep(10);
         } catch (IOException e) {
             e.printStackTrace();
 
         } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (SQLException e) {
             e.printStackTrace();
         }
     }
