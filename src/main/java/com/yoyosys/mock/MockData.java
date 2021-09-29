@@ -303,7 +303,7 @@ public class MockData {
                 num = "0" + i;
             }
 
-            fileName=filePath+File.separator + alikeFileName+num+".dat";
+            fileName=filePath+File.separator + alikeFileName+num+fileFormat;
 
             fileName = filePath + File.separator + alikeFileName + num + fileFormat;
             if (AllFileFormat.equalsIgnoreCase("1")) {
