@@ -147,10 +147,8 @@ public class OutPutFile {
             ps = conn.prepareStatement(sql);
             ps.setInt(1, ID);
             ps.executeUpdate();
-            System.out.println("数据更新成功");
         } catch (SQLException e) {
             e.printStackTrace();
-            System.out.println("更新失败");
         } finally {
             ps.close();
             conn.close();
@@ -222,10 +220,8 @@ public class OutPutFile {
                 }
             if (pw != null)
                 pw.close();
-            System.out.println("就绪文件生成成功");
         } catch (IOException e) {
             e.printStackTrace();
-            System.out.println("就绪文件生成失败");
         }
 
     }
