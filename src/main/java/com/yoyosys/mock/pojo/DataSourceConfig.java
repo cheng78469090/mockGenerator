@@ -19,7 +19,33 @@ public class DataSourceConfig {
     private String DataFilePath;//数据文件路径
     private String ResultFilePath;//输出文件路径
     private String ThreadCount;//最大线程数
+    private String FileFormat;
+    private String AllFileFormat;
+    private String readyFileFormat;
 
+    public String getReadyFileFormat() {
+        return readyFileFormat;
+    }
+
+    public void setreadyFileFormat(String readyFileFormat) {
+        this.readyFileFormat = readyFileFormat;
+    }
+
+    public String getAllFileFormat() {
+        return AllFileFormat;
+    }
+
+    public void setAllFileFormat(String allFileFormat) {
+        AllFileFormat = allFileFormat;
+    }
+
+    public String getFileFormat() {
+        return FileFormat;
+    }
+
+    public void setFileFormat(String fileFormat) {
+        FileFormat = fileFormat;
+    }
     public String getThreadCount() {
         return ThreadCount;
     }

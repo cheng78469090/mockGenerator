@@ -234,16 +234,27 @@ public class MockData {
                     String start_date = dsDlpMockDataConfig.getStartDate();
                     String hive_name = dsDlpMockDataConfig.getHive_name();
                     String charsetName = dsConfig.getFILE_ENCODING();
-                    int ID =dsDlpMockDataConfig.getId();
-                    String alikeFileName="i_"+ hive_name + "_" + start_date + "_000_";
-                    outPutFile(alikeFileName,charsetName,filePath,ID,resultMap);
+
+
+                    if (charsetName == null || charsetName.trim().length() == 0) {
+                        charsetName = "UTF-8";
+                    }
+
+                    int ID = dsDlpMockDataConfig.getId();
+                    String alikeFileName = "i_" + hive_name + "_" + start_date + "_000_";
+                    String fileFormat = dataSourceConfig.getFileFormat();
+                    String AllFileFormat = dataSourceConfig.getAllFileFormat();
+                    String readyFileFormat = dataSourceConfig.getReadyFileFormat();
+                    outPutFile(alikeFileName, charsetName, fileFormat, AllFileFormat, filePath, ID, resultMap, readyFileFormat);
                 }
             });
 
-        }//for循环的括号
+        }
         threadPool.shutdown();
         return true;
     }
+
+
 
     //处理resultMap的分区字段
     private void modiDate(int n, int noRecords, int records,
@@ -271,7 +282,7 @@ public class MockData {
         }
     }
 
-    private synchronized static void outPutFile(String alikeFileName,String charsetName,String filePath,int ID,LinkedHashMap<Column, List> resultMap){
+    private synchronized static void outPutFile(String alikeFileName,String charsetName,String fileFormat,String AllFileFormat,String filePath,int ID,LinkedHashMap<Column, List> resultMap,String readyFileFormat){
         try {
             String fileName;
 
@@ -284,25 +295,40 @@ public class MockData {
             }
             int i = count / 2;
             String num;
-            if (i <10){
-                num="00"+ i;
-            }else if (i>=100){
-                num=String.valueOf(i);
-            }else{
-                num="0"+i;
+            if (i < 10) {
+                num = "00" + i;
+            } else if (i >= 100) {
+                num = String.valueOf(i);
+            } else {
+                num = "0" + i;
             }
 
-            fileName=filePath+File.separator + alikeFileName+num+".dat";
-
-            OutPutFile.generateDatFile(fileName, charsetName, resultMap);
-            OutPutFile.compressFile(fileName, filePath);
-            long size = (new File(fileName).length());
-            OutPutFile.createXml(fileName,size,filePath,charsetName);
-            OutPutFile.deleteFile(fileName);
-            OutPutFile.update(ID);
+            fileName = filePath + File.separator + alikeFileName + num + fileFormat;
+            if (AllFileFormat.equalsIgnoreCase("1")) {
+                OutPutFile.generateDatFile(fileName, charsetName, resultMap);
+                long size = (new File(fileName).length());
+                OutPutFile.createXml(fileName, size, filePath, charsetName,readyFileFormat);
+                OutPutFile.update(ID);
+            } else if (AllFileFormat.equalsIgnoreCase( "3")) {
+                OutPutFile.generateDatFile(fileName, charsetName, resultMap);
+                OutPutFile.compressFile(fileName, filePath);
+                long size = (new File(fileName).length());
+                OutPutFile.createXml(fileName, size, filePath, charsetName,readyFileFormat);
+                OutPutFile.update(ID);
+            } else {
+                OutPutFile.generateDatFile(fileName, charsetName, resultMap);
+                OutPutFile.compressFile(fileName, filePath);
+                long size = (new File(fileName).length());
+                OutPutFile.createXml(fileName, size, filePath, charsetName,readyFileFormat);
+                OutPutFile.deleteFile(fileName);
+                OutPutFile.update(ID);
+            }
+            TimeUnit.MILLISECONDS.sleep(10);
         } catch (IOException e) {
             e.printStackTrace();
 
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -550,6 +576,9 @@ public class MockData {
             String DataFilePath = p.getProperty("DataFilePath");
             String ResultFilePath = p.getProperty("ResultFilePath");
             String ThreadCount = p.getProperty("ThreadCount");
+            String FileFormat = p.getProperty("FileFormat");
+            String AllFileFormat = p.getProperty("AllFileFormat");
+            String readyFileFormat = p.getProperty("readyFileFormat");
             dataSourceConfig = new DataSourceConfig();
             dataSourceConfig.setOracle_driver(oracle_driver);
             dataSourceConfig.setOracle_url(oracle_url);
@@ -561,6 +590,9 @@ public class MockData {
             dataSourceConfig.setDataFilePath(DataFilePath);
             dataSourceConfig.setResultFilePath(ResultFilePath);
             dataSourceConfig.setThreadCount(ThreadCount);
+            dataSourceConfig.setFileFormat(FileFormat);
+            dataSourceConfig.setAllFileFormat(AllFileFormat);
+            dataSourceConfig.setreadyFileFormat(readyFileFormat);
             return dataSourceConfig;
         } catch (IOException io) {
             System.out.println("读取配置文件异常" + io);
@@ -746,3 +778,4 @@ public class MockData {
 
 
 }
+

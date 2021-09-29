@@ -40,7 +40,6 @@ public class OutPutFile {
     public static void generateDatFile(String fileName, String charsetName, Map<Column, List> recordList) {
 
         File file = new File(fileName);
-        /*String fileName1 = fileName+"(1)";*/
         String line = System.getProperty("line.separator");
 
         try {
@@ -48,7 +47,6 @@ public class OutPutFile {
                 file.createNewFile();
             }
             BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), charsetName));
-           /* BufferedWriter bw1 = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileName1), charsetName));*/
 
             Collection<List> value = recordList.values();
             ArrayList<List> values = new ArrayList<>();
@@ -162,9 +160,9 @@ public class OutPutFile {
     /**
      * createXMl
      */
-    public static void createXml(String fileName, Long fileSize, String outPath, String charsetName) {
+    public static void createXml(String fileName, Long fileSize, String outPath, String charsetName,String readyFileFormat) {
         File file1 = new File(fileName);
-        String readyFileName = outPath + File.separator + file1.getName().split("\\.")[0] + ".xml";
+        String readyFileName = outPath + File.separator + file1.getName().split("\\.")[0] + readyFileFormat;
         // 创建XML文档树
         Document document = DocumentHelper.createDocument();
         // 创建根节点transmit-content
