@@ -22,12 +22,12 @@ public class DsDlpMockDataConfig implements Serializable {
     private String name_en;
     private int isCounterexample;
 
-    public int getIs_counter_example() {
+    public int getIsCounterexample() {
         return isCounterexample;
     }
 
-    public void setIs_counter_example(int is_counter_example) {
-        this.isCounterexample = is_counter_example;
+    public void setIsCounterexample(int isCounterexample) {
+        this.isCounterexample = isCounterexample;
     }
 
     public String getStartDate() {
@@ -53,8 +53,8 @@ public class DsDlpMockDataConfig implements Serializable {
                 ", hive_name='" + hive_name + '\'' +
                 ", conditions='" + conditions + '\'' +
                 ", records=" + records +
-                ", start_date='" + startDate + '\'' +
-                ", end_date='" + endDate + '\'' +
+                ", startDate='" + startDate + '\'' +
+                ", endDate='" + endDate + '\'' +
                 ", input_dir='" + input_dir + '\'' +
                 ", online_date=" + online_date +
                 ", operator='" + operator + '\'' +
@@ -62,6 +62,7 @@ public class DsDlpMockDataConfig implements Serializable {
                 ", create_time=" + create_time +
                 ", ds_name='" + ds_name + '\'' +
                 ", name_en='" + name_en + '\'' +
+                ", isCounterexample=" + isCounterexample +
                 '}';
     }
 

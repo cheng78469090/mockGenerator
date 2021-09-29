@@ -69,7 +69,12 @@ public class MockData {
                     } catch (JSQLParserException e) {
                         e.printStackTrace();
                     }
-                    int noRecords = sqlParser.size() * 3;
+                    int isCounterexample = dsDlpMockDataConfig.getIsCounterexample();
+                    int noRecords = 0;
+                    if (isCounterexample == 1){
+                        noRecords = sqlParser.size() * 3;
+                    }
+
                     //模拟数据集
                     LinkedHashMap<Column, List> resultMap = new LinkedHashMap<>();
                     String hiveName = dsDlpMockDataConfig.getHive_name();
@@ -215,7 +220,7 @@ public class MockData {
                      * todo:易建军、王燚
                      *  return : list<map>
                      * */
-                    modifyDataUtil.modifyData(resultMap, columnList, sqlParser,dsDlpMockDataConfig.getIs_counter_example());
+                    modifyDataUtil.modifyData(resultMap, columnList, sqlParser,isCounterexample);
 
                     /**
                      * 输出
@@ -646,7 +651,7 @@ public class MockData {
                     //String  NAME_EN = mockDataConfigResultSet.getString("NAME_EN");
                     dsDlpMockDataConfig.setName_en(mockDataConfigResultSet.getString("NAME_EN"));
                     //判断是否生成反例
-                    dsDlpMockDataConfig.setIs_counter_example(mockDataConfigResultSet.getInt("IS_COUNTEREXAMPLE"));
+                    dsDlpMockDataConfig.setIsCounterexample(mockDataConfigResultSet.getInt("IS_COUNTEREXAMPLE"));
                     //放入到集合当中
                     dsDlpMockDataConfigList.add(dsDlpMockDataConfig);
 
