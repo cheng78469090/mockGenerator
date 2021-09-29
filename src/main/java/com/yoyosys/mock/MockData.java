@@ -215,7 +215,7 @@ public class MockData {
                      * todo:易建军、王燚
                      *  return : list<map>
                      * */
-                    modifyDataUtil.modifyData(resultMap, columnList, sqlParser);
+                    modifyDataUtil.modifyData(resultMap, columnList, sqlParser,dsDlpMockDataConfig.getIs_counter_example());
 
                     /**
                      * 输出
@@ -645,6 +645,8 @@ public class MockData {
                     dsDlpMockDataConfig.setDs_name(mockDataConfigResultSet.getString("DS_NAME"));
                     //String  NAME_EN = mockDataConfigResultSet.getString("NAME_EN");
                     dsDlpMockDataConfig.setName_en(mockDataConfigResultSet.getString("NAME_EN"));
+                    //判断是否生成反例
+                    dsDlpMockDataConfig.setIs_counter_example(mockDataConfigResultSet.getInt("IS_COUNTEREXAMPLE"));
                     //放入到集合当中
                     dsDlpMockDataConfigList.add(dsDlpMockDataConfig);
 

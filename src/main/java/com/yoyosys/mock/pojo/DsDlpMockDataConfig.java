@@ -20,6 +20,15 @@ public class DsDlpMockDataConfig implements Serializable {
     private Date create_time;
     private String ds_name;
     private String name_en;
+    private int isCounterexample;
+
+    public int getIs_counter_example() {
+        return isCounterexample;
+    }
+
+    public void setIs_counter_example(int is_counter_example) {
+        this.isCounterexample = is_counter_example;
+    }
 
     public String getStartDate() {
         return startDate;
