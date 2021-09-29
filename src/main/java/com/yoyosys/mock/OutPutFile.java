@@ -87,9 +87,9 @@ public class OutPutFile {
      * @throws IOException
      */
 
-    public static void compressFile(String srcPath, String outPath,String readyFileFormat) throws IOException {
+    public static void compressFile(String srcPath, String outPath) throws IOException {
         File srcFile = new File(srcPath);
-        outPath += File.separator + srcFile.getName().split("\\.")[0] + readyFileFormat;
+        outPath += File.separator + srcFile.getName().split("\\.")[0] + ".Z";
 
         FileOutputStream fileOutputStream = new FileOutputStream(outPath);
         ZipOutputStream zipOutputStream = new ZipOutputStream(fileOutputStream);
