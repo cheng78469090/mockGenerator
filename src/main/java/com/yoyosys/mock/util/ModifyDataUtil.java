@@ -44,6 +44,8 @@ public class ModifyDataUtil {
 
     private List<Column> modifyColumn = new ArrayList<>();
 
+    private  Integer isCounterexample;
+
     /**
      * 主方法
      * @param data
@@ -51,14 +53,17 @@ public class ModifyDataUtil {
      * @param expressions
      * @return
      */
-    public LinkedHashMap<Column,List> modifyData(LinkedHashMap<Column,List> data, List<Column> columns,List<Expression> expressions){
+    public LinkedHashMap<Column,List> modifyData(LinkedHashMap<Column,List> data, List<Column> columns,List<Expression> expressions,Integer isCounterexample){
         this.data = data;
         this.columns = columns;
         this.expressions = expressions;
+        this.isCounterexample = isCounterexample;
         for (Expression expression : expressions) {
             getParser(expression);
         }
-        reviseCounter();
+        if (1==isCounterexample){
+            reviseCounter();
+        }
         return this.data;
     }
 
@@ -68,66 +73,92 @@ public class ModifyDataUtil {
             boolean not = ((InExpression) expression).isNot();
             parserInExpression(expression,strings,((Integer)strings.size()).longValue());
             ((InExpression) expression).setNot(!not);
-            parserInExpression(expression,strings,counterExample);
+            if (1==isCounterexample){
+                parserInExpression(expression,strings,counterExample);
+            }
 
         } else if (expression instanceof IsNullExpression) {
             List<String> strings = equalsColumn(expression);
-            parserIsNullExpression(expression,strings,counterExample);
+            if (1==isCounterexample){
+                parserIsNullExpression(expression,strings,counterExample);
+            } else {
+                parserIsNullExpression(expression,strings,0L);
+            }
 
         } else if (expression instanceof Between) {
             List<String> strings = equalsColumn(expression);
             parserBetweenExpression((Between) expression,strings,((Integer)strings.size()).longValue());
             ((Between) expression).setNot(!((Between) expression).isNot());
-            parserBetweenExpression((Between) expression,strings,counterExample);
+            if (1==isCounterexample){
+                parserBetweenExpression((Between) expression,strings,counterExample);
+            }
 
         } else if (expression instanceof EqualsTo) {
             List<String> strings = equalsColumn(expression);
             parserEqualsToExpression(expression,strings,((Integer)strings.size()).longValue());
-            parserNotEqualsToExpression(expression,strings,counterExample);
+            if (1==isCounterexample){
+                parserNotEqualsToExpression(expression,strings,counterExample);
+            }
 
         } else if (expression instanceof LikeExpression) {
             List<String> strings = equalsColumn(expression);
             parserLikeExpression(expression,strings,((Integer)strings.size()).longValue());
             ((LikeExpression) expression).setNot(!((LikeExpression) expression).isNot());
-            parserLikeExpression(expression,strings,counterExample);
+            if (1==isCounterexample){
+                parserLikeExpression(expression,strings,counterExample);
+            }
 
         } else if (expression instanceof NotEqualsTo) {
             List<String> strings = equalsColumn(expression);
             parserNotEqualsToExpression(expression,strings,((Integer)strings.size()).longValue());
-            parserEqualsToExpression(expression,strings,counterExample);
+            if (1==isCounterexample){
+                parserEqualsToExpression(expression,strings,counterExample);
+            }
 
         } else if (expression instanceof GreaterThan) {
             List<String> strings = equalsColumn(expression);
             parserGreaterThanToExpression(expression,strings,((Integer)strings.size()).longValue());
-            parserMinorThanEqualsToExpression(expression,strings,counterExample);
+            if (1==isCounterexample){
+                parserMinorThanEqualsToExpression(expression,strings,counterExample);
+            }
 
         } else if (expression instanceof GreaterThanEquals) {
             List<String> strings = equalsColumn(expression);
             parserGreaterThanEqualsToExpression(expression,strings,((Integer)strings.size()).longValue());
-            parserMinorThanToExpression(expression,strings,counterExample);
+            if (1==isCounterexample){
+                parserMinorThanToExpression(expression,strings,counterExample);
+            }
 
         } else if (expression instanceof MinorThan) {
             List<String> strings = equalsColumn(expression);
             parserMinorThanToExpression(expression,strings,((Integer)strings.size()).longValue());
-            parserGreaterThanEqualsToExpression(expression,strings,counterExample);
+            if (1==isCounterexample){
+                parserGreaterThanEqualsToExpression(expression,strings,counterExample);
+            }
 
         } else if (expression instanceof MinorThanEquals) {
             List<String> strings = equalsColumn(expression);
             parserMinorThanEqualsToExpression(expression,strings,((Integer)strings.size()).longValue());
-            parserGreaterThanToExpression(expression,strings,counterExample);
+            if (1==isCounterexample){
+                parserGreaterThanToExpression(expression,strings,counterExample);
+            }
 
         }else if (expression instanceof AndExpression) {
             Expression leftExpression = ((AndExpression) expression).getLeftExpression();
             Expression rightExpression = ((AndExpression) expression).getRightExpression();
             List<String> strings = equalsColumn(leftExpression);
             parserParenthesisExpression(leftExpression,rightExpression,false,strings,((Integer)strings.size()).longValue());
-            parserParenthesisExpression(leftExpression,rightExpression,true,strings,counterExample);
+            if (1==isCounterexample){
+                parserParenthesisExpression(leftExpression,rightExpression,true,strings,counterExample);
+            }
         }else if (expression instanceof OrExpression) {
             Expression leftExpression = ((OrExpression) expression).getLeftExpression();
             Expression rightExpression = ((OrExpression) expression).getRightExpression();
             List<String> strings = equalsColumn(leftExpression);
             parserParenthesisExpression(leftExpression,rightExpression,true,strings,((Integer)strings.size()).longValue());
-            parserParenthesisExpression(leftExpression,rightExpression,false,strings,counterExample);
+            if (1==isCounterexample){
+                parserParenthesisExpression(leftExpression,rightExpression,false,strings,counterExample);
+            }
         }
     }
 
@@ -171,8 +202,8 @@ public class ModifyDataUtil {
         try {
             for (int i = 0; i < modifyColumn.size(); i++) {
                 List<String> list = data.get(modifyColumn.get(i));
-                list.set(1,"");
-                list.set(2,null);
+                list.set(1," ");
+                list.set(2,"");
                 Collections.swap(list,0,i*3);
                 Collections.swap(list,1,i*3+1);
                 Collections.swap(list,2,i*3+2);
@@ -583,11 +614,11 @@ public class ModifyDataUtil {
         boolean not = ((IsNullExpression) expression).isNot();
         if (!not) {
             for (int i=Integer.valueOf(size.toString());i<strings.size();i++){
-                strings.set(i,null);
+                strings.set(i,"");
             }
         } else {
             for (int i=0;i<size;i++){
-                strings.set(i,null);
+                strings.set(i,"");
             }
         }
     }

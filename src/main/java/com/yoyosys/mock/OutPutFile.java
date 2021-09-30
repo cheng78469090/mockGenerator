@@ -149,6 +149,7 @@ public class OutPutFile {
             ps.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
+            System.out.println("数据库更新失败");
         } finally {
             ps.close();
             conn.close();
@@ -222,6 +223,7 @@ public class OutPutFile {
                 pw.close();
         } catch (IOException e) {
             e.printStackTrace();
+            System.out.println("就绪文件生成失败");
         }
 
     }
