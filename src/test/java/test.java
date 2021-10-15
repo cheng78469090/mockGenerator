@@ -1,5 +1,6 @@
 import br.com.six2six.bfgex.RegexGen;
 import com.apifan.common.random.source.DateTimeSource;
+import com.apifan.common.random.source.NumberSource;
 import com.mifmif.common.regex.Generex;
 import com.yoyosys.mock.OutPutFile;
 import com.yoyosys.mock.pojo.Column;
@@ -51,28 +52,30 @@ public class test {
     }
 
     @Test
-    public void test3() throws ParseException {
-        String regex = ".*1.*";
-        Xeger generator = new Xeger(regex);
-        String result = generator.generate();
-        System.out.println(result);
+    public void test3() {
+        String regex = "76792032GOV4KA136|+|IF_20301|+|6372|+|6372Z|+|01|+|20200915|+|20200916|+|217.00000000|+||+|";
+        String[] b = regex.split("\\|\\+\\|", -1);
+        b = Arrays.copyOf(b, b.length-1);
+        System.out.println(b);
     }
 
     @Test
     public void test4() throws ParseException {
-        System.out.println(RegexGen.of("[a-z0-9]{0,10}00"));
+        String a = NumberSource.getInstance().randomInt(0, 10000) + "";
+        for (int i = 0; i < 100; i++){
+            System.out.println(NumberSource.getInstance().randomInt(0, 10000) + "");
+
+        }
     }
 
     @Test
     public void test6() throws ParseException {
-        for (int i = 0; i < 5; i++) {
-            for (int j = 0; j < 5; j++) {
-                if (j == 2) {
-                    break;
-                }
-                System.out.print("a");
+        File file = new File("C:\\Users\\xiaoyaoxiaodi\\Desktop\\mock_data\\data");
+        File[] files = file.listFiles();
+        for (int i = 0; i < files.length; i++) {
+            if(!files[i].isDirectory()){
+                System.out.println(files[i]);
             }
-            System.out.println("b");
         }
     }
 

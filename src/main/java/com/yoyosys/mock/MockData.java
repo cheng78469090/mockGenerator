@@ -401,7 +401,7 @@ public class MockData {
                         list.add(MakeDataUtil.makeNumData(column,list));
                         break;
                     default:
-                        list.add(0);
+                        list.add("");
 
                 }
             }
