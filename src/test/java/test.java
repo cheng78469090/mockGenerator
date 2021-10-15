@@ -10,6 +10,7 @@ import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.statement.select.*;
 import nl.flotsam.xeger.Xeger;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.junit.Test;
 import org.testng.annotations.Test;
 
 import java.io.File;
