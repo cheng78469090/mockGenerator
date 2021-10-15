@@ -563,8 +563,9 @@ public class MockData {
         //1.获取当前jar包路径
         File rootPath = new File(this.getClass().getProtectionDomain().getCodeSource().getLocation().getFile());//此路径为当前项目路径
         //2.拼接路径
-        String path = rootPath.getParent() + "\\conf\\dlp_yoyo_mockdata.config";//配置文件绝对路径
-        path = "D:\\work_space\\mock_data\\conf\\dlp_yoyo_mockdata.config";//该行代码为测试时修改的本地路径，如果部署到linux服务器上要将该行代码注释
+        String path = rootPath.getParent() + File.separator+"conf"+File.separator+"dlp_yoyo_mockdata.config";//配置文件绝对路径
+        System.out.println(path);
+       // path = "D:\\work_space\\mock_data\\conf\\dlp_yoyo_mockdata.config";//该行代码为测试时修改的本地路径，如果部署到linux服务器上要将该行代码注释
         //3.获取配置文件信息
         try {
             InputStream in = new FileInputStream(path);
@@ -654,7 +655,6 @@ public class MockData {
                     dsDlpMockDataConfig.setIsCounterexample(mockDataConfigResultSet.getInt("IS_COUNTEREXAMPLE"));
                     //放入到集合当中
                     dsDlpMockDataConfigList.add(dsDlpMockDataConfig);
-
                 }
             } catch (SQLException e4) {
                 System.out.println("获取数据库连接失败" + e4);
