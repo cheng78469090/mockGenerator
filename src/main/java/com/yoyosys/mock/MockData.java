@@ -92,19 +92,19 @@ public class MockData {
                     //根据数据加载场景去对应的目录下查找该表对应的以ext开头的模板文件
                     switch (loadScene) {//数据加载场景
                         case Constants.LOADSCENE01:
-                            modeFile.append("\\B1\\" + hiveName + "\\" + "ext_" + hiveName + ".tpl");
-                            CLFile.append("\\B1_C\\" + hiveName + "\\" + "load_" + hiveName + ".tpl");
+                            modeFile.append(File.separator + "B1" + File.separator + hiveName + File.separator + "ext_" + hiveName + ".tpl");
+                            CLFile.append(File.separator + "B1_C" + File.separator + hiveName + File.separator + "load_" + hiveName + ".tpl");
                             break;
                         case Constants.LOADSCENE02:
-                            modeFile.append("\\B2\\" + hiveName + "\\" + "ext_" + hiveName + ".tpl");
-                            CLFile.append("\\B2_C\\" + hiveName + "\\" + "load_" + hiveName + ".tpl");
+                            modeFile.append(File.separator + "B2" + File.separator + hiveName + File.separator + "ext_" + hiveName + ".tpl");
+                            CLFile.append(File.separator + "B2_C" + File.separator + hiveName + File.separator + "load_" + hiveName + ".tpl");
                             break;
                         case Constants.LOADSCENE03:
-                            modeFile.append("\\B3\\" + hiveName + "\\" + "ext_" + hiveName + ".tpl");
+                            modeFile.append(File.separator + "B3" + File.separator + hiveName + File.separator + "ext_" + hiveName + ".tpl");
                             CLFile = null;
                             break;
                         case Constants.LOADSCENE04:
-                            modeFile.append("\\B4\\" + hiveName + "\\" + "ext_" + hiveName + ".tpl");
+                            modeFile.append(File.separator + "B4" + File.separator + hiveName + File.separator+ "ext_" + hiveName + ".tpl");
                             CLFile = null;
                             break;
                     }
@@ -316,13 +316,13 @@ public class MockData {
                 OutPutFile.update(ID);
             } else if (AllFileFormat.equalsIgnoreCase( "3")) {
                 OutPutFile.generateDatFile(fileName, charsetName, resultMap);
-                OutPutFile.compressFile(fileName, filePath);
+                OutPutFile.compressFile(fileName, fileFormat,filePath);
                 long size = (new File(fileName).length());
                 OutPutFile.createXml(fileName, size, filePath, charsetName,readyFileFormat);
                 OutPutFile.update(ID);
             } else {
                 OutPutFile.generateDatFile(fileName, charsetName, resultMap);
-                OutPutFile.compressFile(fileName, filePath);
+                OutPutFile.compressFile(fileName, fileFormat,filePath);
                 long size = (new File(fileName).length());
                 OutPutFile.createXml(fileName, size, filePath, charsetName,readyFileFormat);
                 OutPutFile.deleteFile(fileName);
@@ -400,6 +400,9 @@ public class MockData {
                     case "FLOAT":
                         list.add(MakeDataUtil.makeNumData(column,list));
                         break;
+                    default:
+                        list.add(0);
+
                 }
             }
             List arrayList = new ArrayList(list);
