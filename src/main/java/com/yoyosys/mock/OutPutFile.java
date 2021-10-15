@@ -1,4 +1,4 @@
-package com.yoyosys.mock;
+package main.java.com.yoyosys.mock;
 
 import com.yoyosys.mock.pojo.Column;
 import org.dom4j.Document;
@@ -87,9 +87,9 @@ public class OutPutFile {
      * @throws IOException
      */
 
-    public static void compressFile(String srcPath, String outPath) throws IOException {
+    public static void compressFile(String srcPath,String fileFormat, String outPath) throws IOException {
         File srcFile = new File(srcPath);
-        outPath += File.separator + srcFile.getName().split("\\.")[0] + ".Z";
+        outPath += File.separator + srcFile.getName().split("\\.")[0] + fileFormat+".Z";
 
         FileOutputStream fileOutputStream = new FileOutputStream(outPath);
         ZipOutputStream zipOutputStream = new ZipOutputStream(fileOutputStream);

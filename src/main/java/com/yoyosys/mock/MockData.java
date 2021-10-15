@@ -1,4 +1,4 @@
-package com.yoyosys.mock;
+package main.java.com.yoyosys.mock;
 
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -10,6 +10,7 @@ import com.yoyosys.mock.util.Constants;
 import com.yoyosys.mock.util.JsqlparserUtil;
 import com.yoyosys.mock.util.MakeDataUtil;
 import com.yoyosys.mock.util.ModifyDataUtil;
+import main.java.com.yoyosys.mock.OutPutFile;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Expression;
 
@@ -316,13 +317,13 @@ public class MockData {
                 OutPutFile.update(ID);
             } else if (AllFileFormat.equalsIgnoreCase( "3")) {
                 OutPutFile.generateDatFile(fileName, charsetName, resultMap);
-                OutPutFile.compressFile(fileName, filePath);
+                OutPutFile.compressFile(fileName, fileFormat,filePath);
                 long size = (new File(fileName).length());
                 OutPutFile.createXml(fileName, size, filePath, charsetName,readyFileFormat);
                 OutPutFile.update(ID);
             } else {
                 OutPutFile.generateDatFile(fileName, charsetName, resultMap);
-                OutPutFile.compressFile(fileName, filePath);
+                OutPutFile.compressFile(fileName,fileFormat, filePath);
                 long size = (new File(fileName).length());
                 OutPutFile.createXml(fileName, size, filePath, charsetName,readyFileFormat);
                 OutPutFile.deleteFile(fileName);
