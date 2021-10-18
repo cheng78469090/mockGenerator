@@ -1,4 +1,4 @@
-package com.yoyosys.mock;
+package main.java.com.yoyosys.mock;
 
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -92,19 +92,19 @@ public class MockData {
                     //根据数据加载场景去对应的目录下查找该表对应的以ext开头的模板文件
                     switch (loadScene) {//数据加载场景
                         case Constants.LOADSCENE01:
-                            modeFile.append("\\B1\\" + hiveName + "\\" + "ext_" + hiveName + ".tpl");
-                            CLFile.append("\\B1_C\\" + hiveName + "\\" + "load_" + hiveName + ".tpl");
+                            modeFile.append(File.separator + "B1" + File.separator + hiveName + File.separator + "ext_" + hiveName + ".tpl");
+                            CLFile.append(File.separator + "B1_C" + File.separator + hiveName + File.separator + "load_" + hiveName + ".tpl");
                             break;
                         case Constants.LOADSCENE02:
-                            modeFile.append("\\B2\\" + hiveName + "\\" + "ext_" + hiveName + ".tpl");
-                            CLFile.append("\\B2_C\\" + hiveName + "\\" + "load_" + hiveName + ".tpl");
+                            modeFile.append(File.separator + "B2" + File.separator + hiveName + File.separator + "ext_" + hiveName + ".tpl");
+                            CLFile.append(File.separator + "B2_C" + File.separator + hiveName + File.separator + "load_" + hiveName + ".tpl");
                             break;
                         case Constants.LOADSCENE03:
-                            modeFile.append("\\B3\\" + hiveName + "\\" + "ext_" + hiveName + ".tpl");
+                            modeFile.append(File.separator + "B3" + File.separator + hiveName + File.separator + "ext_" + hiveName + ".tpl");
                             CLFile = null;
                             break;
                         case Constants.LOADSCENE04:
-                            modeFile.append("\\B4\\" + hiveName + "\\" + "ext_" + hiveName + ".tpl");
+                            modeFile.append(File.separator + "B4" + File.separator + hiveName + File.separator+ "ext_" + hiveName + ".tpl");
                             CLFile = null;
                             break;
                     }
@@ -250,7 +250,8 @@ public class MockData {
                     String fileFormat = dataSourceConfig.getFileFormat();
                     String AllFileFormat = dataSourceConfig.getAllFileFormat();
                     String readyFileFormat = dataSourceConfig.getReadyFileFormat();
-                    outPutFile(alikeFileName, charsetName, fileFormat, AllFileFormat, filePath, ID, resultMap, readyFileFormat);
+                    String SoFile=this.getClass().getProtectionDomain().getCodeSource().getLocation().getFile()+File.separator+"lib"+File.separator+"libchilkat.so";
+                    outPutFile(SoFile,alikeFileName, charsetName, fileFormat, AllFileFormat, filePath, ID, resultMap, readyFileFormat);
                 }
             });
 
@@ -287,7 +288,7 @@ public class MockData {
         }
     }
 
-    private synchronized static void outPutFile(String alikeFileName,String charsetName,String fileFormat,String AllFileFormat,String filePath,int ID,LinkedHashMap<Column, List> resultMap,String readyFileFormat){
+    private synchronized static void outPutFile(String SoFile,String alikeFileName,String charsetName,String fileFormat,String AllFileFormat,String filePath,int ID,LinkedHashMap<Column, List> resultMap,String readyFileFormat){
         try {
             String fileName;
 
@@ -316,13 +317,13 @@ public class MockData {
                 OutPutFile.update(ID);
             } else if (AllFileFormat.equalsIgnoreCase( "3")) {
                 OutPutFile.generateDatFile(fileName, charsetName, resultMap);
-                OutPutFile.compressFile(fileName, filePath);
+                OutPutFile.compressFile(SoFile,fileName);
                 long size = (new File(fileName).length());
                 OutPutFile.createXml(fileName, size, filePath, charsetName,readyFileFormat);
                 OutPutFile.update(ID);
             } else {
                 OutPutFile.generateDatFile(fileName, charsetName, resultMap);
-                OutPutFile.compressFile(fileName, filePath);
+                OutPutFile.compressFile(SoFile,fileName);
                 long size = (new File(fileName).length());
                 OutPutFile.createXml(fileName, size, filePath, charsetName,readyFileFormat);
                 OutPutFile.deleteFile(fileName);
@@ -335,6 +336,8 @@ public class MockData {
         } catch (InterruptedException e) {
             e.printStackTrace();
         } catch (SQLException e) {
+            e.printStackTrace();
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -400,6 +403,9 @@ public class MockData {
                     case "FLOAT":
                         list.add(MakeDataUtil.makeNumData(column,list));
                         break;
+                    default:
+                        list.add("");
+
                 }
             }
             List arrayList = new ArrayList(list);
@@ -563,8 +569,9 @@ public class MockData {
         //1.获取当前jar包路径
         File rootPath = new File(this.getClass().getProtectionDomain().getCodeSource().getLocation().getFile());//此路径为当前项目路径
         //2.拼接路径
-        String path = rootPath.getParent() + "\\conf\\dlp_yoyo_mockdata.config";//配置文件绝对路径
-        path = "D:\\work_space\\mock_data\\conf\\dlp_yoyo_mockdata.config";//该行代码为测试时修改的本地路径，如果部署到linux服务器上要将该行代码注释
+        String path = rootPath.getParent() + File.separator+"conf"+File.separator+"dlp_yoyo_mockdata.config";//配置文件绝对路径
+       // System.out.println(path);
+       //String path = "D:\\work_space\\mock_data\\conf\\dlp_yoyo_mockdata.config";//该行代码为测试时修改的本地路径，如果部署到linux服务器上要将该行代码注释
         //3.获取配置文件信息
         try {
             InputStream in = new FileInputStream(path);
@@ -654,7 +661,6 @@ public class MockData {
                     dsDlpMockDataConfig.setIsCounterexample(mockDataConfigResultSet.getInt("IS_COUNTEREXAMPLE"));
                     //放入到集合当中
                     dsDlpMockDataConfigList.add(dsDlpMockDataConfig);
-
                 }
             } catch (SQLException e4) {
                 System.out.println("获取数据库连接失败" + e4);
