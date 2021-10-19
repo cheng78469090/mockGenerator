@@ -1,7 +1,9 @@
 package com.yoyosys.mock;
 
+
+
+import com.chilkatsoft.CkUnixCompress;
 import com.yoyosys.mock.pojo.Column;
-import main.java.com.yoyosys.mock.MockData;
 import org.dom4j.Document;
 import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
@@ -86,11 +88,11 @@ public class OutPutFile {
      * @param srcPath
      * @param outPath
      * @throws IOException
-     */
+     *//*
 
-    public static void compressFile(String srcPath, String outPath) throws IOException {
+    public static void compressFile(String srcPath, String fileFormat,String outPath) throws IOException {
         File srcFile = new File(srcPath);
-        outPath += File.separator + srcFile.getName().split("\\.")[0] + ".Z";
+        outPath += File.separator + srcFile.getName().split("\\.")[0] +fileFormat+ ".Z";
 
         FileOutputStream fileOutputStream = new FileOutputStream(outPath);
         ZipOutputStream zipOutputStream = new ZipOutputStream(fileOutputStream);
@@ -115,7 +117,7 @@ public class OutPutFile {
         //关闭流
         fileInputStream.close();
         bufferedInputStream.close();
-    }
+    }*/
 
     /**
      * 实现删除文件
@@ -227,6 +229,28 @@ public class OutPutFile {
             System.out.println("就绪文件生成失败");
         }
 
+    }
+    /**
+     * 生成压缩文件
+     * @param SoFile
+     * @param FileName
+     * @throws Exception
+     */
+    public static void compressFile(String SoFile,String FileName) throws Exception  {
+        try {
+            System.load(SoFile);
+        } catch (UnsatisfiedLinkError e) {
+            System.err.println("Native code library failed to load.\n" + e);
+            System.exit(1);
+        }
+
+        String property = System.getProperty("java.library.path");
+        StringTokenizer parser = new StringTokenizer(property, ";");
+        while (parser.hasMoreTokens()) {
+            parser.nextToken();
+        }
+        CkUnixCompress uc = new CkUnixCompress();
+        uc.CompressFile(FileName, FileName+".Z");
     }
 }
 
