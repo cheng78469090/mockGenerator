@@ -183,7 +183,7 @@ public class ModifyDataUtil {
         if (leftExpression instanceof net.sf.jsqlparser.schema.Column) {
             String columnName = ((net.sf.jsqlparser.schema.Column) leftExpression).getColumnName();
             for (Column column : columns) {
-                if (columnName.equals(column.getFieldName())){
+                if (columnName.toLowerCase().equals(column.getFieldName().toLowerCase())){
                     strings = data.get(column);
                     modifyColumn.add(column);
                     break;
@@ -807,8 +807,8 @@ public class ModifyDataUtil {
                 }
             }
         } else {
-            String value = rightExpression.toString().replace("\"", "").replace("\'", "");;
-            int length = value.length();
+            String value = rightExpression.toString().replace("\"", "").replace("\'", "");
+            int length = value.length()==0 ? RandomUtils.nextInt(1,10) : value.length();
             for (int i=0;i<size;i++){
                 String s = RandomStringUtils.randomAlphanumeric(length);
                 if (!s.equals(value)) {
