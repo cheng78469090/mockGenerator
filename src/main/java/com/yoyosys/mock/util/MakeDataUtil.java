@@ -11,7 +11,7 @@ import java.util.*;
 
 public class MakeDataUtil {
 
-    public static String  modiDataForFunction(Column column, String loadSence){
+    public static String  modiDataForFunction(Column column){
 
         String result = null;
         String ctype = column.getcType().toUpperCase();
