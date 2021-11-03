@@ -6,7 +6,7 @@ import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
 
 import java.util.List;
 
-public class LengthFunction implements Function, Data {
+public class LengthFunction extends Function implements Data {
     private ExpressionList parameters;
 
     private Data data;
@@ -45,11 +45,17 @@ public class LengthFunction implements Function, Data {
 
     @Override
     public String inputValue() {
-        return null;
+        return createData(true);
     }
 
     @Override
     public String inputCounterexample() {
+        return createData(false);
+    }
+
+    public String createData(boolean flag){
+        // todo 根据长度创建
         return null;
     }
+
 }

@@ -1,6 +1,7 @@
 package com.yoyosys.mock.Jsqlparser;
 
 import com.yoyosys.mock.Jsqlparser.dataType.*;
+import com.yoyosys.mock.Jsqlparser.functionType.FunctionFactory;
 import com.yoyosys.mock.pojo.Column;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.ExpressionVisitorAdapter;
@@ -61,8 +62,14 @@ public class MyVisitor extends ExpressionVisitorAdapter {
 
     @Override
     public void visit(EqualsTo equalsTo) {
-        if (equalsTo.getLeftExpression() instanceof Function && equalsTo.getRightExpression() instanceof Function) {
+        if (equalsTo.getLeftExpression() instanceof Function || equalsTo.getRightExpression() instanceof Function) {
             //todo 左右两边有function的情况
+            Function leftExpression = (Function) equalsTo.getLeftExpression();
+            EqualsData equalsData = new EqualsData();
+            equalsData.setEqualsFlag(true);
+            equalsData.setEqualsValue(equalsTo.getRightExpression().toString().replace("\"", "").replace("\'", ""));
+            com.yoyosys.mock.Jsqlparser.functionType.Function function = FunctionFactory.create(leftExpression.getName(), leftExpression.getParameters(), equalsData, Columns);
+            dataModifyMap.put(function.getColumnName(),function);
         }else {
             EqualsData equalsData = new EqualsData();
             equalsData.setEqualsFlag(true);

@@ -7,7 +7,7 @@ import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
 
 import java.util.List;
 
-public class ConcatFunction implements Function, Data {
+public class ConcatFunction extends Function implements Data {
     private ExpressionList parameters;
 
     private Data data;
@@ -46,11 +46,16 @@ public class ConcatFunction implements Function, Data {
 
     @Override
     public String inputValue() {
-        return null;
+        return createData(true);
     }
 
     @Override
     public String inputCounterexample() {
+        return createData(false);
+    }
+
+    public String createData(boolean flag){
+        // todo 根据长度创建
         return null;
     }
 }
