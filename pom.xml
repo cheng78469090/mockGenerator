@@ -107,9 +107,9 @@
             <version>1.7.25</version>
         </dependency>
         <dependency>
-            <groupId>chilkat</groupId>
-            <artifactId>chilkat</artifactId>
-            <version>1.0</version>
+            <groupId>com.github.leeyazhou.chilkat</groupId>
+            <artifactId>chilkat-linux</artifactId>
+            <version>9.5.0</version>
         </dependency>
     </dependencies>
 
