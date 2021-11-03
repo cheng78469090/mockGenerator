@@ -9,9 +9,7 @@ import com.yoyosys.mock.pojo.DataSourceConfig;
 import com.yoyosys.mock.pojo.DsConfig;
 import com.yoyosys.mock.pojo.DsDlpMockDataConfig;
 import com.yoyosys.mock.util.Constants;
-import com.yoyosys.mock.util.JsqlparserUtil;
 import com.yoyosys.mock.util.MakeDataUtil;
-import com.yoyosys.mock.util.ModifyDataUtil;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
@@ -67,16 +65,7 @@ public class MockData {
 
                     //todo: 王震宣  解析模板文件
                     List<Expression> sqlParser = null;
-                    try {
-                        sqlParser = JsqlparserUtil.getSQLParser(dsDlpMockDataConfig.getConditions());
-                    } catch (JSQLParserException e) {
-                        e.printStackTrace();
-                    }
-                    int isCounterexample = dsDlpMockDataConfig.getIsCounterexample();
-                    int noRecords = 0;
-                    if (isCounterexample == 1){
-                        noRecords = sqlParser.size() * 3;
-                    }
+
 
                     //模拟数据集
                     LinkedHashMap<Column, List> resultMap = new LinkedHashMap<>();
@@ -671,7 +660,7 @@ public class MockData {
         //2.拼接路径
 //       String path = rootPath.getParent() + File.separator+"conf"+File.separator+"dlp_yoyo_mockdata.config";//配置文件绝对路径
        // System.out.println(path);
-       //String path = "D:\\work_space\\mock_data\\conf\\dlp_yoyo_mockdata.config";//该行代码为测试时修改的本地路径，如果部署到linux服务器上要将该行代码注释
+       String path = "D:\\work_space\\mock_data\\conf\\dlp_yoyo_mockdata.config";//该行代码为测试时修改的本地路径，如果部署到linux服务器上要将该行代码注释
         //3.获取配置文件信息
         try {
             InputStream in = new FileInputStream(path);
