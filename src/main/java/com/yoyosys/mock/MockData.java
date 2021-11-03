@@ -2,6 +2,8 @@ package com.yoyosys.mock;
 
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.yoyosys.mock.Jsqlparser.MyVisitor;
+import com.yoyosys.mock.Jsqlparser.dataType.Data;
 import com.yoyosys.mock.pojo.Column;
 import com.yoyosys.mock.pojo.DataSourceConfig;
 import com.yoyosys.mock.pojo.DsConfig;
@@ -12,6 +14,7 @@ import com.yoyosys.mock.util.MakeDataUtil;
 import com.yoyosys.mock.util.ModifyDataUtil;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Expression;
+import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 
 import java.io.*;
 
@@ -24,6 +27,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
 /**
@@ -39,14 +43,13 @@ public class MockData {
         //读取配置表中的配置信息：查询配置表中与操作人匹配且状态为‘0’（未执行）的数据行存放到配置类中
         List<DsDlpMockDataConfig> dsDlpMockDataConfigs = mockData.getDsDlpMockDataConfig(dataSourceConfig);
 
-        ModifyDataUtil modifyDataUtil = new ModifyDataUtil();
-        mockData.makeData(mockData, dataSourceConfig, dsDlpMockDataConfigs, modifyDataUtil);
+        mockData.makeData(mockData, dataSourceConfig, dsDlpMockDataConfigs);
 
     }
 
     //根据配置生成数据
     private boolean makeData(MockData mockData, DataSourceConfig dataSourceConfig,
-            List<DsDlpMockDataConfig> dsDlpMockDataConfigs, ModifyDataUtil modifyDataUtil){
+            List<DsDlpMockDataConfig> dsDlpMockDataConfigs){
         //创建线程池
         ThreadFactory threadFactory = new ThreadFactoryBuilder().setNameFormat("线程-%d").build();
         int threadCount = Integer.parseInt(dataSourceConfig.getThreadCount());
@@ -110,6 +113,23 @@ public class MockData {
                     }
                     //表结构
                     List<Column> columnList = mockData.getColumn(modeFile, CLFile, loadScene);
+
+                    Map<String, Data> dataModifyMap = null;
+                    MyVisitor myVisitor = new MyVisitor(columnList);
+                    Expression expr = null;
+                    try {
+                        expr = CCJSqlParserUtil.parseCondExpression(dsDlpMockDataConfig.getConditions());
+                        expr.accept(myVisitor);
+                        dataModifyMap = myVisitor.getDataModifyMap();
+                    } catch (JSQLParserException e) {
+                        e.printStackTrace();
+                    }
+                    int isCounterexample = dsDlpMockDataConfig.getIsCounterexample();
+                    int noRecords = 0;
+                    if (isCounterexample == 1){
+                        noRecords = dataModifyMap.size() * 3;
+                    }
+
                     //天数
                     int betweenDays = Integer.parseInt(endDate) - Integer.parseInt(startDate) + 1;
                     //需要生成的数据条数，无所谓 B几(加上反例数据之后的条数)
@@ -216,7 +236,7 @@ public class MockData {
                      * todo:易建军、王燚
                      *  return : list<map>
                      * */
-                    modifyDataUtil.modifyData(resultMap, columnList, sqlParser,isCounterexample);
+                    modifyData(resultMap,isCounterexample,myVisitor,expr,dataModifyMap.size() * 3);
 
                     /**
                      * 输出
@@ -250,6 +270,75 @@ public class MockData {
                     String SoFile=ClassName.substring(0,ClassName.lastIndexOf("/") + 1)+File.separator+"lib"+File.separator+"libchilkat.so";
                     outPutFile(SoFile,alikeFileName, charsetName, fileFormat, AllFileFormat, filePath, ID, resultMap, readyFileFormat);
                 }
+
+                private void modifyData(LinkedHashMap<Column, List> resultMap, int isCounterexample, MyVisitor myVisitor, Expression expr, int mRecords) {
+                    int size = resultMap.values().iterator().next().size();
+                    if (isCounterexample==1){
+                        //反例
+                        for (AtomicInteger i = new AtomicInteger(0); i.get() < mRecords;) {
+                            Map<String, Data> dataModifyMap = myVisitor.getDataModifyMap();
+                            dataModifyMap.forEach((s, data) -> {
+                                List<String> list = null;
+                                Iterator<Column> it = resultMap.keySet().iterator();
+                                while(it.hasNext()){
+                                    Column next = it.next();
+                                    if (next.getFieldName().equals(s)){
+                                        if (data.inputCounterexample() == null){
+                                            i.getAndIncrement();
+                                        } else {
+                                            resultMap.get(next).set(i.getAndIncrement(),data.inputCounterexample());
+                                        }
+                                        resultMap.get(next).set(i.getAndIncrement()," ");
+                                        resultMap.get(next).set(i.getAndIncrement(),"");
+                                        break;
+                                    }
+                                }
+                            });
+                        }
+
+                        //正例
+                        for (int i = mRecords; i < size; i++) {
+                            expr.accept(myVisitor);
+                            Map<String, Data> dataModifyMap = myVisitor.getDataModifyMap();
+                            int finalI = i;
+                            dataModifyMap.forEach((s, data) -> {
+                                List<String> list = null;
+                                Iterator<Column> it = resultMap.keySet().iterator();
+                                while(it.hasNext()){
+                                    Column next = it.next();
+                                    if (next.getFieldName().equals(s)){
+                                        if (data == null){
+                                            continue;
+                                        }
+                                        resultMap.get(next).set(finalI,data.inputValue());
+                                    }
+                                }
+                            });
+                        }
+                    } else {
+                        for (int i = 0; i < size; i++) {
+                            expr.accept(myVisitor);
+                            Map<String, Data> dataModifyMap = myVisitor.getDataModifyMap();
+                            int finalI = i;
+                            dataModifyMap.forEach((s, data) -> {
+                                List<String> list = null;
+                                Iterator<Column> it = resultMap.keySet().iterator();
+                                while(it.hasNext()){
+                                    Column next = it.next();
+                                    if (next.getFieldName().equals(s)){
+                                        if (data == null){
+                                            continue;
+                                        }
+                                        resultMap.get(next).set(finalI,data.inputValue());
+                                    }
+                                }
+                            });
+                        }
+                    }
+
+                }
+
+
             });
 
         }
@@ -580,9 +669,9 @@ public class MockData {
         //1.获取当前jar包路径
         File rootPath = new File(this.getClass().getProtectionDomain().getCodeSource().getLocation().getFile());//此路径为当前项目路径
         //2.拼接路径
-       String path = rootPath.getParent() + File.separator+"conf"+File.separator+"dlp_yoyo_mockdata.config";//配置文件绝对路径
+//       String path = rootPath.getParent() + File.separator+"conf"+File.separator+"dlp_yoyo_mockdata.config";//配置文件绝对路径
        // System.out.println(path);
-       path = "C:\\Users\\xiaoyaoxiaodi\\Desktop\\MockDataUtils\\mock_data\\conf\\dlp_yoyo_mockdata.config";//该行代码为测试时修改的本地路径，如果部署到linux服务器上要将该行代码注释
+       //String path = "D:\\work_space\\mock_data\\conf\\dlp_yoyo_mockdata.config";//该行代码为测试时修改的本地路径，如果部署到linux服务器上要将该行代码注释
         //3.获取配置文件信息
         try {
             InputStream in = new FileInputStream(path);
