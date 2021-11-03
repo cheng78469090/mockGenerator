@@ -118,25 +118,21 @@ public class MockData {
                         n = records * (betweenDays + 1) + noRecords;
                     }
                     //是否上传数据文件
-                    if (getDataFile(dataSourceConfig.getDataFilePath())) {
+                    List<File> fileList = getDataFile(dataSourceConfig.getDataFilePath(), hiveName);
+                    if (fileList.size() != 0) {
                         //生成模拟数据集
                         StringBuilder result = new StringBuilder();
-                        //获取指定目录下的所有数据文件
-                        File fileDir = new File(dataSourceConfig.getDataFilePath());
-                        File[] files = fileDir.listFiles();
-                        for (File file : files) {
-                            if(!file.isDirectory() && file.getName().toLowerCase().contains(hiveName.toLowerCase())){
-                                try {
-                                    BufferedReader bfr1 = new BufferedReader(
-                                            new InputStreamReader(new FileInputStream(file), "UTF-8"));
-                                    String lineTxt1 = null;
-                                    while ((lineTxt1 = bfr1.readLine()) != null) {
-                                        result.append(lineTxt1).append("\n");
-                                    }
-                                    bfr1.close();
-                                } catch (Exception e) {
-                                    e.printStackTrace();
+                        for (File file : fileList) {
+                            try {
+                                BufferedReader bfr1 = new BufferedReader(
+                                        new InputStreamReader(new FileInputStream(file), "UTF-8"));
+                                String lineTxt1 = null;
+                                while ((lineTxt1 = bfr1.readLine()) != null) {
+                                    result.append(lineTxt1).append("\n");
                                 }
+                                bfr1.close();
+                            } catch (Exception e) {
+                                e.printStackTrace();
                             }
                         }
                         //将所有数据文件中的数据放到一个集合中，因为有可能上传多个数据文件
@@ -147,7 +143,7 @@ public class MockData {
                         if (createSql1.length < n ){
                             int makeNum = n - createSql1.length;
                             LinkedHashMap<Column, List> resultSonMap =
-                                    mockData.createData(columnList, makeNum, startDate, endDate, loadScene);
+                                mockData.createData(columnList, makeNum, startDate, endDate, loadScene);
                             //将新生成的记录与原本数据文件中的记录合并
                             resultMap.putAll(resultSonMap);
                         }
@@ -416,14 +412,19 @@ public class MockData {
     }
 
     //判断是否上传数据文件
-    private static boolean getDataFile ( String filePath) {
+    private static List<File> getDataFile ( String filePath, String hiveName) {
         File file = new File(filePath);
-        if(file.isDirectory()){
-            if(file.list().length>0){
-                return true;
+        if(file.list().length>0){//获取指定目录下的所有数据文件
+            File[] files = file.listFiles();
+            List<File> fileList = new ArrayList<>();
+            for (File f : files) {
+                if (f.getName().toLowerCase().contains(hiveName.toLowerCase())){
+                    fileList.add(f);
+                }
             }
+            return fileList;
         }
-        return false;
+        return null;
     }
 
     //获取表结构
@@ -443,15 +444,22 @@ public class MockData {
             }
             bfr.close();
             if (filePath1 != null) {
+                BufferedReader bfr1 = null;
                 //读取存量文件
-                BufferedReader bfr1 = new BufferedReader(
-                    new InputStreamReader(new FileInputStream(
-                        new File(filePath1 + "")), "UTF-8"));
-                String lineTxt1 = null;
-                while ((lineTxt1 = bfr1.readLine()) != null) {
-                    result1.append(lineTxt1).append("\n");
+                try{
+                    bfr1 = new BufferedReader(
+                            new InputStreamReader(new FileInputStream(
+                                new File(filePath1 + "")), "UTF-8"));
+                    if (result1 != null){
+                        String lineTxt1 = null;
+                        while ((lineTxt1 = bfr1.readLine()) != null) {
+                            result1.append(lineTxt1).append("\n");
+                        }
+                    }
+                    bfr1.close();
+                }catch (FileNotFoundException e){
+                    result1 = null;
                 }
-                bfr1.close();
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -477,14 +485,16 @@ public class MockData {
             switch (loadScene) {//数据加载场景
                 case Constants.LOADSCENE01:
                 case Constants.LOADSCENE02:
-                    String[] sql = result1.toString().split("\n");
-                    for (String s : sql) {
-                        if (s.toLowerCase().contains(Constants.AS_BDAP_ETLDATE) &&
-                            s.toLowerCase().contains(column.getFieldName().toLowerCase())) {
-                            column.setPartition(true);
-                            break;
-                        }else {
-                            column.setPartition(false);
+                    if (result1 != null){
+                        String[] sql = result1.toString().split("\n");
+                        for (String s : sql) {
+                            if (s.toLowerCase().contains(Constants.AS_BDAP_ETLDATE) &&
+                                    s.toLowerCase().contains(column.getFieldName().toLowerCase())) {
+                                column.setPartition(true);
+                                break;
+                            }else {
+                                column.setPartition(false);
+                            }
                         }
                     }
                     break;
@@ -572,7 +582,7 @@ public class MockData {
         //2.拼接路径
        String path = rootPath.getParent() + File.separator+"conf"+File.separator+"dlp_yoyo_mockdata.config";//配置文件绝对路径
        // System.out.println(path);
-       //String path = "D:\\work_space\\mock_data\\conf\\dlp_yoyo_mockdata.config";//该行代码为测试时修改的本地路径，如果部署到linux服务器上要将该行代码注释
+       path = "C:\\Users\\xiaoyaoxiaodi\\Desktop\\MockDataUtils\\mock_data\\conf\\dlp_yoyo_mockdata.config";//该行代码为测试时修改的本地路径，如果部署到linux服务器上要将该行代码注释
         //3.获取配置文件信息
         try {
             InputStream in = new FileInputStream(path);
