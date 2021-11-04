@@ -5,7 +5,9 @@ import com.yoyosys.mock.Jsqlparser.dataType.Data;
 import com.yoyosys.mock.pojo.Column;
 import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ConcatFunction extends Function implements Data {
     private ExpressionList parameters;
@@ -56,6 +58,32 @@ public class ConcatFunction extends Function implements Data {
 
     public String createData(boolean flag){
         // todo 根据长度创建
-        return null;
+        String s = data.inputValue();
+        int length = s.length();
+        int x = 0;
+        int start = 0;
+        int end = 0;
+        AtomicInteger index = new AtomicInteger();
+        ArrayList<Integer> integers = new ArrayList<>();
+        parameters.getExpressions().stream().forEach(expression -> {
+            if (expression instanceof net.sf.jsqlparser.schema.Column || expression instanceof Function){
+                if (expression instanceof net.sf.jsqlparser.schema.Column) {
+                    setColumnName(((net.sf.jsqlparser.schema.Column) expression).getColumnName());
+                }
+                index.set(integers.size() + 1);
+                integers.add(x);
+            }else {
+                integers.add(expression.toString().length());
+            }
+        });
+        for (int i = 0; i < index.get(); i++) {
+            start = end+1;
+            end = start + integers.get(0);
+        }
+        if (flag) {
+            return data.inputValue().substring(start,end);
+        } else {
+            return data.inputCounterexample().substring(start,end);
+        }
     }
 }
