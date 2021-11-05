@@ -6,6 +6,7 @@ import com.yoyosys.mock.pojo.Column;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.ExpressionVisitorAdapter;
 import net.sf.jsqlparser.expression.Function;
+import net.sf.jsqlparser.expression.operators.arithmetic.Subtraction;
 import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
 import net.sf.jsqlparser.expression.operators.conditional.OrExpression;
 import net.sf.jsqlparser.expression.operators.relational.*;
@@ -69,6 +70,7 @@ public class MyVisitor extends ExpressionVisitorAdapter {
             equalsData.setEqualsFlag(true);
             equalsData.setEqualsValue(equalsTo.getRightExpression().toString().replace("\"", "").replace("\'", ""));
             com.yoyosys.mock.Jsqlparser.functionType.Function function = FunctionFactory.create(leftExpression.getName(), leftExpression.getParameters(), equalsData, Columns);
+            function.setColumnName(getColumnName(leftExpression));
             dataModifyMap.put(function.getColumnName(),function);
         }else {
             EqualsData equalsData = new EqualsData();
@@ -82,7 +84,7 @@ public class MyVisitor extends ExpressionVisitorAdapter {
     public void visit(Between between) {
         //todo
         if (between.getBetweenExpressionEnd() instanceof Function && between.getBetweenExpressionStart() instanceof Function) {
-
+            //todo 左右两边有function的情况
         } else {
             CompareData compareData = new CompareData();
             compareData.setGreaterThanEquals(between.getBetweenExpressionStart().toString().replace("\"", "").replace("\'", ""));
@@ -136,8 +138,14 @@ public class MyVisitor extends ExpressionVisitorAdapter {
         }
 
         if (inExpression.isNot()){
-            if(inExpression.getLeftExpression() instanceof  Function){
-
+            if(inExpression.getLeftExpression() instanceof Function){
+                Function leftExpression = (Function) inExpression.getLeftExpression();
+                InData inData =new InData();
+                inData.setInFlag(false);
+                inData.setInValue(stringList);
+                com.yoyosys.mock.Jsqlparser.functionType.Function function = FunctionFactory.create(leftExpression.getName(), leftExpression.getParameters(), inData, Columns);
+                function.setColumnName(getColumnName(leftExpression));
+                dataModifyMap.put(function.getColumnName(),function);
             }else{
                 InData inData =new InData();
                 inData.setInFlag(false);
@@ -146,7 +154,13 @@ public class MyVisitor extends ExpressionVisitorAdapter {
             }
         }else{
             if(inExpression.getLeftExpression() instanceof  Function){
-
+                Function leftExpression = (Function) inExpression.getLeftExpression();
+                InData inData =new InData();
+                inData.setInFlag(true);
+                inData.setInValue(stringList);
+                com.yoyosys.mock.Jsqlparser.functionType.Function function = FunctionFactory.create(leftExpression.getName(), leftExpression.getParameters(), inData, Columns);
+                function.setColumnName(getColumnName(leftExpression));
+                dataModifyMap.put(function.getColumnName(),function);
             }else{
                 InData inData =new InData();
                 inData.setInFlag(true);
@@ -227,6 +241,19 @@ public class MyVisitor extends ExpressionVisitorAdapter {
             equalsData.setEqualsValue(notEqualsTo.getRightExpression().toString().replace("\"", "").replace("\'", ""));
             dataModifyMap.put(notEqualsTo.getLeftExpression().toString(),equalsData);
         }
+    }
+
+    public String getColumnName(Expression expression){
+        ColumnFinder columnFinder = new ColumnFinder();
+
+        expression.accept(columnFinder);
+
+        if (columnFinder.getColumnName()==null){
+            throw new IllegalArgumentException("未发现列名");
+        }
+
+        return columnFinder.getColumnName();
+
     }
 
 }

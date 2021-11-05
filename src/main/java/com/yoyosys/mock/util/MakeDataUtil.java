@@ -51,6 +51,9 @@ public class MakeDataUtil {
         LocalDate endDate1 = LocalDate.of(Integer.parseInt(endDate.substring(0,4)),
                                           Integer.parseInt(endDate.substring(4,6)),
                                           Integer.parseInt(endDate.substring(6,8)));
+        if (startDate.equals(endDate)){
+            return startDate;
+        }
         return DateTimeSource.getInstance().randomDate(startDate1, endDate1, "yyyyMMdd");
     }
 

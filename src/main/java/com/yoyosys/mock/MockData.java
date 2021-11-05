@@ -263,15 +263,35 @@ public class MockData {
                 private void modifyData(LinkedHashMap<Column, List> resultMap, int isCounterexample, MyVisitor myVisitor, Expression expr, int mRecords) {
                     int size = resultMap.values().iterator().next().size();
                     if (isCounterexample==1){
+                        //正例
+                        for (int i = 0; i < size; i++) {
+                            expr.accept(myVisitor);
+                            Map<String, Data> dataModifyMap = myVisitor.getDataModifyMap();
+                            int finalI = i;
+                            dataModifyMap.forEach((s, data) -> {
+                                List<String> list = null;
+                                Iterator<Column> it = resultMap.keySet().iterator();
+                                while(it.hasNext()){
+                                    Column next = it.next();
+                                    if (next.getFieldName().toLowerCase(Locale.ROOT).equals(s)){
+                                        if (data == null){
+                                            continue;
+                                        }
+                                        resultMap.get(next).set(finalI,data.inputValue());
+                                    }
+                                }
+                            });
+                        }
+
                         //反例
-                        for (AtomicInteger i = new AtomicInteger(0); i.get() < mRecords;) {
+                        for (AtomicInteger i = new AtomicInteger(0); i.get() < mRecords-1;) {
                             Map<String, Data> dataModifyMap = myVisitor.getDataModifyMap();
                             dataModifyMap.forEach((s, data) -> {
                                 List<String> list = null;
                                 Iterator<Column> it = resultMap.keySet().iterator();
                                 while(it.hasNext()){
                                     Column next = it.next();
-                                    if (next.getFieldName().equals(s)){
+                                    if (next.getFieldName().toLowerCase(Locale.ROOT).equals(s)){
                                         if (data.inputCounterexample() == null){
                                             i.getAndIncrement();
                                         } else {
@@ -285,25 +305,6 @@ public class MockData {
                             });
                         }
 
-                        //正例
-                        for (int i = mRecords; i < size; i++) {
-                            expr.accept(myVisitor);
-                            Map<String, Data> dataModifyMap = myVisitor.getDataModifyMap();
-                            int finalI = i;
-                            dataModifyMap.forEach((s, data) -> {
-                                List<String> list = null;
-                                Iterator<Column> it = resultMap.keySet().iterator();
-                                while(it.hasNext()){
-                                    Column next = it.next();
-                                    if (next.getFieldName().equals(s)){
-                                        if (data == null){
-                                            continue;
-                                        }
-                                        resultMap.get(next).set(finalI,data.inputValue());
-                                    }
-                                }
-                            });
-                        }
                     } else {
                         for (int i = 0; i < size; i++) {
                             expr.accept(myVisitor);
