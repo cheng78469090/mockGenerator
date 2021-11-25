@@ -256,8 +256,8 @@ public class MockData {
                     String AllFileFormat = dataSourceConfig.getAllFileFormat();
                     String readyFileFormat = dataSourceConfig.getReadyFileFormat();
                     String ClassName=this.getClass().getProtectionDomain().getCodeSource().getLocation().getFile();
-//                    String SoFile=ClassName.substring(0,ClassName.lastIndexOf("/") + 1)+File.separator+"lib"+File.separator+"libchilkat.so";
-                    String SoFile="C:\\work_space\\mock_data"+File.separator+"lib"+File.separator+"libchilkat.so";
+                    String SoFile=ClassName.substring(0,ClassName.lastIndexOf("/") + 1)+File.separator+"lib"+File.separator+"libchilkat.so";
+//                    String SoFile="C:\\work_space\\mock_data"+File.separator+"lib"+File.separator+"libchilkat.so";
                     outPutFile(SoFile,alikeFileName, charsetName, fileFormat, AllFileFormat, filePath, ID, resultMap, readyFileFormat);
                 }
 
@@ -664,9 +664,9 @@ public class MockData {
         //1.获取当前jar包路径
         File rootPath = new File(this.getClass().getProtectionDomain().getCodeSource().getLocation().getFile());//此路径为当前项目路径
         //2.拼接路径
-//       String path = rootPath.getParent() + File.separator+"conf"+File.separator+"dlp_yoyo_mockdata.config";//配置文件绝对路径
+       String path = rootPath.getParent() + File.separator+"conf"+File.separator+"dlp_yoyo_mockdata.config";//配置文件绝对路径
        // System.out.println(path);
-       String path = "C:\\work_space\\mock_data\\conf\\dlp_yoyo_mockdata.config";//该行代码为测试时修改的本地路径，如果部署到linux服务器上要将该行代码注释
+//       String path = "C:\\work_space\\mock_data\\conf\\dlp_yoyo_mockdata.config";//该行代码为测试时修改的本地路径，如果部署到linux服务器上要将该行代码注释
         //3.获取配置文件信息
         try {
             InputStream in = new FileInputStream(path);
