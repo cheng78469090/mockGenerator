@@ -58,8 +58,12 @@ public class EqualsData implements Data{
                 }
             }
             if (JudgeString.isInteger(equalsValue)){
-                long l = Long.parseLong(equalsValue);
-                return String.valueOf((Long) RandomUtils.nextLong(l-l,l+l));
+                Long l = Long.parseLong(equalsValue);
+                Long l1 = RandomUtils.nextLong(l - l, l + l);
+                while (l.equals(l1)){
+                    l1 = RandomUtils.nextLong(l - l, l + l*10);
+                }
+                return String.valueOf(l1);
             }
             if (JudgeString.isDouble(equalsValue)){
                 Double aDouble = Double.valueOf(equalsValue);
@@ -76,7 +80,8 @@ public class EqualsData implements Data{
      */
     @Override
     public String inputCounterexample() {
-        equalsFlag = !equalsFlag;
+        Boolean equalsFlag = this.equalsFlag;
+        this.equalsFlag = !equalsFlag;
         return inputValue();
     }
 }

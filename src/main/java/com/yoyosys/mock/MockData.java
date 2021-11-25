@@ -256,7 +256,8 @@ public class MockData {
                     String AllFileFormat = dataSourceConfig.getAllFileFormat();
                     String readyFileFormat = dataSourceConfig.getReadyFileFormat();
                     String ClassName=this.getClass().getProtectionDomain().getCodeSource().getLocation().getFile();
-                    String SoFile=ClassName.substring(0,ClassName.lastIndexOf("/") + 1)+File.separator+"lib"+File.separator+"libchilkat.so";
+//                    String SoFile=ClassName.substring(0,ClassName.lastIndexOf("/") + 1)+File.separator+"lib"+File.separator+"libchilkat.so";
+                    String SoFile="C:\\work_space\\mock_data"+File.separator+"lib"+File.separator+"libchilkat.so";
                     outPutFile(SoFile,alikeFileName, charsetName, fileFormat, AllFileFormat, filePath, ID, resultMap, readyFileFormat);
                 }
 
@@ -273,8 +274,8 @@ public class MockData {
                                 Iterator<Column> it = resultMap.keySet().iterator();
                                 while(it.hasNext()){
                                     Column next = it.next();
-                                    if (next.getFieldName().toLowerCase(Locale.ROOT).equals(s)){
-                                        if (data == null){
+                                    if (next.getFieldName().toLowerCase(Locale.ROOT).equals(s.toLowerCase(Locale.ROOT))){
+                                        if (data.inputValue() == null){
                                             continue;
                                         }
                                         resultMap.get(next).set(finalI,data.inputValue());
@@ -284,25 +285,29 @@ public class MockData {
                         }
 
                         //反例
-                        for (AtomicInteger i = new AtomicInteger(0); i.get() < mRecords-1;) {
+                        for (int i = 0; i < mRecords-1;) {
                             Map<String, Data> dataModifyMap = myVisitor.getDataModifyMap();
-                            dataModifyMap.forEach((s, data) -> {
+
+                            for (Map.Entry<String, Data> stringDataEntry : dataModifyMap.entrySet()) {
+                                String s = stringDataEntry.getKey();
+                                Data data = stringDataEntry.getValue();
                                 List<String> list = null;
                                 Iterator<Column> it = resultMap.keySet().iterator();
                                 while(it.hasNext()){
                                     Column next = it.next();
-                                    if (next.getFieldName().toLowerCase(Locale.ROOT).equals(s)){
-                                        if (data.inputCounterexample() == null){
-                                            i.getAndIncrement();
+                                    if (next.getFieldName().toLowerCase(Locale.ROOT).equals(s.toLowerCase(Locale.ROOT))){
+                                        String result = data.inputCounterexample();
+                                        if (result == null){
+                                            resultMap.get(next).set(i++,MakeDataUtil.makeStringLenData(next));
                                         } else {
-                                            resultMap.get(next).set(i.getAndIncrement(),data.inputCounterexample());
+                                            resultMap.get(next).set(i++,result);
                                         }
-                                        resultMap.get(next).set(i.getAndIncrement()," ");
-                                        resultMap.get(next).set(i.getAndIncrement(),"");
+                                        resultMap.get(next).set(i++," ");
+                                        resultMap.get(next).set(i++,"");
                                         break;
                                     }
                                 }
-                            });
+                            }
                         }
 
                     } else {
@@ -661,7 +666,7 @@ public class MockData {
         //2.拼接路径
 //       String path = rootPath.getParent() + File.separator+"conf"+File.separator+"dlp_yoyo_mockdata.config";//配置文件绝对路径
        // System.out.println(path);
-       String path = "D:\\work_space\\mock_data\\conf\\dlp_yoyo_mockdata.config";//该行代码为测试时修改的本地路径，如果部署到linux服务器上要将该行代码注释
+       String path = "C:\\work_space\\mock_data\\conf\\dlp_yoyo_mockdata.config";//该行代码为测试时修改的本地路径，如果部署到linux服务器上要将该行代码注释
         //3.获取配置文件信息
         try {
             InputStream in = new FileInputStream(path);

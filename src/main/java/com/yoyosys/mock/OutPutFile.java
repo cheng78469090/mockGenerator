@@ -244,12 +244,6 @@ public class OutPutFile {
             System.err.println("Native code library failed to load.\n" + e);
             System.exit(1);
         }
-
-        String property = System.getProperty("java.library.path");
-        StringTokenizer parser = new StringTokenizer(property, ";");
-        while (parser.hasMoreTokens()) {
-            parser.nextToken();
-        }
         CkUnixCompress uc = new CkUnixCompress();
         uc.CompressFile(FileName, FileName+".Z");
     }

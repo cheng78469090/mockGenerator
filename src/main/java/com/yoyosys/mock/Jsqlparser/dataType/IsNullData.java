@@ -37,6 +37,7 @@ public class IsNullData implements Data{
      */
     @Override
     public String inputCounterexample() {
-        return null;
+        isNullFlag=!isNullFlag;
+        return inputValue();
     }
 }
