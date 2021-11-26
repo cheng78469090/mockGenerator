@@ -275,10 +275,11 @@ public class MockData {
                                 while(it.hasNext()){
                                     Column next = it.next();
                                     if (next.getFieldName().toLowerCase(Locale.ROOT).equals(s.toLowerCase(Locale.ROOT))){
-                                        if (data.inputValue() == null){
+                                        String s1 = data.inputValue();
+                                        if (s1 == null){
                                             continue;
                                         }
-                                        resultMap.get(next).set(finalI,data.inputValue());
+                                        resultMap.get(next).set(finalI,s1);
                                     }
                                 }
                             });
