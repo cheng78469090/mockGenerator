@@ -47,7 +47,7 @@ public class MockData {
 
     //根据配置生成数据
     private boolean makeData(MockData mockData, DataSourceConfig dataSourceConfig,
-            List<DsDlpMockDataConfig> dsDlpMockDataConfigs){
+                             List<DsDlpMockDataConfig> dsDlpMockDataConfigs) {
         //创建线程池
         ThreadFactory threadFactory = new ThreadFactoryBuilder().setNameFormat("线程-%d").build();
         int threadCount = Integer.parseInt(dataSourceConfig.getThreadCount());
@@ -96,7 +96,7 @@ public class MockData {
                             CLFile = null;
                             break;
                         case Constants.LOADSCENE04:
-                            modeFile.append(File.separator + "B4" + File.separator + hiveName + File.separator+ "ext_" + hiveName + ".tpl");
+                            modeFile.append(File.separator + "B4" + File.separator + hiveName + File.separator + "ext_" + hiveName + ".tpl");
                             CLFile = null;
                             break;
                     }
@@ -115,7 +115,7 @@ public class MockData {
                     }
                     int isCounterexample = dsDlpMockDataConfig.getIsCounterexample();
                     int noRecords = 0;
-                    if (isCounterexample == 1){
+                    if (isCounterexample == 1) {
                         noRecords = dataModifyMap.size() * 3;
                     }
 
@@ -123,7 +123,7 @@ public class MockData {
                     int betweenDays = Integer.parseInt(endDate) - Integer.parseInt(startDate) + 1;
                     //需要生成的数据条数，无所谓 B几(加上反例数据之后的条数)
                     int n = records + noRecords;
-                    if (loadScene.equals(Constants.LOADSCENE04)){
+                    if (loadScene.equals(Constants.LOADSCENE04)) {
                         n = records * (betweenDays + 1) + noRecords;
                     }
                     //是否上传数据文件
@@ -149,10 +149,10 @@ public class MockData {
 
 
                         //如果数据文件中的数据小于要求的条数，则再生成对应条数记录
-                        if (createSql1.length < n ){
+                        if (createSql1.length < n) {
                             int makeNum = n - createSql1.length;
                             LinkedHashMap<Column, List> resultSonMap =
-                                mockData.createData(columnList, makeNum, startDate, endDate, loadScene);
+                                    mockData.createData(columnList, makeNum, startDate, endDate, loadScene);
                             //将新生成的记录与原本数据文件中的记录合并
                             resultMap.putAll(resultSonMap);
                         }
@@ -160,12 +160,12 @@ public class MockData {
                         for (String a : createSql1) {
                             String[] b = a.split("\\|\\+\\|", -1);
                             //去掉末尾分隔符|+|后面的多余元素
-                            b = Arrays.copyOf(b, b.length-1);
+                            b = Arrays.copyOf(b, b.length - 1);
                             //listb里存放的是一条条记录，以数组形式，每个数组是一条记录
                             listb.add(b);
                         }
                         //如果resultMap之前没有赋值过，则把数据文件中的数据放入集合中
-                        if (resultMap.size() == 0){
+                        if (resultMap.size() == 0) {
                             for (int j = 0; j < columnList.size(); j++) {
                                 List list = new ArrayList();
                                 for (int i = 0; i < listb.size(); i++) {
@@ -175,9 +175,9 @@ public class MockData {
                                 //resultMap用来存放所有数据文件中的数据，列式存储
                                 resultMap.put(columnList.get(j), list);
                             }
-                        }else{//如果resultMap之前赋值过，则把数据文件中的数据，追加到生成的数据后
+                        } else {//如果resultMap之前赋值过，则把数据文件中的数据，追加到生成的数据后
                             int j = 0;
-                            for(Column column : resultMap.keySet()){
+                            for (Column column : resultMap.keySet()) {
                                 List list = resultMap.get(column);
 //                        for (int j = 0; j < columnList.size(); j++) {
                                 List list1 = new ArrayList();
@@ -214,8 +214,8 @@ public class MockData {
                         resultMap = mockData.createData(columnList, n, startDate, endDate, loadScene);
                     }
                     //处理resultMap的分区字段
-                    if (loadScene.equals(Constants.LOADSCENE04)){
-                        modiDate(n,noRecords,records,resultMap,startDate,endDate);
+                    if (loadScene.equals(Constants.LOADSCENE04)) {
+                        modiDate(n, noRecords, records, resultMap, startDate, endDate);
                     }
 
                     /*
@@ -225,7 +225,7 @@ public class MockData {
                      * todo:易建军、王燚
                      *  return : list<map>
                      * */
-                    modifyData(resultMap,isCounterexample,myVisitor,expr,dataModifyMap.size() * 3);
+                    modifyData(resultMap, isCounterexample, myVisitor, expr, dataModifyMap.size() * 3);
 
                     /**
                      * 输出
@@ -255,38 +255,33 @@ public class MockData {
                     String fileFormat = dataSourceConfig.getFileFormat();
                     String AllFileFormat = dataSourceConfig.getAllFileFormat();
                     String readyFileFormat = dataSourceConfig.getReadyFileFormat();
-                    String ClassName=this.getClass().getProtectionDomain().getCodeSource().getLocation().getFile();
-//                    String SoFile=ClassName.substring(0,ClassName.lastIndexOf("/") + 1)+File.separator+"lib"+File.separator+"libchilkat.so";
+                    String ClassName = this.getClass().getProtectionDomain().getCodeSource().getLocation().getFile();
+//                    String SoFile = ClassName.substring(0, ClassName.lastIndexOf("/") + 1) + File.separator + "lib" + File.separator + "libchilkat.so";
                     String SoFile="C:\\work_space\\mock_data"+File.separator+"lib"+File.separator+"libchilkat.so";
-                    outPutFile(SoFile,alikeFileName, charsetName, fileFormat, AllFileFormat, filePath, ID, resultMap, readyFileFormat);
+                    outPutFile(SoFile, alikeFileName, charsetName, fileFormat, AllFileFormat, filePath, ID, resultMap, readyFileFormat);
                 }
 
                 private void modifyData(LinkedHashMap<Column, List> resultMap, int isCounterexample, MyVisitor myVisitor, Expression expr, int mRecords) {
                     int size = resultMap.values().iterator().next().size();
-                    if (isCounterexample==1){
-                        //正例
-                        for (int i = 0; i < size; i++) {
-                            expr.accept(myVisitor);
-                            Map<String, Data> dataModifyMap = myVisitor.getDataModifyMap();
-                            int finalI = i;
-                            dataModifyMap.forEach((s, data) -> {
-                                List<String> list = null;
-                                Iterator<Column> it = resultMap.keySet().iterator();
-                                while(it.hasNext()){
-                                    Column next = it.next();
-                                    if (next.getFieldName().toLowerCase(Locale.ROOT).equals(s.toLowerCase(Locale.ROOT))){
-                                        String s1 = data.inputValue();
-                                        if (s1 == null){
-                                            continue;
-                                        }
-                                        resultMap.get(next).set(finalI,s1);
+                    for (int i = 0; i < size; i++) {
+                        expr.accept(myVisitor);
+                        Map<String, Data> dataModifyMap = myVisitor.getDataModifyMap();
+                        int finalI = i;
+                        dataModifyMap.forEach((s, data) -> {
+                            for (Column column : resultMap.keySet()) {
+                                if (column.getFieldName().toLowerCase(Locale.ROOT).equals(s.toLowerCase(Locale.ROOT))) {
+                                    String s1 = data.inputValue();
+                                    if (s1 == null) {
+                                        continue;
                                     }
+                                    resultMap.get(column).set(finalI, "");
                                 }
-                            });
-                        }
-
+                            }
+                        });
+                    }
+                    if (isCounterexample == 1) {
                         //反例
-                        for (int i = 0; i < mRecords-1;) {
+                        for (int i = 0; i < mRecords - 1; ) {
                             Map<String, Data> dataModifyMap = myVisitor.getDataModifyMap();
 
                             for (Map.Entry<String, Data> stringDataEntry : dataModifyMap.entrySet()) {
@@ -294,48 +289,24 @@ public class MockData {
                                 Data data = stringDataEntry.getValue();
                                 List<String> list = null;
                                 Iterator<Column> it = resultMap.keySet().iterator();
-                                while(it.hasNext()){
+                                while (it.hasNext()) {
                                     Column next = it.next();
-                                    if (next.getFieldName().toLowerCase(Locale.ROOT).equals(s.toLowerCase(Locale.ROOT))){
+                                    if (next.getFieldName().toLowerCase(Locale.ROOT).equals(s.toLowerCase(Locale.ROOT))) {
                                         String result = data.inputCounterexample();
-                                        if (result == null){
-                                            resultMap.get(next).set(i++,MakeDataUtil.makeStringLenData(next));
+                                        if (result == null) {
+                                            resultMap.get(next).set(i++, MakeDataUtil.makeStringLenData(next));
                                         } else {
-                                            resultMap.get(next).set(i++,result);
+                                            resultMap.get(next).set(i++, result);
                                         }
-                                        resultMap.get(next).set(i++," ");
-                                        resultMap.get(next).set(i++,"");
+                                        resultMap.get(next).set(i++, " ");
+                                        resultMap.get(next).set(i++, "");
                                         break;
                                     }
                                 }
                             }
                         }
-
-                    } else {
-                        for (int i = 0; i < size; i++) {
-                            expr.accept(myVisitor);
-                            Map<String, Data> dataModifyMap = myVisitor.getDataModifyMap();
-                            int finalI = i;
-                            dataModifyMap.forEach((s, data) -> {
-                                List<String> list = null;
-                                Iterator<Column> it = resultMap.keySet().iterator();
-                                while(it.hasNext()){
-                                    Column next = it.next();
-                                    if (next.getFieldName().toLowerCase(Locale.ROOT).equals(s.toLowerCase(Locale.ROOT))){
-                                        String s1 = data.inputValue();
-                                        if (s1 == null){
-                                            continue;
-                                        }
-                                        resultMap.get(next).set(finalI,s1);
-                                    }
-                                }
-                            });
-                        }
                     }
-
                 }
-
-
             });
 
         }
@@ -344,26 +315,25 @@ public class MockData {
     }
 
 
-
     //处理resultMap的分区字段
     private void modiDate(int n, int noRecords, int records,
-                          LinkedHashMap<Column, List> resultMap, String startDate,  String endDate) {
+                          LinkedHashMap<Column, List> resultMap, String startDate, String endDate) {
         List startDatelist = null;
         List endDatelist = null;
-        for(Column column : resultMap.keySet()){
-            if (column.getFieldName().toUpperCase().equals(Constants.START_DT)){
+        for (Column column : resultMap.keySet()) {
+            if (column.getFieldName().toUpperCase().equals(Constants.START_DT)) {
                 startDatelist = resultMap.get(column);
             }
-            if (column.getFieldName().toUpperCase().equals(Constants.END_DT)){
+            if (column.getFieldName().toUpperCase().equals(Constants.END_DT)) {
                 endDatelist = resultMap.get(column);
             }
         }
 
-        for (int i = -noRecords; i < n - noRecords; i++){
-            if (i < records){
-                startDatelist.set(i + noRecords, MakeDataUtil.makeDateData(startDate,endDate));
+        for (int i = -noRecords; i < n - noRecords; i++) {
+            if (i < records) {
+                startDatelist.set(i + noRecords, MakeDataUtil.makeDateData(startDate, endDate));
                 endDatelist.set(i + noRecords, Constants.MAX_DT);
-            }else{
+            } else {
                 String x = Integer.parseInt(startDate) + (i / records % 10 - 1) + "";
                 startDatelist.set(i + noRecords, x);
                 endDatelist.set(i + noRecords, x);
@@ -371,14 +341,14 @@ public class MockData {
         }
     }
 
-    private synchronized static void outPutFile(String SoFile,String alikeFileName,String charsetName,String fileFormat,String AllFileFormat,String filePath,int ID,LinkedHashMap<Column, List> resultMap,String readyFileFormat){
+    private synchronized static void outPutFile(String SoFile, String alikeFileName, String charsetName, String fileFormat, String AllFileFormat, String filePath, int ID, LinkedHashMap<Column, List> resultMap, String readyFileFormat) {
         try {
             String fileName;
 
             File[] allfiles = new File(filePath).listFiles();
-            int count=0;
+            int count = 0;
             for (File file : allfiles) {
-                if (file.getName().contains(alikeFileName)){
+                if (file.getName().contains(alikeFileName)) {
                     count++;
                 }
             }
@@ -396,19 +366,19 @@ public class MockData {
             if (AllFileFormat.equalsIgnoreCase("1")) {
                 OutPutFile.generateDatFile(fileName, charsetName, resultMap);
                 long size = (new File(fileName).length());
-                OutPutFile.createXml(fileName, size, filePath, charsetName,readyFileFormat);
+                OutPutFile.createXml(fileName, size, filePath, charsetName, readyFileFormat);
                 OutPutFile.update(ID);
-            } else if (AllFileFormat.equalsIgnoreCase( "3")) {
+            } else if (AllFileFormat.equalsIgnoreCase("3")) {
                 OutPutFile.generateDatFile(fileName, charsetName, resultMap);
-                OutPutFile.compressFile(SoFile,fileName);
+                OutPutFile.compressFile(SoFile, fileName);
                 long size = (new File(fileName).length());
-                OutPutFile.createXml(fileName, size, filePath, charsetName,readyFileFormat);
+                OutPutFile.createXml(fileName, size, filePath, charsetName, readyFileFormat);
                 OutPutFile.update(ID);
             } else {
                 OutPutFile.generateDatFile(fileName, charsetName, resultMap);
-                OutPutFile.compressFile(SoFile,fileName);
+                OutPutFile.compressFile(SoFile, fileName);
                 long size = (new File(fileName).length());
-                OutPutFile.createXml(fileName, size, filePath, charsetName,readyFileFormat);
+                OutPutFile.createXml(fileName, size, filePath, charsetName, readyFileFormat);
                 OutPutFile.deleteFile(fileName);
                 OutPutFile.update(ID);
             }
@@ -426,36 +396,36 @@ public class MockData {
     }
 
     //根据表结构生成模拟数据
-    private LinkedHashMap<Column, List> createData (List <Column> columnList, int records,
-                                                    String startDate, String endDate,
-                                                    String loadSence){
+    private LinkedHashMap<Column, List> createData(List<Column> columnList, int records,
+                                                   String startDate, String endDate,
+                                                   String loadSence) {
         //模拟数据集
         LinkedHashMap<Column, List> resultMap = new LinkedHashMap<>();
         for (Column column : columnList) {
             Collection list = new LinkedHashSet<>();
             if (column.getIsPartition() == true ||
-                column.getcType().toUpperCase().equals("STRING") ||
-                column.getcType().toUpperCase().equals("CHAR") ||
-                column.getcLength().equals(1 + "")){
-                    list = new ArrayList<>();
+                    column.getcType().toUpperCase().equals("STRING") ||
+                    column.getcType().toUpperCase().equals("CHAR") ||
+                    column.getcLength().equals(1 + "")) {
+                list = new ArrayList<>();
             }
             for (int i = 0; i < records; i++) {
                 switch (column.getcType().toUpperCase()) {
                     case "CHAR":
-                        list.add(MakeDataUtil.makeCharData(column,list));
+                        list.add(MakeDataUtil.makeCharData(column, list));
                         break;
                     case "STRING":
                         //日期型
                         if (column.getIsPartition()) {
-                            if (loadSence.equals(Constants.LOADSCENE04)){
+                            if (loadSence.equals(Constants.LOADSCENE04)) {
                                 list.add(null);
                                 break;
-                            }else{
-                                list.add(MakeDataUtil.makeDateData(startDate,endDate));
+                            } else {
+                                list.add(MakeDataUtil.makeDateData(startDate, endDate));
                                 break;
                             }
                         }
-                        list.add(MakeDataUtil.makeDateData(startDate,endDate));
+                        list.add(MakeDataUtil.makeDateData(startDate, endDate));
                         break;
                     case "VARCHAR"://可变长度的字符串
                     case "NCHAR"://根据字符集而定的固定长度字符串
@@ -463,28 +433,28 @@ public class MockData {
                     case "LONG"://超长字符串
                         //日期型
                         if (column.getIsPartition()) {
-                            if (loadSence.equals(Constants.LOADSCENE04)){
+                            if (loadSence.equals(Constants.LOADSCENE04)) {
                                 list.add(null);
                                 break;
-                            }else{
-                                list.add(MakeDataUtil.makeDateData(startDate,endDate));
+                            } else {
+                                list.add(MakeDataUtil.makeDateData(startDate, endDate));
                                 break;
                             }
                         }
-                        if (Integer.parseInt(column.getcLength()) == 1){
-                            list.add(MakeDataUtil.makeCharData(column,list));
+                        if (Integer.parseInt(column.getcLength()) == 1) {
+                            list.add(MakeDataUtil.makeCharData(column, list));
                             break;
                         }
-                        list.add(MakeDataUtil.makeStringData(column,list));
+                        list.add(MakeDataUtil.makeStringData(column, list));
                         break;
                     case "INTEGER":
                     case "INT":
-                        list.add(MakeDataUtil.makeIntData(column,list));
+                        list.add(MakeDataUtil.makeIntData(column, list));
                         break;
                     case "NUMBER":
                     case "DECIMAL":
                     case "FLOAT":
-                        list.add(MakeDataUtil.makeNumData(column,list));
+                        list.add(MakeDataUtil.makeNumData(column, list));
                         break;
                     default:
                         list.add("");
@@ -498,13 +468,13 @@ public class MockData {
     }
 
     //判断是否上传数据文件
-    private static List<File> getDataFile ( String filePath, String hiveName) {
+    private static List<File> getDataFile(String filePath, String hiveName) {
         File file = new File(filePath);
-        if(file.list().length>0){//获取指定目录下的所有数据文件
+        if (file.list().length > 0) {//获取指定目录下的所有数据文件
             File[] files = file.listFiles();
             List<File> fileList = new ArrayList<>();
             for (File f : files) {
-                if (f.getName().toLowerCase().contains(hiveName.toLowerCase())){
+                if (f.getName().toLowerCase().contains(hiveName.toLowerCase())) {
                     fileList.add(f);
                 }
             }
@@ -514,7 +484,7 @@ public class MockData {
     }
 
     //获取表结构
-    private List<Column> getColumn (StringBuilder filePath, StringBuilder filePath1, String loadScene){
+    private List<Column> getColumn(StringBuilder filePath, StringBuilder filePath1, String loadScene) {
         //字段类集合
         List<Column> columnList = new ArrayList<>();
         StringBuilder result = new StringBuilder();
@@ -522,8 +492,8 @@ public class MockData {
         try {
             //读取表结构文件
             BufferedReader bfr = new BufferedReader(
-                new InputStreamReader(new FileInputStream(
-                    new File(filePath + "")), "UTF-8"));
+                    new InputStreamReader(new FileInputStream(
+                            new File(filePath + "")), "UTF-8"));
             String lineTxt = null;
             while ((lineTxt = bfr.readLine()) != null) {
                 result.append(lineTxt).append("\n");
@@ -532,18 +502,18 @@ public class MockData {
             if (filePath1 != null) {
                 BufferedReader bfr1 = null;
                 //读取存量文件
-                try{
+                try {
                     bfr1 = new BufferedReader(
                             new InputStreamReader(new FileInputStream(
-                                new File(filePath1 + "")), "UTF-8"));
-                    if (result1 != null){
+                                    new File(filePath1 + "")), "UTF-8"));
+                    if (result1 != null) {
                         String lineTxt1 = null;
                         while ((lineTxt1 = bfr1.readLine()) != null) {
                             result1.append(lineTxt1).append("\n");
                         }
                     }
                     bfr1.close();
-                }catch (FileNotFoundException e){
+                } catch (FileNotFoundException e) {
                     result1 = null;
                 }
             }
@@ -571,14 +541,14 @@ public class MockData {
             switch (loadScene) {//数据加载场景
                 case Constants.LOADSCENE01:
                 case Constants.LOADSCENE02:
-                    if (result1 != null){
+                    if (result1 != null) {
                         String[] sql = result1.toString().split("\n");
                         for (String s : sql) {
                             if (s.toLowerCase().contains(Constants.AS_BDAP_ETLDATE) &&
                                     s.toLowerCase().contains(column.getFieldName().toLowerCase())) {
                                 column.setPartition(true);
                                 break;
-                            }else {
+                            } else {
                                 column.setPartition(false);
                             }
                         }
@@ -661,13 +631,13 @@ public class MockData {
       *输入：
       *return: DataSourceConfig
      */
-    public DataSourceConfig getDataSourceConfig () {
+    public DataSourceConfig getDataSourceConfig() {
         DataSourceConfig dataSourceConfig = null;
         //1.获取当前jar包路径
         File rootPath = new File(this.getClass().getProtectionDomain().getCodeSource().getLocation().getFile());//此路径为当前项目路径
         //2.拼接路径
-//       String path = rootPath.getParent() + File.separator+"conf"+File.separator+"dlp_yoyo_mockdata.config";//配置文件绝对路径
-       // System.out.println(path);
+//        String path = rootPath.getParent() + File.separator + "conf" + File.separator + "dlp_yoyo_mockdata.config";//配置文件绝对路径
+        // System.out.println(path);
        String path = "C:\\work_space\\mock_data\\conf\\dlp_yoyo_mockdata.config";//该行代码为测试时修改的本地路径，如果部署到linux服务器上要将该行代码注释
         //3.获取配置文件信息
         try {
@@ -763,7 +733,7 @@ public class MockData {
                 System.out.println("获取数据库连接失败" + e4);
             } finally {
                 close(connection, mockDataConfigPs, mockDataConfigResultSet);
-               // System.out.println("关闭资源成功");
+                // System.out.println("关闭资源成功");
             }
         }
 
@@ -807,7 +777,7 @@ public class MockData {
                 return dsConfig;
             } finally {
                 close(connection, mockDataConfigPs, mockDataConfigResultSet);
-               // System.out.println("关闭资源成功");
+                // System.out.println("关闭资源成功");
             }
         }
         return null;
@@ -830,7 +800,7 @@ public class MockData {
                 //System.out.println("加载驱动");
                 Class.forName("oracle.jdbc.driver.OracleDriver").newInstance();
                 //2.获取连接
-              //  System.out.println("获取连接");
+                //  System.out.println("获取连接");
                 connection = DriverManager.getConnection(dataSourceConfig.getOracle_url(), dataSourceConfig.getOracle_user(), dataSourceConfig.getOracle_password());
                 //System.out.println("获取连接成功");
             } catch (InstantiationException e1) {
