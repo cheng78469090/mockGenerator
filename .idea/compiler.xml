@@ -9,8 +9,5 @@
         <module name="mockGenerator" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel>
-      <module name="mockGenerator" target="8" />
-    </bytecodeTargetLevel>
   </component>
 </project>
