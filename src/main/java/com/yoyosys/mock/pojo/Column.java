@@ -6,6 +6,7 @@ package com.yoyosys.mock.pojo;
  */
 
 public class Column {
+
     //字段名
     private String fieldName;
     //字段类型

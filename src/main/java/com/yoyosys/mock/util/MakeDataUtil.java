@@ -7,12 +7,30 @@ import com.yoyosys.mock.pojo.Column;
 import org.apache.commons.lang.StringUtils;
 
 import java.time.LocalDate;
-import java.util.Collection;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 public class MakeDataUtil {
+
+    public static String  modiDataForFunction(Column column){
+
+        String result = null;
+        String ctype = column.getcType().toUpperCase();
+        switch (ctype) {
+            case "VARCHAR"://可变长度的字符串
+            case "NCHAR"://根据字符集而定的固定长度字符串
+            case "NVARCHAR2 "://根据字符集而定的可变长度字符串
+            case "LONG"://超长字符串
+            case "STRING"://超长字符串
+                result = makeStringLenData(column);
+                break;
+            case "INTEGER":
+            case "INT":
+                result = makeIntLenData(column);
+                break;
+        }
+        return result;
+    }
+
 
     //随机生成char类型
     public static char makeCharData(Column column, Collection list){
@@ -33,6 +51,9 @@ public class MakeDataUtil {
         LocalDate endDate1 = LocalDate.of(Integer.parseInt(endDate.substring(0,4)),
                                           Integer.parseInt(endDate.substring(4,6)),
                                           Integer.parseInt(endDate.substring(6,8)));
+        if (startDate.equals(endDate)){
+            return startDate;
+        }
         return DateTimeSource.getInstance().randomDate(startDate1, endDate1, "yyyyMMdd");
     }
 
@@ -55,6 +76,8 @@ public class MakeDataUtil {
         }while (list.contains(sb1.toString()));
         return sb1.toString();
     }
+
+
 
     //随机生成整数
     public static String makeIntData(Column column, Collection list){
@@ -95,5 +118,26 @@ public class MakeDataUtil {
         return result;
     }
 
+
+    //随机生成定长字符串
+    public static String makeStringLenData(Column column){
+        Random random=new Random();
+        StringBuffer sb=new StringBuffer();
+        for(int i=0; i < Integer.parseInt(column.getcLength()); i++){
+            int number=random.nextInt(62);
+            sb.append(Constants.STR.charAt(number));
+        }
+        return sb.toString();
+    }
+
+    //随机生成定长整数
+    public static String makeIntLenData(Column column){
+        int length = Integer.parseInt(column.getcLength());
+        String result  = NumberSource.getInstance().randomInt(
+                     (int) Math.pow(10, Integer.parseInt(column.getcLength()) - 1),
+                    (int) Math.pow(10, Integer.parseInt(column.getcLength())) - 1) + "";
+
+        return result;
+    }
 
 }
