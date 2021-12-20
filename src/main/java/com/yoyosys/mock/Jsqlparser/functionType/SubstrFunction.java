@@ -74,7 +74,7 @@ public class SubstrFunction extends Function implements Data {
         //todo 根据column生成一个值
         AtomicReference<String> s = new AtomicReference<>();
         columns.stream().filter(column -> {
-            return column.getFieldName().toLowerCase(Locale.ROOT).equals(getColumnName());
+            return column.getFieldName().toLowerCase(Locale.ROOT).equals(getColumnName().toLowerCase(Locale.ROOT));
         }).forEach(column -> {
             s.set(MakeDataUtil.makeStringLenData(column));
         });
@@ -85,6 +85,14 @@ public class SubstrFunction extends Function implements Data {
         } else {
             dataValue = data.inputCounterexample();
         }
+        /**
+         *  如果生成的字符串长度不够截取的长度，需要用“ “占位满足长度
+         */
+//        if(s.get().length()<=Integer.parseInt(start.toString())){
+//            return s.get().replaceFirst(" ", dataValue);
+//        }else {
+//            return s.get().replaceFirst(s.get().substring(Integer.parseInt(start.toString()), Integer.parseInt(end.toString())), dataValue);
+//        }
         String substring = s.get().substring(Integer.parseInt(start.toString()), Integer.parseInt(end.toString()));
         String result = s.get().replaceFirst(substring, dataValue);
 

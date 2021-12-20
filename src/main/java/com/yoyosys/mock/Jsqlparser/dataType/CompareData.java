@@ -104,7 +104,7 @@ public class CompareData implements Data{
                     }
 
                 }else {
-//                       小于/=某值且大于等于某值
+//                  小于/=某值且大于等于某值
                     String beginS = greaterThanEquals;
                     if(JudgeString.isDouble(beginS)  || JudgeString.isDouble(endS)){
                         Float begin = Float.valueOf(beginS);
@@ -115,13 +115,20 @@ public class CompareData implements Data{
                         ZoneId zoneId = ZoneId.systemDefault();
                         LocalDate st = null;
                         LocalDate ed = null;
+                        String yyyyMMdd1 = null;
                         try {
                             st = yyyyMMdd.parse(beginS).toInstant().atZone(zoneId).toLocalDate().minusDays(1);
                             ed = yyyyMMdd.parse(endS).toInstant().atZone(zoneId).toLocalDate();
-                        } catch (ParseException e) {
+                            if (st.isAfter(ed)){
+                                yyyyMMdd1 = DateTimeSource.getInstance().randomDate(ed, st, "yyyyMMdd");
+                            } else {
+                                yyyyMMdd1 = DateTimeSource.getInstance().randomDate(st, ed, "yyyyMMdd");
+                            }
+                        } catch (Exception e) {
+                            System.out.println(st+"_____"+ed);
                             e.printStackTrace();
                         }
-                        return DateTimeSource.getInstance().randomDate(st,ed,"yyyyMMdd");
+                        return yyyyMMdd1;
                     }else {
                         Integer begin = Integer.valueOf(beginS);
                         endNum = Integer.valueOf(endS);
