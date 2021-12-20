@@ -4,6 +4,7 @@ package com.yoyosys.mock;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.yoyosys.mock.Jsqlparser.MyVisitor;
 import com.yoyosys.mock.Jsqlparser.dataType.Data;
+import com.yoyosys.mock.common.GlobalConstants;
 import com.yoyosys.mock.pojo.Column;
 import com.yoyosys.mock.pojo.DataSourceConfig;
 import com.yoyosys.mock.pojo.DsConfig;
@@ -13,6 +14,8 @@ import com.yoyosys.mock.util.MakeDataUtil;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 
@@ -34,6 +37,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 
 public class MockData {
+    private static Logger logger = LoggerFactory.getLogger(MockData.class);
+
     public static void main(String[] args) {
         MockData mockData = new MockData();
         //读取模拟数据配置文件（dlp_yoyo_mockdata.config）：数据库连接信息
@@ -196,7 +201,12 @@ public class MockData {
              * todo:易建军、王燚
              *  return : list<map>
              * */
-            modifyData(resultMap, isCounterexample, myVisitor, expr, noRecords);
+            try{
+                modifyData(resultMap, isCounterexample, myVisitor, expr, noRecords);
+            }catch (Exception e){
+                logger.info(GlobalConstants.LOG_PREFIX+"where修改结果失败");
+            }
+            logger.info(GlobalConstants.LOG_PREFIX+"where修改结果成功");
 
             /**
              * 输出
