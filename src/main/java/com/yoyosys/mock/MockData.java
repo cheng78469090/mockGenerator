@@ -57,11 +57,18 @@ public class MockData {
             //使用多线程调用
 
             //读取表结构：获取配置类中的表名，根据表名去DS_CONFIG中查找数据加载场景(LOAD_SCENE)
-            DsConfig dsConfig = mockData.getDsConfig(dataSourceConfig, dsDlpMockDataConfig.getHive_name());
-
+            DsConfig dsConfig = null;
+            try {
+                dsConfig = mockData.getDsConfig(dataSourceConfig, dsDlpMockDataConfig.getHive_name());
+                if (dsConfig == null){
+                    logger.info(GlobalConstants.LOG_PREFIX + "配置文件内容获取失败");
+                }
+            } catch (Exception e) {
+                logger.info(GlobalConstants.LOG_PREFIX + "配置文件内容获取失败");
+            }
+            logger.info(GlobalConstants.LOG_PREFIX + "配置文件内容获取成功");
             //todo: 王震宣  解析模板文件
             List<Expression> sqlParser = null;
-
 
             //模拟数据集
             LinkedHashMap<Column, List> resultMap = new LinkedHashMap<>();
@@ -97,7 +104,13 @@ public class MockData {
                     break;
             }
             //表结构
-            List<Column> columnList = mockData.getColumn(modeFile, CLFile, loadScene);
+            List<Column> columnList = null;
+            try {
+                columnList = mockData.getColumn(modeFile, CLFile, loadScene);
+            } catch (Exception e) {
+                logger.info(GlobalConstants.LOG_PREFIX + "表结构获取失败");
+            }
+            logger.info(GlobalConstants.LOG_PREFIX + "表结构获取成功");
 
             Map<String, Data> dataModifyMap = null;
             MyVisitor myVisitor = new MyVisitor(columnList);
@@ -123,7 +136,12 @@ public class MockData {
                 n = records * (betweenDays + 1) + noRecords;
             }
             //是否上传数据文件
-            List<File> fileList = getDataFile(dataSourceConfig.getDataFilePath(), hiveName);
+            List<File> fileList = null;
+            try {
+                fileList = getDataFile(dataSourceConfig.getDataFilePath(), hiveName);
+            } catch (Exception e) {
+                logger.info(GlobalConstants.LOG_PREFIX + "获取数据文件异常");
+            }
             if (fileList.size() != 0) {
                 //生成模拟数据集
                 StringBuilder result = new StringBuilder();
@@ -137,18 +155,22 @@ public class MockData {
                         }
                         bfr1.close();
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        logger.info(GlobalConstants.LOG_PREFIX + "读取数据文件异常");
                     }
                 }
                 //将所有数据文件中的数据放到一个集合中，因为有可能上传多个数据文件
                 String[] createSql1 = result.toString().split("\n");
 
-
                 //如果数据文件中的数据小于要求的条数，则再生成对应条数记录
                 if (createSql1.length < n) {
                     int makeNum = n - createSql1.length;
-                    LinkedHashMap<Column, List> resultSonMap =
-                            mockData.createData(columnList, makeNum, startDate, endDate, loadScene);
+                    LinkedHashMap<Column, List> resultSonMap = null;
+                    try {
+                        resultSonMap = mockData.createData(columnList, makeNum, startDate, endDate, loadScene);
+                    } catch (Exception e) {
+                        logger.info(GlobalConstants.LOG_PREFIX + "生成模拟数据异常");
+                    }
+                    logger.info(GlobalConstants.LOG_PREFIX + "生成模拟数据成功");
                     //将新生成的记录与原本数据文件中的记录合并
                     resultMap.putAll(resultSonMap);
                 }
@@ -186,12 +208,22 @@ public class MockData {
                     }
                 }
             } else {
+                try {
+                    resultMap = mockData.createData(columnList, n, startDate, endDate, loadScene);
+                } catch (Exception e) {
+                    logger.info(GlobalConstants.LOG_PREFIX + "生成模拟数据失败");
+                }
+                logger.info(GlobalConstants.LOG_PREFIX + "生成模拟数据成功");
 
-                resultMap = mockData.createData(columnList, n, startDate, endDate, loadScene);
             }
             //处理resultMap的分区字段
             if (loadScene.equals(Constants.LOADSCENE04)) {
-                modiDate(n, noRecords, records, resultMap, startDate, endDate);
+                try {
+                    modiDate(n, noRecords, records, resultMap, startDate, endDate);
+                } catch (Exception e) {
+                    logger.info(GlobalConstants.LOG_PREFIX + "处理分区字段失败");
+                }
+                logger.info(GlobalConstants.LOG_PREFIX + "处理分区字段成功");
             }
 
             /*
