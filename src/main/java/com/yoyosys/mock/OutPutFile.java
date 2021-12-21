@@ -241,7 +241,7 @@ public class OutPutFile {
         String shellCmd = "compress " + FileName;
         //String shellCmd = "pwd";
         //调用shell命名生成.Z文件
-        ShellUntil.execShell(shellCmd);
+        String s = ShellUntil.execShell(shellCmd);
     }
 }
 

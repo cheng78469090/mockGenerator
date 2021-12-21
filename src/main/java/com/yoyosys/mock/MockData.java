@@ -316,7 +316,7 @@ public class MockData {
         }
     }
 
-        private synchronized static void outPutFile (String alikeFileName, String charsetName, String fileFormat, String
+    private synchronized static void outPutFile (String alikeFileName, String charsetName, String fileFormat, String
         AllFileFormat, String filePath,int ID, LinkedHashMap<Column, List > resultMap, String readyFileFormat){
             try {
                 String fileName;
