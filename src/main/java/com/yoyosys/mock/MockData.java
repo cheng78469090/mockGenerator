@@ -368,11 +368,9 @@ public class MockData {
                 }
                 TimeUnit.MILLISECONDS.sleep(10);
             } catch (InterruptedException e) {
-                e.printStackTrace();
-                logger.error(e.toString());
+                logger.error(GlobalConstants.LOG_PREFIX+e);
             } catch (Exception e) {
-                e.printStackTrace();
-                logger.error(e.toString());
+                logger.error(GlobalConstants.LOG_PREFIX+e);
             }
         }
 

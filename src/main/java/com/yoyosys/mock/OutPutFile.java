@@ -1,5 +1,6 @@
 package com.yoyosys.mock;
 
+import com.yoyosys.mock.common.GlobalConstants;
 import com.yoyosys.mock.pojo.Column;
 import com.yoyosys.mock.util.ShellUntil;
 import org.dom4j.Document;
@@ -75,8 +76,7 @@ public class OutPutFile {
             }
             bw.close();
         } catch (Exception e) {
-            e.printStackTrace();
-            logger.error("生成dat文件失败");
+            logger.error(GlobalConstants.LOG_PREFIX +"生成dat文件失败"+e);
             file.delete();
         }
     }
@@ -150,8 +150,7 @@ public class OutPutFile {
             ps.setInt(1, ID);
             ps.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
-            logger.error("数据库更新失败");
+            logger.error(GlobalConstants.LOG_PREFIX +"数据库更新失败"+e);
         } finally {
             ps.close();
             conn.close();
@@ -166,8 +165,7 @@ public class OutPutFile {
             try {
                 new File(readyFileName).createNewFile();
             } catch (IOException e) {
-                e.printStackTrace();
-                logger.error("就绪文件生成失败");
+                logger.error(GlobalConstants.LOG_PREFIX+"就绪文件生成失败"+e);
             }
         } else {
             // 创建XML文档树
@@ -222,16 +220,11 @@ public class OutPutFile {
                 pw = new PrintWriter(new FileWriter(readyFileName), true);
                 pw.println(buff);
                 if (br != null)
-                    try {
                         br.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
                 if (pw != null)
                     pw.close();
             } catch (IOException e) {
-                e.printStackTrace();
-                logger.error("就绪文件生成失败");
+                logger.error(GlobalConstants.LOG_PREFIX +"就绪文件生成失败"+e);
             }
 
         }
