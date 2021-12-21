@@ -237,10 +237,8 @@ public class MockData {
             String fileFormat = dataSourceConfig.getFileFormat();
             String AllFileFormat = dataSourceConfig.getAllFileFormat();
             String readyFileFormat = dataSourceConfig.getReadyFileFormat();
-            String ClassName = this.getClass().getProtectionDomain().getCodeSource().getLocation().getFile();
-//            String SoFile = ClassName.substring(0, ClassName.lastIndexOf("/") + 1) + File.separator + "lib" + File.separator + "libchilkat.so";
-            String SoFile="C:\\work_space\\mock_data"+File.separator+"lib"+File.separator+"libchilkat.so";
-            outPutFile(SoFile, alikeFileName, charsetName, fileFormat, AllFileFormat, filePath, ID, resultMap, readyFileFormat);
+            //String ClassName = this.getClass().getProtectionDomain().getCodeSource().getLocation().getFile();
+            outPutFile(alikeFileName, charsetName, fileFormat, AllFileFormat, filePath, ID, resultMap, readyFileFormat);
         }
     }
 
@@ -332,59 +330,63 @@ public class MockData {
         }
     }
 
-    private synchronized static void outPutFile(String SoFile, String alikeFileName, String charsetName, String fileFormat, String AllFileFormat, String filePath, int ID, LinkedHashMap<Column, List> resultMap, String readyFileFormat) {
-        try {
-            String fileName;
-
-            File[] allfiles = new File(filePath).listFiles();
-            int count = 0;
-            for (File file : allfiles) {
-                if (file.getName().contains(alikeFileName)) {
-                    count++;
+        private synchronized static void outPutFile (String alikeFileName, String charsetName, String fileFormat, String
+        AllFileFormat, String filePath,int ID, LinkedHashMap<Column, List > resultMap, String readyFileFormat){
+            try {
+                String fileName;
+                File[] allfiles = new File(filePath).listFiles();
+                List<String> list = new LinkedList<>();
+                int count = 0;
+                for (File file : allfiles) {
+                    String fname = file.getName();
+                    if (fname.contains(alikeFileName) && fname.contains(".dat")) {
+                        String s1 = fname.split("\\.")[0];
+                        list.add(s1.substring(s1.length() - 1));
+                    }
                 }
-            }
-            int i = count / 2;
-            String num;
-            if (i < 10) {
-                num = "00" + i;
-            } else if (i >= 100) {
-                num = String.valueOf(i);
-            } else {
-                num = "0" + i;
-            }
+                if (list != null && !list.isEmpty()) {
+                    String max = Collections.max(list);
+                    count = Integer.parseInt(max) + 1;
+                }
+                String num;
+                if (count < 10) {
+                    num = "00" + count;
+                } else if (count >= 100) {
+                    num = String.valueOf(count);
+                } else {
+                    num = "0" + count;
+                }
 
-            fileName = filePath + File.separator + alikeFileName + num + fileFormat;
-            if (AllFileFormat.equalsIgnoreCase("1")) {
-                OutPutFile.generateDatFile(fileName, charsetName, resultMap);
-                long size = (new File(fileName).length());
-                OutPutFile.createXml(fileName, size, filePath, charsetName, readyFileFormat);
-                OutPutFile.update(ID);
-            } else if (AllFileFormat.equalsIgnoreCase("3")) {
-                OutPutFile.generateDatFile(fileName, charsetName, resultMap);
-                OutPutFile.compressFile(SoFile, fileName);
-                long size = (new File(fileName).length());
-                OutPutFile.createXml(fileName, size, filePath, charsetName, readyFileFormat);
-                OutPutFile.update(ID);
-            } else {
-                OutPutFile.generateDatFile(fileName, charsetName, resultMap);
-                OutPutFile.compressFile(SoFile, fileName);
-                long size = (new File(fileName).length());
-                OutPutFile.createXml(fileName, size, filePath, charsetName, readyFileFormat);
-                OutPutFile.deleteFile(fileName);
-                OutPutFile.update(ID);
-            }
-            TimeUnit.MILLISECONDS.sleep(10);
-        } catch (IOException e) {
-            e.printStackTrace();
+                fileName = filePath + File.separator + alikeFileName + num + fileFormat;
+                String readyFileName = fileName.split("\\.")[0] + readyFileFormat;
+                if (AllFileFormat.equalsIgnoreCase("1")) {
+                    OutPutFile.generateDatFile(fileName, charsetName, resultMap);
+                    long size = (new File(fileName).length());
+                    OutPutFile.createXml(fileName, size, charsetName, readyFileName, readyFileName);
+                    OutPutFile.update(ID);
+                } else if (AllFileFormat.equalsIgnoreCase("3")) {
 
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } catch (Exception e) {
-            e.printStackTrace();
+                    OutPutFile.generateDatFile(fileName, charsetName, resultMap);
+                    OutPutFile.compressFile(fileName);
+                    OutPutFile.generateDatFile(fileName, charsetName, resultMap);
+                    long size = (new File(fileName).length());
+                    OutPutFile.createXml(fileName, size, charsetName, readyFileFormat, readyFileName);
+                    OutPutFile.update(ID);
+                } else {
+                    OutPutFile.generateDatFile(fileName, charsetName, resultMap);
+                    OutPutFile.compressFile(fileName);
+                    long size = (new File(fileName).length());
+                    OutPutFile.createXml(fileName, size, charsetName, readyFileFormat, readyFileName);
+                    OutPutFile.deleteFile(fileName);
+                    OutPutFile.update(ID);
+                }
+                TimeUnit.MILLISECONDS.sleep(10);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
-    }
 
     //根据表结构生成模拟数据
     private LinkedHashMap<Column, List> createData(List<Column> columnList, int records,
@@ -594,9 +596,9 @@ public class MockData {
         //1.获取当前jar包路径
         File rootPath = new File(this.getClass().getProtectionDomain().getCodeSource().getLocation().getFile());//此路径为当前项目路径
         //2.拼接路径
-//        String path = rootPath.getParent() + File.separator + "conf" + File.separator + "dlp_yoyo_mockdata.config";//配置文件绝对路径
+        String path = rootPath.getParent() + File.separator + "conf" + File.separator + "dlp_yoyo_mockdata.config";//配置文件绝对路径
         // System.out.println(path);
-        String path = "C:\\work_space\\mock_data\\conf\\dlp_yoyo_mockdata.config";//该行代码为测试时修改的本地路径，如果部署到linux服务器上要将该行代码注释
+//        String path = "C:\\work_space\\mock_data\\conf\\dlp_yoyo_mockdata.config";//该行代码为测试时修改的本地路径，如果部署到linux服务器上要将该行代码注释
         //3.获取配置文件信息
         try {
             InputStream in = new FileInputStream(path);
@@ -632,7 +634,7 @@ public class MockData {
             dataSourceConfig.setreadyFileFormat(readyFileFormat);
             return dataSourceConfig;
         } catch (IOException io) {
-            System.out.println("读取配置文件异常" + io);
+            logger.error(GlobalConstants.LOG_PREFIX + "读取配置文件异常"+io);
             return null;
         }
     }
@@ -688,10 +690,9 @@ public class MockData {
                     dsDlpMockDataConfigList.add(dsDlpMockDataConfig);
                 }
             } catch (SQLException e4) {
-                System.out.println("获取数据库连接失败" + e4);
+                logger.error(GlobalConstants.LOG_PREFIX + "获取数据库连接失败"+e4);
             } finally {
                 close(connection, mockDataConfigPs, mockDataConfigResultSet);
-                // System.out.println("关闭资源成功");
             }
         }
 
@@ -731,7 +732,7 @@ public class MockData {
                 }
                 return dsConfig;
             } catch (SQLException e4) {
-                System.out.println(e4);
+                logger.error(GlobalConstants.LOG_PREFIX + e4);
                 return dsConfig;
             } finally {
                 close(connection, mockDataConfigPs, mockDataConfigResultSet);
@@ -762,18 +763,14 @@ public class MockData {
                 connection = DriverManager.getConnection(dataSourceConfig.getOracle_url(), dataSourceConfig.getOracle_user(), dataSourceConfig.getOracle_password());
                 //System.out.println("获取连接成功");
             } catch (InstantiationException e1) {
-                e1.printStackTrace();
-                System.out.println("实例异常" + e1);
+                logger.error(GlobalConstants.LOG_PREFIX + "实例异常"+e1);
 
             } catch (IllegalAccessException e2) {
-                e2.printStackTrace();
-                System.out.println("访问异常" + e2);
+                logger.error(GlobalConstants.LOG_PREFIX + "访问异常"+e2);
             } catch (ClassNotFoundException e3) {
-                e3.printStackTrace();
-                System.out.println("驱动类找不到" + e3);
+                logger.error(GlobalConstants.LOG_PREFIX + "驱动类找不到"+e3);
             } catch (SQLException e4) {
-                e4.printStackTrace();
-                System.out.println("获取数据库连接失败" + e4);
+                logger.error(GlobalConstants.LOG_PREFIX + "获取数据库连接失败"+e4);
             }
         }
 
@@ -793,7 +790,7 @@ public class MockData {
                 rs.close();
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error(GlobalConstants.LOG_PREFIX +"释放资源失败"+e);
         }
 
         try {
@@ -801,7 +798,7 @@ public class MockData {
                 ps.close();
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error(GlobalConstants.LOG_PREFIX +"释放资源失败"+e);
         }
 
         try {
@@ -809,7 +806,7 @@ public class MockData {
                 conn.close();
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error(GlobalConstants.LOG_PREFIX +"释放资源失败"+e);
         }
 
     }

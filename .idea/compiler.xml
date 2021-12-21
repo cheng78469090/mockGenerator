@@ -9,10 +9,8 @@
         <module name="mockGenerator" />
       </profile>
     </annotationProcessing>
-  </component>
-  <component name="JavacSettings">
-    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
-      <module name="mockGenerator" options="" />
-    </option>
+    <bytecodeTargetLevel>
+      <module name="mockGenerator" target="8" />
+    </bytecodeTargetLevel>
   </component>
 </project>
