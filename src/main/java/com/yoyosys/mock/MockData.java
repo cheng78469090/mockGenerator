@@ -664,6 +664,7 @@ public class MockData {
             dataSourceConfig.setFileFormat(FileFormat);
             dataSourceConfig.setAllFileFormat(AllFileFormat);
             dataSourceConfig.setreadyFileFormat(readyFileFormat);
+            logger.info(GlobalConstants.LOG_PREFIX + "成功读取配置文件");
             return dataSourceConfig;
         } catch (IOException io) {
             logger.error(GlobalConstants.LOG_PREFIX + "读取配置文件异常"+io);
@@ -720,6 +721,7 @@ public class MockData {
                     dsDlpMockDataConfig.setIsCounterexample(mockDataConfigResultSet.getInt("IS_COUNTEREXAMPLE"));
                     //放入到集合当中
                     dsDlpMockDataConfigList.add(dsDlpMockDataConfig);
+                    logger.info(GlobalConstants.LOG_PREFIX + "获取数据库连接成功");
                 }
             } catch (SQLException e4) {
                 logger.error(GlobalConstants.LOG_PREFIX + "获取数据库连接失败"+e4);
@@ -762,6 +764,7 @@ public class MockData {
                     dsConfig.setFILE_ENCODING(dsConfigResultSet.getString("FILE_ENCODING"));
 
                 }
+                logger.info(GlobalConstants.LOG_PREFIX +"成功获取数据加载场景");
                 return dsConfig;
             } catch (SQLException e4) {
                 logger.error(GlobalConstants.LOG_PREFIX + e4);
@@ -794,6 +797,7 @@ public class MockData {
                 //  System.out.println("获取连接");
                 connection = DriverManager.getConnection(dataSourceConfig.getOracle_url(), dataSourceConfig.getOracle_user(), dataSourceConfig.getOracle_password());
                 //System.out.println("获取连接成功");
+                logger.info(GlobalConstants.LOG_PREFIX +"获取连接成功");
             } catch (InstantiationException e1) {
                 logger.error(GlobalConstants.LOG_PREFIX + "实例异常"+e1);
 
