@@ -1,5 +1,6 @@
 package com.yoyosys.mock.util;
 
+import com.yoyosys.mock.common.GlobalConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,7 +13,7 @@ public class ShellUntil {
 
         public static String execShell(String cmd) {
             if(cmd==null || "".equals(cmd)){
-                logger.error("cmd为空");
+                logger.error(GlobalConstants.LOG_PREFIX+"cmd为空");
                 return null;
             }
             try {
@@ -34,7 +35,7 @@ public class ShellUntil {
                 return sb.toString();
             } catch (Exception e) {
                 e.printStackTrace();
-                logger.error("执行execShell失败："+cmd+">>>>>>>>>>>>>>>>>>"+e);
+                logger.error(GlobalConstants.LOG_PREFIX+"执行execShell失败："+cmd+">>>>>>>>>>>>>>>>>>"+e);
             }
             return null;
         }

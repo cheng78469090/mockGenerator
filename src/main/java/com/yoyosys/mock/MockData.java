@@ -330,7 +330,7 @@ public class MockData {
         }
     }
 
-        private synchronized static void outPutFile (String alikeFileName, String charsetName, String fileFormat, String
+    private synchronized static void outPutFile (String alikeFileName, String charsetName, String fileFormat, String
         AllFileFormat, String filePath,int ID, LinkedHashMap<Column, List > resultMap, String readyFileFormat){
             try {
                 String fileName;
@@ -382,9 +382,9 @@ public class MockData {
                 }
                 TimeUnit.MILLISECONDS.sleep(10);
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                logger.error(GlobalConstants.LOG_PREFIX+e);
             } catch (Exception e) {
-                e.printStackTrace();
+                logger.error(GlobalConstants.LOG_PREFIX+e);
             }
         }
 
