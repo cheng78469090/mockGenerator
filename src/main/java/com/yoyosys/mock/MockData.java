@@ -201,12 +201,12 @@ public class MockData {
              * todo:易建军、王燚
              *  return : list<map>
              * */
-            try{
+            try {
                 modifyData(resultMap, isCounterexample, myVisitor, expr, noRecords);
-            }catch (Exception e){
-                logger.info(GlobalConstants.LOG_PREFIX+"where修改结果失败");
+            } catch (Exception e) {
+                logger.info(GlobalConstants.LOG_PREFIX + "where修改结果失败");
             }
-            logger.info(GlobalConstants.LOG_PREFIX+"where修改结果成功");
+            logger.info(GlobalConstants.LOG_PREFIX + "where修改结果成功");
 
             /**
              * 输出
@@ -220,7 +220,7 @@ public class MockData {
              * todo:王锦鹏
              * */
 
-//            String filePath = new MockData().getClass().getResource("/").getPath() + "\\result";
+            //String filePath = new MockData().getClass().getResource("/").getPath() + "\\result";
             String filePath = dataSourceConfig.getResultFilePath();
             String start_date = dsDlpMockDataConfig.getStartDate();
             String hive_name = dsDlpMockDataConfig.getHive_name();
@@ -236,13 +236,10 @@ public class MockData {
             String fileFormat = dataSourceConfig.getFileFormat();
             String AllFileFormat = dataSourceConfig.getAllFileFormat();
             String readyFileFormat = dataSourceConfig.getReadyFileFormat();
-            String ClassName = this.getClass().getProtectionDomain().getCodeSource().getLocation().getFile();
-            String SoFile = ClassName.substring(0, ClassName.lastIndexOf("/") + 1) + File.separator + "lib" + File.separator + "libchilkat.so";
-//                    String SoFile="C:\\work_space\\mock_data"+File.separator+"lib"+File.separator+"libchilkat.so";
-            outPutFile(SoFile, alikeFileName, charsetName, fileFormat, AllFileFormat, filePath, ID, resultMap, readyFileFormat);
+            //String ClassName = this.getClass().getProtectionDomain().getCodeSource().getLocation().getFile();
+            outPutFile(alikeFileName, charsetName, fileFormat, AllFileFormat, filePath, ID, resultMap, readyFileFormat);
         }
     }
-
     private void modifyData(LinkedHashMap<Column, List> resultMap, int isCounterexample, MyVisitor
             myVisitor, Expression expr, int mRecords) {
         int size = resultMap.values().iterator().next().size();
@@ -319,59 +316,63 @@ public class MockData {
         }
     }
 
-    private synchronized static void outPutFile(String SoFile, String alikeFileName, String charsetName, String fileFormat, String AllFileFormat, String filePath, int ID, LinkedHashMap<Column, List> resultMap, String readyFileFormat) {
-        try {
-            String fileName;
-
-            File[] allfiles = new File(filePath).listFiles();
-            int count = 0;
-            for (File file : allfiles) {
-                if (file.getName().contains(alikeFileName)) {
-                    count++;
+        private synchronized static void outPutFile (String alikeFileName, String charsetName, String fileFormat, String
+        AllFileFormat, String filePath,int ID, LinkedHashMap<Column, List > resultMap, String readyFileFormat){
+            try {
+                String fileName;
+                File[] allfiles = new File(filePath).listFiles();
+                List<String> list = new LinkedList<>();
+                int count = 0;
+                for (File file : allfiles) {
+                    String fname = file.getName();
+                    if (fname.contains(alikeFileName) && fname.contains(".dat")) {
+                        String s1 = fname.split("\\.")[0];
+                        list.add(s1.substring(s1.length() - 1));
+                    }
                 }
-            }
-            int i = count / 2;
-            String num;
-            if (i < 10) {
-                num = "00" + i;
-            } else if (i >= 100) {
-                num = String.valueOf(i);
-            } else {
-                num = "0" + i;
-            }
+                if (list != null && !list.isEmpty()) {
+                    String max = Collections.max(list);
+                    count = Integer.parseInt(max) + 1;
+                }
+                String num;
+                if (count < 10) {
+                    num = "00" + count;
+                } else if (count >= 100) {
+                    num = String.valueOf(count);
+                } else {
+                    num = "0" + count;
+                }
 
-            fileName = filePath + File.separator + alikeFileName + num + fileFormat;
-            if (AllFileFormat.equalsIgnoreCase("1")) {
-                OutPutFile.generateDatFile(fileName, charsetName, resultMap);
-                long size = (new File(fileName).length());
-                OutPutFile.createXml(fileName, size, filePath, charsetName, readyFileFormat);
-                OutPutFile.update(ID);
-            } else if (AllFileFormat.equalsIgnoreCase("3")) {
-                OutPutFile.generateDatFile(fileName, charsetName, resultMap);
-                OutPutFile.compressFile(SoFile, fileName);
-                long size = (new File(fileName).length());
-                OutPutFile.createXml(fileName, size, filePath, charsetName, readyFileFormat);
-                OutPutFile.update(ID);
-            } else {
-                OutPutFile.generateDatFile(fileName, charsetName, resultMap);
-                OutPutFile.compressFile(SoFile, fileName);
-                long size = (new File(fileName).length());
-                OutPutFile.createXml(fileName, size, filePath, charsetName, readyFileFormat);
-                OutPutFile.deleteFile(fileName);
-                OutPutFile.update(ID);
-            }
-            TimeUnit.MILLISECONDS.sleep(10);
-        } catch (IOException e) {
-            e.printStackTrace();
+                fileName = filePath + File.separator + alikeFileName + num + fileFormat;
+                String readyFileName = fileName.split("\\.")[0] + readyFileFormat;
+                if (AllFileFormat.equalsIgnoreCase("1")) {
+                    OutPutFile.generateDatFile(fileName, charsetName, resultMap);
+                    long size = (new File(fileName).length());
+                    OutPutFile.createXml(fileName, size, charsetName, readyFileName, readyFileName);
+                    OutPutFile.update(ID);
+                } else if (AllFileFormat.equalsIgnoreCase("3")) {
 
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } catch (Exception e) {
-            e.printStackTrace();
+                    OutPutFile.generateDatFile(fileName, charsetName, resultMap);
+                    OutPutFile.compressFile(fileName);
+                    OutPutFile.generateDatFile(fileName, charsetName, resultMap);
+                    long size = (new File(fileName).length());
+                    OutPutFile.createXml(fileName, size, charsetName, readyFileFormat, readyFileName);
+                    OutPutFile.update(ID);
+                } else {
+                    OutPutFile.generateDatFile(fileName, charsetName, resultMap);
+                    OutPutFile.compressFile(fileName);
+                    long size = (new File(fileName).length());
+                    OutPutFile.createXml(fileName, size, charsetName, readyFileFormat, readyFileName);
+                    OutPutFile.deleteFile(fileName);
+                    OutPutFile.update(ID);
+                }
+                TimeUnit.MILLISECONDS.sleep(10);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
-    }
 
     //根据表结构生成模拟数据
     private LinkedHashMap<Column, List> createData(List<Column> columnList, int records,
