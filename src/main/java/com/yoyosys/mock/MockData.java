@@ -201,12 +201,13 @@ public class MockData {
              * todo:易建军、王燚
              *  return : list<map>
              * */
+            logger.info(GlobalConstants.LOG_PREFIX+dsDlpMockDataConfig.getHive_name()+"开始根据where修改结果");
             try{
                 modifyData(resultMap, isCounterexample, myVisitor, expr, noRecords);
             }catch (Exception e){
-                logger.info(GlobalConstants.LOG_PREFIX+"where修改结果失败");
+                logger.info(GlobalConstants.LOG_PREFIX+dsDlpMockDataConfig.getHive_name()+e+"where修改结果失败");
             }
-            logger.info(GlobalConstants.LOG_PREFIX+"where修改结果成功");
+            logger.info(GlobalConstants.LOG_PREFIX+dsDlpMockDataConfig.getHive_name()+"where修改结果成功");
 
             /**
              * 输出
@@ -237,8 +238,8 @@ public class MockData {
             String AllFileFormat = dataSourceConfig.getAllFileFormat();
             String readyFileFormat = dataSourceConfig.getReadyFileFormat();
             String ClassName = this.getClass().getProtectionDomain().getCodeSource().getLocation().getFile();
-            String SoFile = ClassName.substring(0, ClassName.lastIndexOf("/") + 1) + File.separator + "lib" + File.separator + "libchilkat.so";
-//                    String SoFile="C:\\work_space\\mock_data"+File.separator+"lib"+File.separator+"libchilkat.so";
+//            String SoFile = ClassName.substring(0, ClassName.lastIndexOf("/") + 1) + File.separator + "lib" + File.separator + "libchilkat.so";
+            String SoFile="C:\\work_space\\mock_data"+File.separator+"lib"+File.separator+"libchilkat.so";
             outPutFile(SoFile, alikeFileName, charsetName, fileFormat, AllFileFormat, filePath, ID, resultMap, readyFileFormat);
         }
     }
@@ -246,50 +247,62 @@ public class MockData {
     private void modifyData(LinkedHashMap<Column, List> resultMap, int isCounterexample, MyVisitor
             myVisitor, Expression expr, int mRecords) {
         int size = resultMap.values().iterator().next().size();
-        for (int i = 0; i < size; i++) {
-            myVisitor.cleanDataModifyMap();
-            expr.accept(myVisitor);
-            Map<String, Data> dataModifyMap = myVisitor.getDataModifyMap();
-            int finalI = i;
-            dataModifyMap.forEach((s, data) -> {
-                for (Column column : resultMap.keySet()) {
-                    if (column.getFieldName().toLowerCase(Locale.ROOT).equals(s.toLowerCase(Locale.ROOT))) {
-                        String s1 = data.inputValue();
-                        if (s1 == null) {
-                            continue;
-                        }
-                        resultMap.get(column).set(finalI, s1);
-                    }
-                }
-            });
-        }
-        if (isCounterexample == 1) {
-            //反例
-            for (int i = 0; i < mRecords - 1; ) {
+        try {
+            for (int i = 0; i < size; i++) {
+                myVisitor.cleanDataModifyMap();
+                expr.accept(myVisitor);
                 Map<String, Data> dataModifyMap = myVisitor.getDataModifyMap();
-
-                for (Map.Entry<String, Data> stringDataEntry : dataModifyMap.entrySet()) {
-                    String s = stringDataEntry.getKey();
-                    Data data = stringDataEntry.getValue();
-                    List<String> list = null;
-                    Iterator<Column> it = resultMap.keySet().iterator();
-                    while (it.hasNext()) {
-                        Column next = it.next();
-                        if (next.getFieldName().toLowerCase(Locale.ROOT).equals(s.toLowerCase(Locale.ROOT))) {
-                            String result = data.inputCounterexample();
-                            if (result == null) {
-                                resultMap.get(next).set(i++, MakeDataUtil.makeStringLenData(next));
-                            } else {
-                                resultMap.get(next).set(i++, result);
+                int finalI = i;
+                dataModifyMap.forEach((s, data) -> {
+                    for (Column column : resultMap.keySet()) {
+                        if (column.getFieldName().toLowerCase(Locale.ROOT).equals(s.toLowerCase(Locale.ROOT))) {
+                            String s1 = data.inputValue();
+                            if (s1 == null) {
+                                continue;
                             }
-                            resultMap.get(next).set(i++, " ");
-                            resultMap.get(next).set(i++, "");
-                            break;
+                            resultMap.get(column).set(finalI, s1);
+                        }
+                    }
+                });
+            }
+        }catch (Exception e){
+            logger.error(GlobalConstants.LOG_PREFIX+e+"正例生成失败");
+        }
+        logger.info(GlobalConstants.LOG_PREFIX+"正例生成成功");
+
+
+        try {
+            if (isCounterexample == 1) {
+                //反例
+                for (int i = 0; i < mRecords - 1; ) {
+                    Map<String, Data> dataModifyMap = myVisitor.getDataModifyMap();
+
+                    for (Map.Entry<String, Data> stringDataEntry : dataModifyMap.entrySet()) {
+                        String s = stringDataEntry.getKey();
+                        Data data = stringDataEntry.getValue();
+                        List<String> list = null;
+                        Iterator<Column> it = resultMap.keySet().iterator();
+                        while (it.hasNext()) {
+                            Column next = it.next();
+                            if (next.getFieldName().toLowerCase(Locale.ROOT).equals(s.toLowerCase(Locale.ROOT))) {
+                                String result = data.inputCounterexample();
+                                if (result == null) {
+                                    resultMap.get(next).set(i++, MakeDataUtil.makeStringLenData(next));
+                                } else {
+                                    resultMap.get(next).set(i++, result);
+                                }
+                                resultMap.get(next).set(i++, " ");
+                                resultMap.get(next).set(i++, "");
+                                break;
+                            }
                         }
                     }
                 }
             }
+        } catch (Exception e) {
+            logger.error(GlobalConstants.LOG_PREFIX+"反例生成失败");
         }
+        logger.info(GlobalConstants.LOG_PREFIX+"反例生成成功");
     }
 
 
@@ -581,9 +594,9 @@ public class MockData {
         //1.获取当前jar包路径
         File rootPath = new File(this.getClass().getProtectionDomain().getCodeSource().getLocation().getFile());//此路径为当前项目路径
         //2.拼接路径
-        String path = rootPath.getParent() + File.separator + "conf" + File.separator + "dlp_yoyo_mockdata.config";//配置文件绝对路径
+//        String path = rootPath.getParent() + File.separator + "conf" + File.separator + "dlp_yoyo_mockdata.config";//配置文件绝对路径
         // System.out.println(path);
-//        String path = "C:\\work_space\\mock_data\\conf\\dlp_yoyo_mockdata.config";//该行代码为测试时修改的本地路径，如果部署到linux服务器上要将该行代码注释
+        String path = "C:\\work_space\\mock_data\\conf\\dlp_yoyo_mockdata.config";//该行代码为测试时修改的本地路径，如果部署到linux服务器上要将该行代码注释
         //3.获取配置文件信息
         try {
             InputStream in = new FileInputStream(path);
