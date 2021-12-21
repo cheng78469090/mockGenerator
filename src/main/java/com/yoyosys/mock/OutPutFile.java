@@ -1,5 +1,6 @@
 package com.yoyosys.mock;
 
+import com.yoyosys.mock.common.GlobalConstants;
 import com.yoyosys.mock.pojo.Column;
 import com.yoyosys.mock.util.ShellUntil;
 import org.dom4j.Document;
@@ -32,6 +33,7 @@ import java.util.*;
 
 public class OutPutFile {
 
+     private static final Logger logger = LoggerFactory.getLogger(OutPutFile.class);
 
     /**
      * 生成dat数据文件
@@ -73,10 +75,8 @@ public class OutPutFile {
                 bw.write((String) a + line);
             }
             bw.close();
-
-
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error(GlobalConstants.LOG_PREFIX +"生成dat文件失败"+e);
             file.delete();
         }
     }
@@ -150,8 +150,7 @@ public class OutPutFile {
             ps.setInt(1, ID);
             ps.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
-            System.out.println("数据库更新失败");
+            logger.error(GlobalConstants.LOG_PREFIX +"数据库更新失败"+e);
         } finally {
             ps.close();
             conn.close();
@@ -163,7 +162,11 @@ public class OutPutFile {
      */
     public static void createXml(String fileName, Long fileSize, String charsetName, String readyFileFormat, String readyFileName) throws IOException {
         if (readyFileFormat.equals(".ok")) {
-            new File(readyFileName).createNewFile();
+            try {
+                new File(readyFileName).createNewFile();
+            } catch (IOException e) {
+                logger.error(GlobalConstants.LOG_PREFIX+"就绪文件生成失败"+e);
+            }
         } else {
             // 创建XML文档树
             Document document = DocumentHelper.createDocument();
@@ -217,16 +220,11 @@ public class OutPutFile {
                 pw = new PrintWriter(new FileWriter(readyFileName), true);
                 pw.println(buff);
                 if (br != null)
-                    try {
                         br.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
                 if (pw != null)
                     pw.close();
             } catch (IOException e) {
-                e.printStackTrace();
-                System.out.println("就绪文件生成失败");
+                logger.error(GlobalConstants.LOG_PREFIX +"就绪文件生成失败"+e);
             }
 
         }
@@ -241,7 +239,7 @@ public class OutPutFile {
         String shellCmd = "compress " + FileName;
         //String shellCmd = "pwd";
         //调用shell命名生成.Z文件
-        ShellUntil.execShell(shellCmd);
+        String s = ShellUntil.execShell(shellCmd);
     }
 }
 

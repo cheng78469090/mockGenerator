@@ -233,12 +233,13 @@ public class MockData {
              * todo:易建军、王燚
              *  return : list<map>
              * */
-            try {
+            logger.info(GlobalConstants.LOG_PREFIX+dsDlpMockDataConfig.getHive_name()+"开始根据where修改结果");
+            try{
                 modifyData(resultMap, isCounterexample, myVisitor, expr, noRecords);
-            } catch (Exception e) {
-                logger.info(GlobalConstants.LOG_PREFIX + "where修改结果失败");
+            }catch (Exception e){
+                logger.info(GlobalConstants.LOG_PREFIX+dsDlpMockDataConfig.getHive_name()+e+"where修改结果失败");
             }
-            logger.info(GlobalConstants.LOG_PREFIX + "where修改结果成功");
+            logger.info(GlobalConstants.LOG_PREFIX+dsDlpMockDataConfig.getHive_name()+"where修改结果成功");
 
             /**
              * 输出
@@ -252,7 +253,7 @@ public class MockData {
              * todo:王锦鹏
              * */
 
-            //String filePath = new MockData().getClass().getResource("/").getPath() + "\\result";
+//            String filePath = new MockData().getClass().getResource("/").getPath() + "\\result";
             String filePath = dataSourceConfig.getResultFilePath();
             String start_date = dsDlpMockDataConfig.getStartDate();
             String hive_name = dsDlpMockDataConfig.getHive_name();
@@ -272,53 +273,66 @@ public class MockData {
             outPutFile(alikeFileName, charsetName, fileFormat, AllFileFormat, filePath, ID, resultMap, readyFileFormat);
         }
     }
+
     private void modifyData(LinkedHashMap<Column, List> resultMap, int isCounterexample, MyVisitor
             myVisitor, Expression expr, int mRecords) {
         int size = resultMap.values().iterator().next().size();
-        for (int i = 0; i < size; i++) {
-            myVisitor.cleanDataModifyMap();
-            expr.accept(myVisitor);
-            Map<String, Data> dataModifyMap = myVisitor.getDataModifyMap();
-            int finalI = i;
-            dataModifyMap.forEach((s, data) -> {
-                for (Column column : resultMap.keySet()) {
-                    if (column.getFieldName().toLowerCase(Locale.ROOT).equals(s.toLowerCase(Locale.ROOT))) {
-                        String s1 = data.inputValue();
-                        if (s1 == null) {
-                            continue;
-                        }
-                        resultMap.get(column).set(finalI, s1);
-                    }
-                }
-            });
-        }
-        if (isCounterexample == 1) {
-            //反例
-            for (int i = 0; i < mRecords - 1; ) {
+        try {
+            for (int i = 0; i < size; i++) {
+                myVisitor.cleanDataModifyMap();
+                expr.accept(myVisitor);
                 Map<String, Data> dataModifyMap = myVisitor.getDataModifyMap();
-
-                for (Map.Entry<String, Data> stringDataEntry : dataModifyMap.entrySet()) {
-                    String s = stringDataEntry.getKey();
-                    Data data = stringDataEntry.getValue();
-                    List<String> list = null;
-                    Iterator<Column> it = resultMap.keySet().iterator();
-                    while (it.hasNext()) {
-                        Column next = it.next();
-                        if (next.getFieldName().toLowerCase(Locale.ROOT).equals(s.toLowerCase(Locale.ROOT))) {
-                            String result = data.inputCounterexample();
-                            if (result == null) {
-                                resultMap.get(next).set(i++, MakeDataUtil.makeStringLenData(next));
-                            } else {
-                                resultMap.get(next).set(i++, result);
+                int finalI = i;
+                dataModifyMap.forEach((s, data) -> {
+                    for (Column column : resultMap.keySet()) {
+                        if (column.getFieldName().toLowerCase(Locale.ROOT).equals(s.toLowerCase(Locale.ROOT))) {
+                            String s1 = data.inputValue();
+                            if (s1 == null) {
+                                continue;
                             }
-                            resultMap.get(next).set(i++, " ");
-                            resultMap.get(next).set(i++, "");
-                            break;
+                            resultMap.get(column).set(finalI, s1);
+                        }
+                    }
+                });
+            }
+        }catch (Exception e){
+            logger.error(GlobalConstants.LOG_PREFIX+e+"正例生成失败");
+        }
+        logger.info(GlobalConstants.LOG_PREFIX+"正例生成成功");
+
+
+        try {
+            if (isCounterexample == 1) {
+                //反例
+                for (int i = 0; i < mRecords - 1; ) {
+                    Map<String, Data> dataModifyMap = myVisitor.getDataModifyMap();
+
+                    for (Map.Entry<String, Data> stringDataEntry : dataModifyMap.entrySet()) {
+                        String s = stringDataEntry.getKey();
+                        Data data = stringDataEntry.getValue();
+                        List<String> list = null;
+                        Iterator<Column> it = resultMap.keySet().iterator();
+                        while (it.hasNext()) {
+                            Column next = it.next();
+                            if (next.getFieldName().toLowerCase(Locale.ROOT).equals(s.toLowerCase(Locale.ROOT))) {
+                                String result = data.inputCounterexample();
+                                if (result == null) {
+                                    resultMap.get(next).set(i++, MakeDataUtil.makeStringLenData(next));
+                                } else {
+                                    resultMap.get(next).set(i++, result);
+                                }
+                                resultMap.get(next).set(i++, " ");
+                                resultMap.get(next).set(i++, "");
+                                break;
+                            }
                         }
                     }
                 }
             }
+        } catch (Exception e) {
+            logger.error(GlobalConstants.LOG_PREFIX+"反例生成失败");
         }
+        logger.info(GlobalConstants.LOG_PREFIX+"反例生成成功");
     }
 
 
@@ -348,7 +362,7 @@ public class MockData {
         }
     }
 
-        private synchronized static void outPutFile (String alikeFileName, String charsetName, String fileFormat, String
+    private synchronized static void outPutFile (String alikeFileName, String charsetName, String fileFormat, String
         AllFileFormat, String filePath,int ID, LinkedHashMap<Column, List > resultMap, String readyFileFormat){
             try {
                 String fileName;
@@ -400,9 +414,9 @@ public class MockData {
                 }
                 TimeUnit.MILLISECONDS.sleep(10);
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                logger.error(GlobalConstants.LOG_PREFIX+e);
             } catch (Exception e) {
-                e.printStackTrace();
+                logger.error(GlobalConstants.LOG_PREFIX+e);
             }
         }
 
@@ -652,7 +666,7 @@ public class MockData {
             dataSourceConfig.setreadyFileFormat(readyFileFormat);
             return dataSourceConfig;
         } catch (IOException io) {
-            System.out.println("读取配置文件异常" + io);
+            logger.error(GlobalConstants.LOG_PREFIX + "读取配置文件异常"+io);
             return null;
         }
     }
@@ -708,10 +722,9 @@ public class MockData {
                     dsDlpMockDataConfigList.add(dsDlpMockDataConfig);
                 }
             } catch (SQLException e4) {
-                System.out.println("获取数据库连接失败" + e4);
+                logger.error(GlobalConstants.LOG_PREFIX + "获取数据库连接失败"+e4);
             } finally {
                 close(connection, mockDataConfigPs, mockDataConfigResultSet);
-                // System.out.println("关闭资源成功");
             }
         }
 
@@ -751,7 +764,7 @@ public class MockData {
                 }
                 return dsConfig;
             } catch (SQLException e4) {
-                System.out.println(e4);
+                logger.error(GlobalConstants.LOG_PREFIX + e4);
                 return dsConfig;
             } finally {
                 close(connection, mockDataConfigPs, mockDataConfigResultSet);
@@ -782,18 +795,14 @@ public class MockData {
                 connection = DriverManager.getConnection(dataSourceConfig.getOracle_url(), dataSourceConfig.getOracle_user(), dataSourceConfig.getOracle_password());
                 //System.out.println("获取连接成功");
             } catch (InstantiationException e1) {
-                e1.printStackTrace();
-                System.out.println("实例异常" + e1);
+                logger.error(GlobalConstants.LOG_PREFIX + "实例异常"+e1);
 
             } catch (IllegalAccessException e2) {
-                e2.printStackTrace();
-                System.out.println("访问异常" + e2);
+                logger.error(GlobalConstants.LOG_PREFIX + "访问异常"+e2);
             } catch (ClassNotFoundException e3) {
-                e3.printStackTrace();
-                System.out.println("驱动类找不到" + e3);
+                logger.error(GlobalConstants.LOG_PREFIX + "驱动类找不到"+e3);
             } catch (SQLException e4) {
-                e4.printStackTrace();
-                System.out.println("获取数据库连接失败" + e4);
+                logger.error(GlobalConstants.LOG_PREFIX + "获取数据库连接失败"+e4);
             }
         }
 
@@ -813,7 +822,7 @@ public class MockData {
                 rs.close();
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error(GlobalConstants.LOG_PREFIX +"释放资源失败"+e);
         }
 
         try {
@@ -821,7 +830,7 @@ public class MockData {
                 ps.close();
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error(GlobalConstants.LOG_PREFIX +"释放资源失败"+e);
         }
 
         try {
@@ -829,7 +838,7 @@ public class MockData {
                 conn.close();
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error(GlobalConstants.LOG_PREFIX +"释放资源失败"+e);
         }
 
     }
