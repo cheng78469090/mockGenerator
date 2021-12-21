@@ -369,8 +369,10 @@ public class MockData {
                 TimeUnit.MILLISECONDS.sleep(10);
             } catch (InterruptedException e) {
                 e.printStackTrace();
+                logger.error(e.toString());
             } catch (Exception e) {
                 e.printStackTrace();
+                logger.error(e.toString());
             }
         }
 

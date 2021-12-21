@@ -32,6 +32,7 @@ import java.util.*;
 
 public class OutPutFile {
 
+     private static final Logger logger = LoggerFactory.getLogger(OutPutFile.class);
 
     /**
      * 生成dat数据文件
@@ -73,10 +74,9 @@ public class OutPutFile {
                 bw.write((String) a + line);
             }
             bw.close();
-
-
         } catch (Exception e) {
             e.printStackTrace();
+            logger.error("生成dat文件失败");
             file.delete();
         }
     }
@@ -151,7 +151,7 @@ public class OutPutFile {
             ps.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
-            System.out.println("数据库更新失败");
+            logger.error("数据库更新失败");
         } finally {
             ps.close();
             conn.close();
@@ -163,7 +163,12 @@ public class OutPutFile {
      */
     public static void createXml(String fileName, Long fileSize, String charsetName, String readyFileFormat, String readyFileName) throws IOException {
         if (readyFileFormat.equals(".ok")) {
-            new File(readyFileName).createNewFile();
+            try {
+                new File(readyFileName).createNewFile();
+            } catch (IOException e) {
+                e.printStackTrace();
+                logger.error("就绪文件生成失败");
+            }
         } else {
             // 创建XML文档树
             Document document = DocumentHelper.createDocument();
@@ -226,7 +231,7 @@ public class OutPutFile {
                     pw.close();
             } catch (IOException e) {
                 e.printStackTrace();
-                System.out.println("就绪文件生成失败");
+                logger.error("就绪文件生成失败");
             }
 
         }
