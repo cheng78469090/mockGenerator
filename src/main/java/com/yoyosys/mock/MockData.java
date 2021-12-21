@@ -622,7 +622,7 @@ public class MockData {
             dataSourceConfig.setreadyFileFormat(readyFileFormat);
             return dataSourceConfig;
         } catch (IOException io) {
-            System.out.println("读取配置文件异常" + io);
+            logger.error(GlobalConstants.LOG_PREFIX + "读取配置文件异常"+io);
             return null;
         }
     }
@@ -678,10 +678,9 @@ public class MockData {
                     dsDlpMockDataConfigList.add(dsDlpMockDataConfig);
                 }
             } catch (SQLException e4) {
-                System.out.println("获取数据库连接失败" + e4);
+                logger.error(GlobalConstants.LOG_PREFIX + "获取数据库连接失败"+e4);
             } finally {
                 close(connection, mockDataConfigPs, mockDataConfigResultSet);
-                // System.out.println("关闭资源成功");
             }
         }
 
@@ -721,7 +720,7 @@ public class MockData {
                 }
                 return dsConfig;
             } catch (SQLException e4) {
-                System.out.println(e4);
+                logger.error(GlobalConstants.LOG_PREFIX + e4);
                 return dsConfig;
             } finally {
                 close(connection, mockDataConfigPs, mockDataConfigResultSet);
@@ -752,18 +751,14 @@ public class MockData {
                 connection = DriverManager.getConnection(dataSourceConfig.getOracle_url(), dataSourceConfig.getOracle_user(), dataSourceConfig.getOracle_password());
                 //System.out.println("获取连接成功");
             } catch (InstantiationException e1) {
-                e1.printStackTrace();
-                System.out.println("实例异常" + e1);
+                logger.error(GlobalConstants.LOG_PREFIX + "实例异常"+e1);
 
             } catch (IllegalAccessException e2) {
-                e2.printStackTrace();
-                System.out.println("访问异常" + e2);
+                logger.error(GlobalConstants.LOG_PREFIX + "访问异常"+e2);
             } catch (ClassNotFoundException e3) {
-                e3.printStackTrace();
-                System.out.println("驱动类找不到" + e3);
+                logger.error(GlobalConstants.LOG_PREFIX + "驱动类找不到"+e3);
             } catch (SQLException e4) {
-                e4.printStackTrace();
-                System.out.println("获取数据库连接失败" + e4);
+                logger.error(GlobalConstants.LOG_PREFIX + "获取数据库连接失败"+e4);
             }
         }
 
@@ -783,7 +778,7 @@ public class MockData {
                 rs.close();
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error(GlobalConstants.LOG_PREFIX +"释放资源失败"+e);
         }
 
         try {
@@ -791,7 +786,7 @@ public class MockData {
                 ps.close();
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error(GlobalConstants.LOG_PREFIX +"释放资源失败"+e);
         }
 
         try {
@@ -799,7 +794,7 @@ public class MockData {
                 conn.close();
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error(GlobalConstants.LOG_PREFIX +"释放资源失败"+e);
         }
 
     }
