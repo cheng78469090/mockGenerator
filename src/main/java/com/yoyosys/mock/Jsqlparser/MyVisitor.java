@@ -22,7 +22,7 @@ public class MyVisitor extends ExpressionVisitorAdapter {
 
     private static Random random = new Random();
 
-    private static Map<String, Data> dataModifyMap;
+    private Map<String, Data> dataModifyMap = new HashMap<String, Data>();;
 
     private List<Column> Columns;
 
@@ -30,13 +30,12 @@ public class MyVisitor extends ExpressionVisitorAdapter {
         Columns = columns;
     }
 
-
-    static {
-        dataModifyMap = new HashMap<String, Data>();
-    }
-
     public Map<String, Data> getDataModifyMap() {
         return dataModifyMap;
+    }
+
+    public void cleanDataModifyMap(){
+        dataModifyMap.clear();
     }
 
 
@@ -112,10 +111,17 @@ public class MyVisitor extends ExpressionVisitorAdapter {
 
     @Override
     public void visit(GreaterThanEquals greaterThanEquals) {
+        CompareData existData = null;
         if (greaterThanEquals.getLeftExpression() instanceof Function && greaterThanEquals.getRightExpression() instanceof Function) {
 
         }else {
-            CompareData existData = (CompareData)dataModifyMap.get(greaterThanEquals.getLeftExpression().toString());
+            try{
+                existData = (CompareData)dataModifyMap.get(greaterThanEquals.getLeftExpression().toString());
+            }catch (Exception e){
+                System.out.println(dataModifyMap.toString());
+                System.out.println(greaterThanEquals.toString());
+                e.printStackTrace();
+            }
             if(existData == null){
                 CompareData compareData = new CompareData();
                 compareData.setGreaterThanEquals(greaterThanEquals.getRightExpression().toString().replace("'","").replace("\"", ""));
