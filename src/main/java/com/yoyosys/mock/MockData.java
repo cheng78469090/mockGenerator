@@ -548,7 +548,7 @@ public class MockData {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+
         }
 
         String[] createSql = result.toString().split("\n");
