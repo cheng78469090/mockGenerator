@@ -80,6 +80,7 @@ public class OutPutFile {
         } catch (Exception e) {
             logger.error(GlobalConstants.LOG_PREFIX +file.getName()+"文件生成失败"+e);
             file.delete();
+            return;
         }
     }
 
@@ -238,12 +239,12 @@ public class OutPutFile {
      * @param FileName
      * @throws Exception
      */
-    public static void compressFile(String FileName){
+    public static void compressFile(String FileName,String compressFile){
         String shellCmd = "compress " + FileName;
         //String shellCmd = "pwd";
         //调用shell命名生成.Z文件
         String s = ShellUntil.execShell(shellCmd);
-        logger.info(GlobalConstants.LOG_PREFIX+"压缩文件生成成功"+s);
+        logger.info(GlobalConstants.LOG_PREFIX+compressFile+"文件生成成功"+s);
     }
 }
 

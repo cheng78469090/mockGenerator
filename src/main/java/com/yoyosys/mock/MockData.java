@@ -391,6 +391,7 @@ public class MockData {
 
                 fileName = filePath + File.separator + alikeFileName + num + fileFormat;
                 String readyFileName = fileName.split("\\.")[0] + readyFileFormat;
+                String compressFile=alikeFileName + num+".Z";
                 if (AllFileFormat.equalsIgnoreCase("1")) {
                     OutPutFile.generateDatFile(fileName, charsetName, resultMap);
                     long size = (new File(fileName).length());
@@ -399,14 +400,14 @@ public class MockData {
                 } else if (AllFileFormat.equalsIgnoreCase("3")) {
 
                     OutPutFile.generateDatFile(fileName, charsetName, resultMap);
-                    OutPutFile.compressFile(fileName);
+                    OutPutFile.compressFile(fileName,compressFile);
                     OutPutFile.generateDatFile(fileName, charsetName, resultMap);
                     long size = (new File(fileName).length());
                     OutPutFile.createXml(fileName, size, charsetName, readyFileFormat, readyFileName);
                     OutPutFile.update(ID);
                 } else {
                     OutPutFile.generateDatFile(fileName, charsetName, resultMap);
-                    OutPutFile.compressFile(fileName);
+                    OutPutFile.compressFile(fileName,compressFile);
                     long size = (new File(fileName).length());
                     OutPutFile.createXml(fileName, size, charsetName, readyFileFormat, readyFileName);
                     OutPutFile.deleteFile(fileName);
