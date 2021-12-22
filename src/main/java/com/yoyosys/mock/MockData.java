@@ -56,12 +56,8 @@ public class MockData {
             DsConfig dsConfig = null;
             try {
                 dsConfig = mockData.getDsConfig(dataSourceConfig, dsDlpMockDataConfig.getHive_name());
-                if (dsConfig == null){
-                    logger.info(GlobalConstants.LOG_PREFIX + "配置文件内容获取失败");
-                    continue;
-                }
             } catch (Exception e) {
-                logger.info(GlobalConstants.LOG_PREFIX + "配置文件内容获取失败");
+                logger.error(GlobalConstants.LOG_PREFIX + "配置文件内容获取失败",e);
                 continue;
             }
             logger.info(GlobalConstants.LOG_PREFIX + "配置文件内容获取成功");
@@ -106,7 +102,7 @@ public class MockData {
             try {
                 columnList = mockData.getColumn(modeFile, CLFile, loadScene);
             } catch (Exception e) {
-                logger.info(GlobalConstants.LOG_PREFIX + hiveName + "--表结构获取失败");
+                logger.error(GlobalConstants.LOG_PREFIX + hiveName + "--表结构获取失败",e);
                 continue;
             }
             logger.info(GlobalConstants.LOG_PREFIX +  hiveName + "--表结构获取成功");
@@ -119,7 +115,7 @@ public class MockData {
                 expr.accept(myVisitor);
                 dataModifyMap = myVisitor.getDataModifyMap();
             } catch (JSQLParserException e) {
-                logger.error(GlobalConstants.LOG_PREFIX +"  "+hiveName+"  where表达式初始化失败  "+e);
+                logger.error(GlobalConstants.LOG_PREFIX +"  "+hiveName+"  where表达式初始化失败  ",e);
                 continue;
             }
             int isCounterexample = dsDlpMockDataConfig.getIsCounterexample();
@@ -140,7 +136,7 @@ public class MockData {
             try {
                 fileList = getDataFile(dataSourceConfig.getDataFilePath(), hiveName);
             } catch (Exception e) {
-                logger.info(GlobalConstants.LOG_PREFIX +  hiveName +"--获取数据文件异常");
+                logger.error(GlobalConstants.LOG_PREFIX +  hiveName +"--获取数据文件异常",e);
                 continue;
             }
             if (fileList.size() != 0) {
@@ -156,7 +152,7 @@ public class MockData {
                         }
                         bfr1.close();
                     } catch (Exception e) {
-                        logger.info(GlobalConstants.LOG_PREFIX +  hiveName +"--读取数据文件异常");
+                        logger.error(GlobalConstants.LOG_PREFIX +  hiveName +"--读取数据文件异常", e);
                         continue;
                     }
                 }
@@ -170,7 +166,7 @@ public class MockData {
                     try {
                         resultSonMap = mockData.createData(columnList, makeNum, startDate, endDate, loadScene);
                     } catch (Exception e) {
-                        logger.info(GlobalConstants.LOG_PREFIX +  hiveName +"--生成模拟数据异常");
+                        logger.error(GlobalConstants.LOG_PREFIX +  hiveName +"--生成模拟数据异常",e);
                         continue;
                     }
                     logger.info(GlobalConstants.LOG_PREFIX +  hiveName +"--生成模拟数据成功");
@@ -214,7 +210,7 @@ public class MockData {
                 try {
                     resultMap = mockData.createData(columnList, n, startDate, endDate, loadScene);
                 } catch (Exception e) {
-                    logger.info(GlobalConstants.LOG_PREFIX +  hiveName +"--生成模拟数据失败");
+                    logger.error(GlobalConstants.LOG_PREFIX +  hiveName +"--生成模拟数据失败", e);
                     continue;
                 }
                 logger.info(GlobalConstants.LOG_PREFIX +  hiveName +"--生成模拟数据成功");
@@ -225,7 +221,7 @@ public class MockData {
                 try {
                     modiDate(n, noRecords, records, resultMap, startDate, endDate);
                 } catch (Exception e) {
-                    logger.info(GlobalConstants.LOG_PREFIX +  hiveName +"--处理分区字段失败");
+                    logger.error(GlobalConstants.LOG_PREFIX +  hiveName +"--处理分区字段失败",e);
                     continue;
                 }
                 logger.info(GlobalConstants.LOG_PREFIX +  hiveName +"--处理分区字段成功");
@@ -552,7 +548,7 @@ public class MockData {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+
         }
 
         String[] createSql = result.toString().split("\n");
