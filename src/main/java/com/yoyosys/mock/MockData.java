@@ -243,7 +243,7 @@ public class MockData {
                 modifyData(resultMap, isCounterexample, myVisitor, expr, noRecords,hiveName);
                 logger.info(GlobalConstants.LOG_PREFIX+dsDlpMockDataConfig.getHive_name()+"  where修改结果成功");
             }catch (Exception e){
-                logger.error(GlobalConstants.LOG_PREFIX+dsDlpMockDataConfig.getHive_name()+"  where修改结果失败  "+e);
+                logger.error(GlobalConstants.LOG_PREFIX+dsDlpMockDataConfig.getHive_name()+"  where修改结果失败  ",e);
                 continue;
             }
             /**
@@ -303,7 +303,7 @@ public class MockData {
             }
             logger.info(GlobalConstants.LOG_PREFIX+hiveName+"  正例生成成功");
         }catch (Exception e){
-            logger.error(GlobalConstants.LOG_PREFIX+hiveName+"  "+columnFlag.get().getFieldName()+"  正例生成失败  "+e);
+            logger.error(GlobalConstants.LOG_PREFIX+hiveName+"  "+columnFlag.get().getFieldName()+"  正例生成失败  ",e);
             throw e;
         }
 
@@ -338,7 +338,7 @@ public class MockData {
                 logger.info(GlobalConstants.LOG_PREFIX+hiveName+"  反例生成成功");
             }
         } catch (Exception e) {
-            logger.error(GlobalConstants.LOG_PREFIX+hiveName +"  "+columnFlag.get().getFieldName()+"  反例生成失败  "+e);
+            logger.error(GlobalConstants.LOG_PREFIX+hiveName +"  "+columnFlag.get().getFieldName()+"  反例生成失败  ",e);
             throw e;
         }
     }
@@ -637,9 +637,9 @@ public class MockData {
         //1.获取当前jar包路径
         File rootPath = new File(this.getClass().getProtectionDomain().getCodeSource().getLocation().getFile());//此路径为当前项目路径
         //2.拼接路径
-        String path = rootPath.getParent() + File.separator + "conf" + File.separator + "dlp_yoyo_mockdata.config";//配置文件绝对路径
+//        String path = rootPath.getParent() + File.separator + "conf" + File.separator + "dlp_yoyo_mockdata.config";//配置文件绝对路径
         // System.out.println(path);
-        //String path = "D:\\work_space\\mock_data\\conf\\dlp_yoyo_mockdata.config";//该行代码为测试时修改的本地路径，如果部署到linux服务器上要将该行代码注释
+        String path = "c:\\work_space\\mock_data\\conf\\dlp_yoyo_mockdata.config";//该行代码为测试时修改的本地路径，如果部署到linux服务器上要将该行代码注释
         //3.获取配置文件信息
         try {
             InputStream in = new FileInputStream(path);
