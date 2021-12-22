@@ -58,9 +58,11 @@ public class MockData {
                 dsConfig = mockData.getDsConfig(dataSourceConfig, dsDlpMockDataConfig.getHive_name());
                 if (dsConfig == null){
                     logger.info(GlobalConstants.LOG_PREFIX + "配置文件内容获取失败");
+                    continue;
                 }
             } catch (Exception e) {
                 logger.info(GlobalConstants.LOG_PREFIX + "配置文件内容获取失败");
+                continue;
             }
             logger.info(GlobalConstants.LOG_PREFIX + "配置文件内容获取成功");
             //todo: 王震宣  解析模板文件
@@ -104,9 +106,10 @@ public class MockData {
             try {
                 columnList = mockData.getColumn(modeFile, CLFile, loadScene);
             } catch (Exception e) {
-                logger.info(GlobalConstants.LOG_PREFIX + "表结构获取失败");
+                logger.info(GlobalConstants.LOG_PREFIX + hiveName + "--表结构获取失败");
+                continue;
             }
-            logger.info(GlobalConstants.LOG_PREFIX + "表结构获取成功");
+            logger.info(GlobalConstants.LOG_PREFIX +  hiveName + "--表结构获取成功");
 
             Map<String, Data> dataModifyMap = null;
             MyVisitor myVisitor = new MyVisitor(columnList);
@@ -137,7 +140,8 @@ public class MockData {
             try {
                 fileList = getDataFile(dataSourceConfig.getDataFilePath(), hiveName);
             } catch (Exception e) {
-                logger.info(GlobalConstants.LOG_PREFIX + "获取数据文件异常");
+                logger.info(GlobalConstants.LOG_PREFIX +  hiveName +"--获取数据文件异常");
+                continue;
             }
             if (fileList.size() != 0) {
                 //生成模拟数据集
@@ -152,7 +156,8 @@ public class MockData {
                         }
                         bfr1.close();
                     } catch (Exception e) {
-                        logger.info(GlobalConstants.LOG_PREFIX + "读取数据文件异常");
+                        logger.info(GlobalConstants.LOG_PREFIX +  hiveName +"--读取数据文件异常");
+                        continue;
                     }
                 }
                 //将所有数据文件中的数据放到一个集合中，因为有可能上传多个数据文件
@@ -165,9 +170,10 @@ public class MockData {
                     try {
                         resultSonMap = mockData.createData(columnList, makeNum, startDate, endDate, loadScene);
                     } catch (Exception e) {
-                        logger.info(GlobalConstants.LOG_PREFIX + "生成模拟数据异常");
+                        logger.info(GlobalConstants.LOG_PREFIX +  hiveName +"--生成模拟数据异常");
+                        continue;
                     }
-                    logger.info(GlobalConstants.LOG_PREFIX + "生成模拟数据成功");
+                    logger.info(GlobalConstants.LOG_PREFIX +  hiveName +"--生成模拟数据成功");
                     //将新生成的记录与原本数据文件中的记录合并
                     resultMap.putAll(resultSonMap);
                 }
@@ -208,9 +214,10 @@ public class MockData {
                 try {
                     resultMap = mockData.createData(columnList, n, startDate, endDate, loadScene);
                 } catch (Exception e) {
-                    logger.info(GlobalConstants.LOG_PREFIX + "生成模拟数据失败");
+                    logger.info(GlobalConstants.LOG_PREFIX +  hiveName +"--生成模拟数据失败");
+                    continue;
                 }
-                logger.info(GlobalConstants.LOG_PREFIX + "生成模拟数据成功");
+                logger.info(GlobalConstants.LOG_PREFIX +  hiveName +"--生成模拟数据成功");
 
             }
             //处理resultMap的分区字段
@@ -218,9 +225,10 @@ public class MockData {
                 try {
                     modiDate(n, noRecords, records, resultMap, startDate, endDate);
                 } catch (Exception e) {
-                    logger.info(GlobalConstants.LOG_PREFIX + "处理分区字段失败");
+                    logger.info(GlobalConstants.LOG_PREFIX +  hiveName +"--处理分区字段失败");
+                    continue;
                 }
-                logger.info(GlobalConstants.LOG_PREFIX + "处理分区字段成功");
+                logger.info(GlobalConstants.LOG_PREFIX +  hiveName +"--处理分区字段成功");
             }
 
             /*
