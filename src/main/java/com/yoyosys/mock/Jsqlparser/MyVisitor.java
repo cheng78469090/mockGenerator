@@ -84,7 +84,7 @@ public class MyVisitor extends ExpressionVisitorAdapter {
                 dataModifyMap.put(equalsTo.getLeftExpression().toString(),equalsData);
             }
         } catch (Exception e) {
-            logger.error(GlobalConstants.LOG_PREFIX+equalsTo.toString()+e);
+            logger.error(GlobalConstants.LOG_PREFIX+equalsTo.toString(),e);
         }
     }
 
@@ -101,7 +101,7 @@ public class MyVisitor extends ExpressionVisitorAdapter {
                 dataModifyMap.put(between.getLeftExpression().toString(),compareData);
             }
         } catch (Exception e) {
-            logger.error(GlobalConstants.LOG_PREFIX+between.toString()+e);
+            logger.error(GlobalConstants.LOG_PREFIX+between.toString(),e);
         }
     }
 
@@ -122,7 +122,7 @@ public class MyVisitor extends ExpressionVisitorAdapter {
                 }
             }
         } catch (Exception e) {
-            logger.error(GlobalConstants.LOG_PREFIX+greaterThan.toString()+e);
+            logger.error(GlobalConstants.LOG_PREFIX+greaterThan.toString(),e);
         }
     }
 
@@ -144,7 +144,7 @@ public class MyVisitor extends ExpressionVisitorAdapter {
                 }
             }
         } catch (Exception e) {
-            logger.error(GlobalConstants.LOG_PREFIX+greaterThanEquals.toString()+e);
+            logger.error(GlobalConstants.LOG_PREFIX+greaterThanEquals.toString(),e);
         }
     }
 
@@ -191,7 +191,7 @@ public class MyVisitor extends ExpressionVisitorAdapter {
                 }
             }
         } catch (Exception e) {
-            logger.error(GlobalConstants.LOG_PREFIX+inExpression.toString()+e);
+            logger.error(GlobalConstants.LOG_PREFIX+inExpression.toString(),e);
         }
     }
 
@@ -207,7 +207,7 @@ public class MyVisitor extends ExpressionVisitorAdapter {
                 dataModifyMap.put(isNullExpression.getLeftExpression().toString(),isNullData);
             }
         } catch (Exception e) {
-            logger.error(GlobalConstants.LOG_PREFIX+isNullExpression.toString()+e);
+            logger.error(GlobalConstants.LOG_PREFIX+isNullExpression.toString(),e);
         }
     }
 
@@ -224,7 +224,7 @@ public class MyVisitor extends ExpressionVisitorAdapter {
                 dataModifyMap.put(likeExpression.getLeftExpression().toString(),likeData);
             }
         } catch (Exception e) {
-            logger.error(GlobalConstants.LOG_PREFIX+likeExpression.toString()+e);
+            logger.error(GlobalConstants.LOG_PREFIX+likeExpression.toString(),e);
         }
     }
 
@@ -246,7 +246,7 @@ public class MyVisitor extends ExpressionVisitorAdapter {
                 }
             }
         } catch (Exception e) {
-            logger.error(GlobalConstants.LOG_PREFIX+minorThan.toString()+e);
+            logger.error(GlobalConstants.LOG_PREFIX+minorThan.toString(),e);
         }
     }
 
@@ -268,7 +268,7 @@ public class MyVisitor extends ExpressionVisitorAdapter {
                 }
             }
         } catch (Exception e) {
-            logger.error(GlobalConstants.LOG_PREFIX+minorThanEquals.toString()+e);
+            logger.error(GlobalConstants.LOG_PREFIX+minorThanEquals.toString(),e);
         }
     }
 
@@ -284,7 +284,7 @@ public class MyVisitor extends ExpressionVisitorAdapter {
                 dataModifyMap.put(notEqualsTo.getLeftExpression().toString(),equalsData);
             }
         } catch (Exception e) {
-            logger.error(GlobalConstants.LOG_PREFIX+notEqualsTo.toString()+e);
+            logger.error(GlobalConstants.LOG_PREFIX+notEqualsTo.toString(),e);
         }
     }
 
