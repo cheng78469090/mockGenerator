@@ -630,7 +630,7 @@ public class MockData {
         //2.拼接路径
         String path = rootPath.getParent() + File.separator + "conf" + File.separator + "dlp_yoyo_mockdata.config";//配置文件绝对路径
         // System.out.println(path);
-//        String path = "C:\\work_space\\mock_data\\conf\\dlp_yoyo_mockdata.config";//该行代码为测试时修改的本地路径，如果部署到linux服务器上要将该行代码注释
+        //String path = "D:\\work_space\\mock_data\\conf\\dlp_yoyo_mockdata.config";//该行代码为测试时修改的本地路径，如果部署到linux服务器上要将该行代码注释
         //3.获取配置文件信息
         try {
             InputStream in = new FileInputStream(path);
