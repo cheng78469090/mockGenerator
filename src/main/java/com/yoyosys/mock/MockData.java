@@ -423,9 +423,9 @@ public class MockData {
                 }
                 TimeUnit.MILLISECONDS.sleep(10);
             } catch (InterruptedException e) {
-                logger.error(GlobalConstants.LOG_PREFIX+e);
+                logger.error(GlobalConstants.LOG_PREFIX,e);
             } catch (Exception e) {
-                logger.error(GlobalConstants.LOG_PREFIX+e);
+                logger.error(GlobalConstants.LOG_PREFIX,e);
             }
         }
 

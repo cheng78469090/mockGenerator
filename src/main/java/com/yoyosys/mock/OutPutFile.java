@@ -78,7 +78,7 @@ public class OutPutFile {
             bw.close();
             logger.info(GlobalConstants.LOG_PREFIX+file.getName()+"文件生成成功");
         } catch (Exception e) {
-            logger.error(GlobalConstants.LOG_PREFIX +file.getName()+"文件生成失败"+e);
+            logger.error(GlobalConstants.LOG_PREFIX +file.getName()+"文件生成失败",e);
             file.delete();
             return;
         }
@@ -154,7 +154,7 @@ public class OutPutFile {
             ps.executeUpdate();
             logger.info(GlobalConstants.LOG_PREFIX+"数据库更新成功"+"ID为"+ID);
         } catch (SQLException e) {
-            logger.error(GlobalConstants.LOG_PREFIX +"数据库更新失败"+"ID为"+ID+e);
+            logger.error(GlobalConstants.LOG_PREFIX +"数据库更新失败"+"ID为"+ID,e);
         } finally {
             ps.close();
             conn.close();
@@ -171,7 +171,7 @@ public class OutPutFile {
                 file.createNewFile();
                 logger.info(GlobalConstants.LOG_PREFIX+file.getName()+"就绪文件生成成功");
             } catch (IOException e) {
-                logger.error(GlobalConstants.LOG_PREFIX+file.getName()+"就绪文件生成失败"+e);
+                logger.error(GlobalConstants.LOG_PREFIX+file.getName()+"就绪文件生成失败",e);
             }
         } else {
             // 创建XML文档树
@@ -228,7 +228,7 @@ public class OutPutFile {
                     pw.close();
                 logger.info(GlobalConstants.LOG_PREFIX+file.getName()+"文件生成成功");
             } catch (IOException e) {
-                logger.error(GlobalConstants.LOG_PREFIX +file.getName()+"文件生成失败"+e);
+                logger.error(GlobalConstants.LOG_PREFIX +file.getName()+"文件生成失败",e);
             }
 
         }
