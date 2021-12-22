@@ -684,13 +684,14 @@ public class MockData {
             Connection connection = null;
             PreparedStatement mockDataConfigPs = null;
             ResultSet mockDataConfigResultSet = null;
+            logger.info(GlobalConstants.LOG_PREFIX + "数据库连接信息："+dataSourceConfig.getOracle_url());
             try {
                 connection = getConnection(dataSourceConfig);
                 String mockDataConfigSql = "select * from DS_DLP_MOCKDATA_CONFIG where OPERATOR = ? and STATE = 0";
                 mockDataConfigPs = connection.prepareStatement(mockDataConfigSql);
                 mockDataConfigPs.setString(1, dataSourceConfig.getOperator());
                 mockDataConfigResultSet = mockDataConfigPs.executeQuery();
-
+                logger.info(GlobalConstants.LOG_PREFIX + "数据库连接成功");
                 while (mockDataConfigResultSet.next()) {
                     DsDlpMockDataConfig dsDlpMockDataConfig = new DsDlpMockDataConfig();
                     dsDlpMockDataConfig.setId(mockDataConfigResultSet.getInt("ID"));
@@ -722,7 +723,6 @@ public class MockData {
                     dsDlpMockDataConfig.setIsCounterexample(mockDataConfigResultSet.getInt("IS_COUNTEREXAMPLE"));
                     //放入到集合当中
                     dsDlpMockDataConfigList.add(dsDlpMockDataConfig);
-                    logger.info(GlobalConstants.LOG_PREFIX + "获取数据库连接成功");
                 }
             } catch (SQLException e4) {
                 logger.error(GlobalConstants.LOG_PREFIX + "获取数据库连接失败"+e4);
