@@ -16,4 +16,5 @@ public interface Data {
      * @return
      */
     String inputCounterexample();
+
 }

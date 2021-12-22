@@ -1,7 +1,6 @@
 package com.yoyosys.mock;
 
 
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.yoyosys.mock.Jsqlparser.MyVisitor;
 import com.yoyosys.mock.Jsqlparser.dataType.Data;
 import com.yoyosys.mock.common.GlobalConstants;
@@ -24,11 +23,8 @@ import java.util.*;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 
 /**
@@ -120,7 +116,8 @@ public class MockData {
                 expr.accept(myVisitor);
                 dataModifyMap = myVisitor.getDataModifyMap();
             } catch (JSQLParserException e) {
-                e.printStackTrace();
+                logger.error(GlobalConstants.LOG_PREFIX +"  "+hiveName+"  where表达式初始化失败  "+e);
+                continue;
             }
             int isCounterexample = dsDlpMockDataConfig.getIsCounterexample();
             int noRecords = 0;
@@ -233,14 +230,14 @@ public class MockData {
              * todo:易建军、王燚
              *  return : list<map>
              * */
-            logger.info(GlobalConstants.LOG_PREFIX+dsDlpMockDataConfig.getHive_name()+"开始根据where修改结果");
+            logger.info(GlobalConstants.LOG_PREFIX+dsDlpMockDataConfig.getHive_name()+"  开始根据where修改结果");
             try{
-                modifyData(resultMap, isCounterexample, myVisitor, expr, noRecords);
+                modifyData(resultMap, isCounterexample, myVisitor, expr, noRecords,hiveName);
+                logger.info(GlobalConstants.LOG_PREFIX+dsDlpMockDataConfig.getHive_name()+"  where修改结果成功");
             }catch (Exception e){
-                logger.info(GlobalConstants.LOG_PREFIX+dsDlpMockDataConfig.getHive_name()+e+"where修改结果失败");
+                logger.error(GlobalConstants.LOG_PREFIX+dsDlpMockDataConfig.getHive_name()+"  where修改结果失败  "+e);
+                continue;
             }
-            logger.info(GlobalConstants.LOG_PREFIX+dsDlpMockDataConfig.getHive_name()+"where修改结果成功");
-
             /**
              * 输出
              创建输出路径：/result
@@ -269,14 +266,14 @@ public class MockData {
             String fileFormat = dataSourceConfig.getFileFormat();
             String AllFileFormat = dataSourceConfig.getAllFileFormat();
             String readyFileFormat = dataSourceConfig.getReadyFileFormat();
-            //String ClassName = this.getClass().getProtectionDomain().getCodeSource().getLocation().getFile();
             outPutFile(alikeFileName, charsetName, fileFormat, AllFileFormat, filePath, ID, resultMap, readyFileFormat);
         }
     }
 
     private void modifyData(LinkedHashMap<Column, List> resultMap, int isCounterexample, MyVisitor
-            myVisitor, Expression expr, int mRecords) {
+            myVisitor, Expression expr, int mRecords,String hiveName) {
         int size = resultMap.values().iterator().next().size();
+        AtomicReference<Column> columnFlag = new AtomicReference<>();
         try {
             for (int i = 0; i < size; i++) {
                 myVisitor.cleanDataModifyMap();
@@ -286,6 +283,7 @@ public class MockData {
                 dataModifyMap.forEach((s, data) -> {
                     for (Column column : resultMap.keySet()) {
                         if (column.getFieldName().toLowerCase(Locale.ROOT).equals(s.toLowerCase(Locale.ROOT))) {
+                            columnFlag.set(column);
                             String s1 = data.inputValue();
                             if (s1 == null) {
                                 continue;
@@ -295,11 +293,11 @@ public class MockData {
                     }
                 });
             }
+            logger.info(GlobalConstants.LOG_PREFIX+hiveName+"  正例生成成功");
         }catch (Exception e){
-            logger.error(GlobalConstants.LOG_PREFIX+e+"正例生成失败");
+            logger.error(GlobalConstants.LOG_PREFIX+hiveName+"  "+columnFlag.get().getFieldName()+"  正例生成失败  "+e);
+            throw e;
         }
-        logger.info(GlobalConstants.LOG_PREFIX+"正例生成成功");
-
 
         try {
             if (isCounterexample == 1) {
@@ -315,6 +313,7 @@ public class MockData {
                         while (it.hasNext()) {
                             Column next = it.next();
                             if (next.getFieldName().toLowerCase(Locale.ROOT).equals(s.toLowerCase(Locale.ROOT))) {
+                                columnFlag.set(next);
                                 String result = data.inputCounterexample();
                                 if (result == null) {
                                     resultMap.get(next).set(i++, MakeDataUtil.makeStringLenData(next));
@@ -328,11 +327,12 @@ public class MockData {
                         }
                     }
                 }
+                logger.info(GlobalConstants.LOG_PREFIX+hiveName+"  反例生成成功");
             }
         } catch (Exception e) {
-            logger.error(GlobalConstants.LOG_PREFIX+"反例生成失败");
+            logger.error(GlobalConstants.LOG_PREFIX+hiveName +"  "+columnFlag.get().getFieldName()+"  反例生成失败  "+e);
+            throw e;
         }
-        logger.info(GlobalConstants.LOG_PREFIX+"反例生成成功");
     }
 
 

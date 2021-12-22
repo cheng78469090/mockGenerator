@@ -18,8 +18,6 @@ public class SubstrFunction extends Function implements Data {
 
     private List<Column> columns;
 
-
-
     public SubstrFunction(ExpressionList parameters, Data data, List<Column> columns) {
         this.parameters = parameters;
         this.data = data;
@@ -88,11 +86,6 @@ public class SubstrFunction extends Function implements Data {
         /**
          *  如果生成的字符串长度不够截取的长度，需要用“ “占位满足长度
          */
-//        if(s.get().length()<=Integer.parseInt(start.toString())){
-//            return s.get().replaceFirst(" ", dataValue);
-//        }else {
-//            return s.get().replaceFirst(s.get().substring(Integer.parseInt(start.toString()), Integer.parseInt(end.toString())), dataValue);
-//        }
         String substring = s.get().substring(Integer.parseInt(start.toString()), Integer.parseInt(end.toString()));
         String result = s.get().replaceFirst(substring, dataValue);
 
