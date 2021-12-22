@@ -676,7 +676,7 @@ public class MockData {
             logger.info(GlobalConstants.LOG_PREFIX + "成功读取配置文件");
             return dataSourceConfig;
         } catch (IOException io) {
-            logger.error(GlobalConstants.LOG_PREFIX + "读取配置文件异常"+io);
+            logger.error(GlobalConstants.LOG_PREFIX + "读取配置文件异常",io);
             return null;
         }
     }
@@ -733,7 +733,7 @@ public class MockData {
                     dsDlpMockDataConfigList.add(dsDlpMockDataConfig);
                 }
             } catch (SQLException e4) {
-                logger.error(GlobalConstants.LOG_PREFIX + "获取数据库连接失败"+e4);
+                logger.error(GlobalConstants.LOG_PREFIX + "获取数据库连接失败",e4);
             } finally {
                 close(connection, mockDataConfigPs, mockDataConfigResultSet);
             }
@@ -776,7 +776,7 @@ public class MockData {
                 logger.info(GlobalConstants.LOG_PREFIX +"成功获取数据加载场景");
                 return dsConfig;
             } catch (SQLException e4) {
-                logger.error(GlobalConstants.LOG_PREFIX + e4);
+                logger.error(GlobalConstants.LOG_PREFIX ,e4);
                 return dsConfig;
             } finally {
                 close(connection, mockDataConfigPs, mockDataConfigResultSet);
@@ -808,14 +808,14 @@ public class MockData {
                 //System.out.println("获取连接成功");
                 logger.info(GlobalConstants.LOG_PREFIX +"获取连接成功");
             } catch (InstantiationException e1) {
-                logger.error(GlobalConstants.LOG_PREFIX + "实例异常"+e1);
+                logger.error(GlobalConstants.LOG_PREFIX + "实例异常",e1);
 
             } catch (IllegalAccessException e2) {
-                logger.error(GlobalConstants.LOG_PREFIX + "访问异常"+e2);
+                logger.error(GlobalConstants.LOG_PREFIX + "访问异常",e2);
             } catch (ClassNotFoundException e3) {
-                logger.error(GlobalConstants.LOG_PREFIX + "驱动类找不到"+e3);
+                logger.error(GlobalConstants.LOG_PREFIX + "驱动类找不到",e3);
             } catch (SQLException e4) {
-                logger.error(GlobalConstants.LOG_PREFIX + "获取数据库连接失败"+e4);
+                logger.error(GlobalConstants.LOG_PREFIX + "获取数据库连接失败",e4);
             }
         }
 
@@ -835,7 +835,7 @@ public class MockData {
                 rs.close();
             }
         } catch (SQLException e) {
-            logger.error(GlobalConstants.LOG_PREFIX +"释放资源失败"+e);
+            logger.error(GlobalConstants.LOG_PREFIX +"释放资源失败",e);
         }
 
         try {
@@ -843,7 +843,7 @@ public class MockData {
                 ps.close();
             }
         } catch (SQLException e) {
-            logger.error(GlobalConstants.LOG_PREFIX +"释放资源失败"+e);
+            logger.error(GlobalConstants.LOG_PREFIX +"释放资源失败",e);
         }
 
         try {
@@ -851,7 +851,7 @@ public class MockData {
                 conn.close();
             }
         } catch (SQLException e) {
-            logger.error(GlobalConstants.LOG_PREFIX +"释放资源失败"+e);
+            logger.error(GlobalConstants.LOG_PREFIX +"释放资源失败",e);
         }
 
     }
