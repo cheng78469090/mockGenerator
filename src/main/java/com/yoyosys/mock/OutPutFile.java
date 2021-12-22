@@ -11,6 +11,7 @@ import org.dom4j.io.XMLWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.awt.color.ColorSpace;
 import java.io.*;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -75,9 +76,11 @@ public class OutPutFile {
                 bw.write((String) a + line);
             }
             bw.close();
+            logger.info(GlobalConstants.LOG_PREFIX+file.getName()+"文件生成成功");
         } catch (Exception e) {
-            logger.error(GlobalConstants.LOG_PREFIX +"生成dat文件失败"+e);
+            logger.error(GlobalConstants.LOG_PREFIX +file.getName()+"文件生成失败"+e);
             file.delete();
+            return;
         }
     }
 
@@ -149,8 +152,9 @@ public class OutPutFile {
             ps = conn.prepareStatement(sql);
             ps.setInt(1, ID);
             ps.executeUpdate();
+            logger.info(GlobalConstants.LOG_PREFIX+"数据库更新成功"+"ID为"+ID);
         } catch (SQLException e) {
-            logger.error(GlobalConstants.LOG_PREFIX +"数据库更新失败"+e);
+            logger.error(GlobalConstants.LOG_PREFIX +"数据库更新失败"+"ID为"+ID+e);
         } finally {
             ps.close();
             conn.close();
@@ -160,12 +164,14 @@ public class OutPutFile {
     /**
      * createXMl
      */
-    public static void createXml(String fileName, Long fileSize, String charsetName, String readyFileFormat, String readyFileName) throws IOException {
+    public static void createXml(String fileName, Long fileSize, String charsetName, String readyFileFormat, String readyFileName)  {
+        File file = new File(readyFileName);
         if (readyFileFormat.equals(".ok")) {
             try {
-                new File(readyFileName).createNewFile();
+                file.createNewFile();
+                logger.info(GlobalConstants.LOG_PREFIX+file.getName()+"就绪文件生成成功");
             } catch (IOException e) {
-                logger.error(GlobalConstants.LOG_PREFIX+"就绪文件生成失败"+e);
+                logger.error(GlobalConstants.LOG_PREFIX+file.getName()+"就绪文件生成失败"+e);
             }
         } else {
             // 创建XML文档树
@@ -189,12 +195,9 @@ public class OutPutFile {
             outputFormat.setIndent("    "); //以四个空格方式实现缩进
             outputFormat.setNewlines(true); //设置是否换行
 
-
-            File file = new File(readyFileName);
             if (file.exists()) {
                 file.delete();
             }
-
             try {
                 // xmlWriter是用来把XML文档写入字符串的(工具)
                 XMLWriter xmlWriter = new XMLWriter(new FileOutputStream(file), outputFormat);
@@ -223,8 +226,9 @@ public class OutPutFile {
                         br.close();
                 if (pw != null)
                     pw.close();
+                logger.info(GlobalConstants.LOG_PREFIX+file.getName()+"文件生成成功");
             } catch (IOException e) {
-                logger.error(GlobalConstants.LOG_PREFIX +"就绪文件生成失败"+e);
+                logger.error(GlobalConstants.LOG_PREFIX +file.getName()+"文件生成失败"+e);
             }
 
         }
@@ -235,11 +239,12 @@ public class OutPutFile {
      * @param FileName
      * @throws Exception
      */
-    public static void compressFile(String FileName){
+    public static void compressFile(String FileName,String compressFile){
         String shellCmd = "compress " + FileName;
         //String shellCmd = "pwd";
         //调用shell命名生成.Z文件
         String s = ShellUntil.execShell(shellCmd);
+        logger.info(GlobalConstants.LOG_PREFIX+compressFile+"文件生成成功"+s);
     }
 }
 
